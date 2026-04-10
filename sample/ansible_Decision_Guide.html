@@ -1,0 +1,3644 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CP-Ansible hosts.yml Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #0f1419;
+            --surface: #1a1f2e;
+            --surface-hover: #252d3d;
+            --border: #3a4556;
+            --text: #e8eaed;
+            --text-secondary: #9ca3af;
+            --accent: #5b9ff5;
+            --accent-secondary: #7fb3f5;
+            --positive: #81c784;
+            --negative: #e57373;
+            --warning: #ffb74d;
+            --info: #64b5f6;
+        }
+
+        html.theme-light {
+            --bg: #ffffff;
+            --surface: #f5f7fa;
+            --surface-hover: #e8eef8;
+            --border: #cbd5e1;
+            --text: #1a202c;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --accent-secondary: #60a5fa;
+            --positive: #10b981;
+            --negative: #ef4444;
+            --warning: #f59e0b;
+            --info: #0ea5e9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .header-menu {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .menu-btn {
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .menu-btn:hover {
+            background: var(--border);
+        }
+
+        .theme-toggle {
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: background 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--border);
+        }
+
+        .step-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem;
+            overflow-x: auto;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 50;
+        }
+
+        .step-dot {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .step-dot.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .step-dot.done {
+            background: var(--positive);
+            color: white;
+            border-color: var(--positive);
+        }
+
+        .step-dot.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            color: var(--text-secondary);
+        }
+
+        .step-dot-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            flex: 1;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+            padding: 2rem;
+        }
+
+        .right-panel {
+            width: 500px;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .step-desc {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .form-label.required::after {
+            content: " *";
+            color: var(--negative);
+        }
+
+        .form-help {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .text-input, .number-input, .select-input, .textarea-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .text-input:focus, .number-input:focus, .select-input:focus, .textarea-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(91, 159, 245, 0.1);
+        }
+
+        .textarea-input {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-flex;
+            width: 2.5rem;
+            height: 1.5rem;
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-switch.active {
+            background: var(--positive);
+            border-color: var(--positive);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 1.25rem;
+            height: 1.25rem;
+            background: white;
+            border-radius: 50%;
+            top: 0.125rem;
+            left: 0.125rem;
+            transition: left 0.2s;
+        }
+
+        .toggle-switch.active::after {
+            left: 1.125rem;
+        }
+
+        .radio-card-group, .checkbox-card-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .option-card {
+            background: var(--surface-hover);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .option-card:hover {
+            border-color: var(--accent);
+            background: var(--surface);
+        }
+
+        .option-card.active {
+            border-color: var(--accent);
+            background: rgba(91, 159, 245, 0.1);
+        }
+
+        .option-radio, .option-check {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid var(--border);
+            background: var(--surface-hover);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .option-radio {
+            border-radius: 50%;
+        }
+
+        .option-card.active .option-radio,
+        .option-card.active .option-check {
+            border-color: var(--accent);
+            background: var(--accent);
+        }
+
+        .option-radio::after {
+            content: '';
+            width: 0.5rem;
+            height: 0.5rem;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .option-card.active .option-radio::after {
+            opacity: 1;
+        }
+
+        .option-check::after {
+            content: '✓';
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .option-card.active .option-check::after {
+            opacity: 1;
+        }
+
+        .option-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            padding-right: 2rem;
+        }
+
+        .option-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .option-tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        .tag-recommended {
+            background: rgba(129, 199, 132, 0.2);
+            color: var(--positive);
+        }
+
+        .tag-not-recommended {
+            background: rgba(229, 115, 115, 0.2);
+            color: var(--negative);
+        }
+
+        .tag-advanced {
+            background: rgba(91, 159, 245, 0.2);
+            color: var(--accent);
+        }
+
+        .tag-enterprise {
+            background: rgba(171, 71, 188, 0.2);
+            color: #ba68c8;
+        }
+
+        .dep-notice {
+            background: rgba(255, 179, 71, 0.1);
+            border-left: 3px solid var(--warning);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text);
+        }
+
+        .dep-notice::before {
+            content: '⚠ ';
+            font-weight: 600;
+        }
+
+        .dynamic-list {
+            margin-bottom: 1rem;
+        }
+
+        .list-item {
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .list-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .list-item-title {
+            font-weight: 500;
+        }
+
+        .list-item-remove {
+            background: var(--negative);
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: background 0.2s;
+        }
+
+        .list-item-remove:hover {
+            background: #ef4444;
+        }
+
+        .add-button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .add-button:hover {
+            background: var(--accent-secondary);
+        }
+
+        .add-button::before {
+            content: '+';
+            font-weight: 700;
+        }
+
+        .kv-editor {
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        .kv-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            align-items: end;
+        }
+
+        .kv-pair:last-child {
+            margin-bottom: 0;
+        }
+
+        .kv-remove {
+            background: var(--negative);
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: background 0.2s;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .kv-remove:hover {
+            background: #ef4444;
+        }
+
+        .yaml-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .yaml-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .yaml-card {
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-y: auto;
+            flex: 1;
+            margin-bottom: 1rem;
+        }
+
+        .yaml-content {
+            font-size: 0.75rem;
+            line-height: 1.6;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text);
+        }
+
+        .yaml-comment {
+            color: var(--text-secondary);
+        }
+
+        .yaml-key {
+            color: var(--info);
+        }
+
+        .yaml-value {
+            color: var(--positive);
+        }
+
+        .yaml-string {
+            color: var(--accent);
+        }
+
+        .yaml-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .yaml-btn {
+            flex: 1;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .yaml-btn:hover {
+            background: var(--accent-secondary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--positive);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .host-input-group {
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .host-input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .host-input-grid.full {
+            grid-template-columns: 1fr;
+        }
+
+        @media (max-width: 960px) {
+            .right-panel {
+                display: none;
+            }
+
+            .radio-card-group, .checkbox-card-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">CP-Ansible hosts.yml Generator</div>
+            <div class="header-menu">
+                <button class="theme-toggle" id="themeToggle" title="테마 전환">🌙</button>
+                <button class="menu-btn" id="exportPng">PNG 내보내기</button>
+                <button class="menu-btn" id="downloadYaml">YAML 다운로드</button>
+                <button class="menu-btn" id="copyYaml">YAML 복사</button>
+                <button class="menu-btn" id="resetAll">초기화</button>
+            </div>
+        </div>
+
+        <div class="step-bar" id="stepBar"></div>
+
+        <div class="main">
+            <div class="left-panel" id="leftPanel"></div>
+            <div class="right-panel">
+                <div class="yaml-title">YAML 미리보기</div>
+                <div class="yaml-card">
+                    <div class="yaml-content" id="yamlPreview"></div>
+                </div>
+                <div class="yaml-controls">
+                    <button class="yaml-btn" id="copyYamlBtn">복사</button>
+                    <button class="yaml-btn" id="downloadYamlBtn">다운로드</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span>Confluent Platform 8.x KRaft / cp-ansible 기반</span>
+            <span id="footerStatus"></span>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        // STATE MANAGEMENT
+        // ============================================================
+        const state = {
+            currentStep: 1,
+            completedSteps: new Set(),
+            data: {
+                ansible_connection: 'ssh',
+                ansible_user: '',
+                ansible_port: 22,
+                ansible_become: true,
+                ansible_python_interpreter: '',
+                deployment_strategy: 'rolling',
+                ansible_strategy: 'linear',
+                install_java: false,
+                custom_java_path: '',
+                installation_method: 'package',
+                confluent_package_version: '8.0.2',
+                confluent_server_enabled: true,
+                repository_configuration: 'confluent',
+                custom_yum_repo_path: '',
+                custom_apt_repo_path: '',
+                confluent_archive_file_source: '',
+                confluent_archive_file_remote: false,
+                archive_destination_path: '/opt/confluent',
+                archive_owner: '',
+                archive_group: '',
+                confluent_control_center_next_gen_package_version: '2.3.0',
+                confluent_cli_download_enabled: false,
+                components: {
+                    kafka_controller: true,
+                    kafka_broker: true,
+                    schema_registry: false,
+                    kafka_connect: false,
+                    kafka_connect_cluster_count: 1,
+                    ksql: false,
+                    ksql_cluster_count: 1,
+                    kafka_rest: false,
+                    control_center_next_gen: false,
+                },
+                broker_collocated: true,
+                hosts: {
+                    kafka_controller: [],
+                    kafka_broker: [],
+                    schema_registry: [],
+                    kafka_connect: {},
+                    ksql: {},
+                    kafka_rest: [],
+                    control_center_next_gen: [],
+                },
+                common_user_group: true,
+                common_user: '',
+                common_group: '',
+                component_users: {},
+                log_dirs: {},
+                data_dirs: {},
+                listener_protocol: 'SASL_SSL',
+                kraft_controller_security_protocol: 'SASL_SSL',
+                ssl_method: 'self-signed',
+                ssl_ca_cert_path: '',
+                ssl_signed_cert_path: '',
+                ssl_key_path: '',
+                ssl_key_password: '',
+                ssl_keystore_path: '',
+                ssl_keystore_password: '',
+                ssl_truststore_path: '',
+                ssl_truststore_password: '',
+                ssl_mutual_auth_enabled: false,
+                ssl_custom_certs_remote_src: false,
+                ssl_provided_keystore_and_truststore_remote_src: false,
+                regenerate_ca: true,
+                fips_enabled: false,
+                sasl_mechanism: 'plain',
+                sasl_plain_users: [],
+                sasl_scram_users: [],
+                kerberos_realm: '',
+                kerberos_kdc_hostname: '',
+                oauth_token_uri: '',
+                oauth_issuer_url: '',
+                authorization_type: 'rbac',
+                rbac_enabled: true,
+                mds_super_user: 'c3svc',
+                mds_super_user_password: '',
+                rbac_super_users: [],
+                create_mds_certs: true,
+                mds_broker_listener_ssl_enabled: true,
+                mds_broker_listener_ssl_mutual_auth_enabled: false,
+                mds_broker_listener_sasl_protocol: 'none',
+                kafka_broker_rest_proxy_enabled: true,
+                component_ldap_users: {},
+                ldap_enabled: true,
+                ldap_preset: 'authentik',
+                ldap_url: '',
+                ldap_base_dn: '',
+                ldap_user_search_base: '',
+                ldap_group_search_base: '',
+                ldap_bind_dn: '',
+                ldap_bind_password: '',
+                ldap_user_name_attribute: 'cn',
+                ldap_user_object_class: 'inetOrgPerson',
+                ldap_group_object_class: 'groupOfUniqueNames',
+                ldap_group_member_attribute: 'uniqueMember',
+                ldap_search_mode: 'GROUPS',
+                ldap_group_name_attribute: 'cn',
+                ldap_group_member_attribute_pattern: '',
+                ldap_user_memberof_attribute: '',
+                control_center_oidc_enabled: false,
+                sso_mode: 'oidc',
+                idp_preset: 'authentik',
+                oidc_client_id: '',
+                oidc_client_secret: '',
+                oidc_issuer: '',
+                oidc_jwks_uri: '',
+                oidc_authorize_uri: '',
+                oidc_token_uri: '',
+                broker_performance_preset: 'small-production',
+                broker_custom_properties: {},
+                kafka_controller_custom_properties: {},
+                schema_registry_listener_port: 9081,
+                schema_registry_custom_properties: {},
+                kafka_connect_rest_port: 8083,
+                kafka_connect_config: {},
+                kafka_connect_custom_properties: {},
+                kafka_connect_plugins: [],
+                kafka_connect_confluent_hub_plugins: [],
+                ksql_listener_port: 8088,
+                ksql_config: {},
+                ksql_custom_properties: {},
+                kafka_rest_port: 8082,
+                kafka_rest_custom_properties: {},
+                c3_authentication_type: 'ldap',
+                c3_data_dir: '/data/confluent/c3',
+                c3_custom_properties: {},
+                prometheus_port: 9090,
+                alertmanager_port: 9098,
+                jmx_enabled: true,
+                kafka_broker_heap_opts: '-Xms4g -Xmx4g',
+                kafka_controller_heap_opts: '-Xms4g -Xmx4g',
+                schema_registry_heap_opts: '-Xms1g -Xmx1g',
+                kafka_connect_heap_opts: '-Xms1g -Xmx1g',
+                ksql_heap_opts: '-Xms1g -Xmx1g',
+                kafka_rest_heap_opts: '-Xms512m -Xmx512m',
+                c3_heap_opts: '-Xms2g -Xmx2g',
+                jmxexporter_jar_url: '',
+                kafka_broker_jmxexporter_enabled: false,
+                kafka_controller_jmxexporter_enabled: false,
+                confluent_license: '',
+                // === Secrets Protection (Global) ===
+                secrets_protection_enabled: false,
+                secrets_protection_masterkey: '',
+                secrets_protection_security_file: '',
+                recreate_secrets_file: false,
+                regenerate_masterkey: false,
+                // === Secrets Protection (Per-Component Enabled) ===
+                kafka_broker_secrets_protection_enabled: true,
+                kafka_controller_secrets_protection_enabled: true,
+                schema_registry_secrets_protection_enabled: true,
+                kafka_connect_secrets_protection_enabled: true,
+                ksql_secrets_protection_enabled: true,
+                kafka_rest_secrets_protection_enabled: true,
+                control_center_next_gen_secrets_protection_enabled: true,
+                // === Secrets Protection (Encrypt Passwords / Properties) ===
+                kafka_broker_secrets_protection_encrypt_passwords: true,
+                kafka_broker_secrets_protection_encrypt_properties: '',
+                kafka_controller_secrets_protection_encrypt_passwords: true,
+                kafka_controller_secrets_protection_encrypt_properties: '',
+                schema_registry_secrets_protection_encrypt_passwords: true,
+                schema_registry_secrets_protection_encrypt_properties: '',
+                kafka_connect_secrets_protection_encrypt_passwords: true,
+                kafka_connect_secrets_protection_encrypt_properties: '',
+                ksql_secrets_protection_encrypt_passwords: true,
+                ksql_secrets_protection_encrypt_properties: '',
+                kafka_rest_secrets_protection_encrypt_passwords: true,
+                kafka_rest_secrets_protection_encrypt_properties: '',
+                control_center_next_gen_secrets_protection_encrypt_passwords: true,
+                control_center_next_gen_secrets_protection_encrypt_properties: '',
+                // === Secrets Protection (Client-Level) ===
+                kafka_broker_client_secrets_protection_enabled: true,
+                kafka_broker_client_secrets_protection_encrypt_passwords: true,
+                kafka_broker_client_secrets_protection_encrypt_properties: '',
+                kafka_controller_client_secrets_protection_enabled: true,
+                kafka_controller_client_secrets_protection_encrypt_passwords: true,
+                kafka_controller_client_secrets_protection_encrypt_properties: '',
+                telemetry_api_key: '',
+                telemetry_api_secret: '',
+                telemetry_proxy_url: '',
+                telemetry_proxy_username: '',
+                telemetry_proxy_password: '',
+                audit_logs_destination_enabled: false,
+                audit_logs_destination_bootstrap_servers: '',
+                audit_logs_destination_listener: '',
+                audit_logs_destination_principal: '',
+                audit_logs_destination_erp_url: '',
+                audit_logs_destination_admin_user: '',
+                audit_logs_destination_admin_password: '',
+                logredactor_enabled: false,
+                logredactor_rule_url: '',
+                logredactor_rule_path: '',
+                logredactor_rule_path_local: '',
+                custom_log4j: false,
+                ccloud_kafka_enabled: false,
+                ccloud_kafka_bootstrap_servers: '',
+                ccloud_kafka_key: '',
+                ccloud_kafka_secret: '',
+                ccloud_schema_registry_enabled: false,
+                ccloud_schema_registry_url: '',
+                ccloud_schema_registry_key: '',
+                ccloud_schema_registry_secret: '',
+                jmxexporter_jar_path: '',
+                jmxexporter_url_remote: false,
+                jmxexporter_config_path: '',
+                jmxexporter_config_url: '',
+                schema_registry_jmxexporter_enabled: false,
+                control_center_next_gen_jmxexporter_enabled: false,
+                kafka_connect_jmxexporter_enabled: false,
+                jolokia_enabled: false,
+                jolokia_jar_path: '',
+                jolokia_auth_mode: 'none',
+                kafka_broker_jolokia_enabled: false,
+                kafka_controller_jolokia_enabled: false,
+                schema_registry_jolokia_enabled: false,
+                kafka_connect_jolokia_enabled: false,
+                ksql_jolokia_enabled: false,
+                kafka_rest_jolokia_enabled: false,
+                control_center_next_gen_jolokia_enabled: false,
+                telemetry_enabled: false,
+                kafka_broker_telemetry_enabled: true,
+                schema_registry_telemetry_enabled: true,
+                kafka_connect_telemetry_enabled: true,
+                ksql_telemetry_enabled: true,
+                kafka_rest_telemetry_enabled: true,
+                control_center_next_gen_telemetry_enabled: true,
+                kafka_controller_custom_java_args: '',
+                kafka_broker_custom_java_args: '',
+                schema_registry_custom_java_args: '',
+                kafka_connect_custom_java_args: '',
+                ksql_custom_java_args: '',
+                kafka_rest_custom_java_args: '',
+                control_center_next_gen_custom_java_args: '',
+                kafka_broker_schema_validation_enabled: false,
+                kafka_controller_copy_files: {},
+                kafka_broker_copy_files: {},
+                schema_registry_copy_files: {},
+                kafka_connect_copy_files: {},
+                ksql_copy_files: {},
+                kafka_rest_copy_files: {},
+                control_center_next_gen_copy_files: {},
+                tiered_storage_enabled: false,
+                tiered_storage_backend: 'S3',
+                tiered_storage_s3_bucket: '',
+                tiered_storage_s3_region: '',
+                tiered_storage_gcs_bucket: '',
+                tiered_storage_azure_container: '',
+                self_balancing_enabled: false,
+                health_checks_enabled: false,
+                kafka_broker_custom_listeners: {},
+                fips_mode: 'fips-140-2',
+            }
+        };
+
+        const steps = [
+            { id: 1, title: '기본 환경', desc: 'Ansible 연결 및 배포 전략 설정', active: true },
+            { id: 2, title: '설치 방식', desc: '설치 방법(Package/Archive) 및 버전 선택', active: false },
+            { id: 3, title: '컴포넌트 & 호스트', desc: '배포할 컴포넌트 선택 및 호스트 정보 입력', active: false },
+            { id: 4, title: '사용자/그룹/경로', desc: '컴포넌트별 OS 사용자, 그룹, 디렉토리 설정', active: false },
+            { id: 5, title: 'Listener & 암호화', desc: 'Listener 프로토콜 및 TLS/SSL 설정', active: false },
+            { id: 6, title: '인증', desc: 'SASL 메커니즘 및 사용자 설정', active: false },
+            { id: 7, title: '인가', desc: 'ACL 또는 RBAC 기반 권한 관리', active: false },
+            { id: 8, title: 'LDAP 연동', desc: 'LDAP 디렉토리 연동 설정', active: false },
+            { id: 9, title: 'SSO/OIDC', desc: 'Control Center SSO 및 OIDC 연동', active: false },
+            { id: 10, title: 'Kafka Broker 상세', desc: '브로커 성능 튜닝 및 커스텀 설정', active: false },
+            { id: 11, title: 'Schema Registry / Connect', desc: '추가 컴포넌트 상세 설정', active: false },
+            { id: 12, title: 'Control Center', desc: 'Control Center 상세 설정 및 연동', active: false },
+            { id: 13, title: 'JVM & 모니터링', desc: 'JVM 힙 및 JMX Exporter 설정', active: false },
+            { id: 14, title: '고급 설정', desc: '라이선스, Secrets Protection 등', active: false },
+        ];
+
+        // ============================================================
+        // UTILITY FUNCTIONS
+        // ============================================================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('theme-dark')) {
+                html.classList.remove('theme-dark');
+                html.classList.add('theme-light');
+                document.getElementById('themeToggle').textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.remove('theme-light');
+                html.classList.add('theme-dark');
+                document.getElementById('themeToggle').textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function loadTheme() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            const html = document.documentElement;
+            if (theme === 'light') {
+                html.classList.add('theme-light');
+                html.classList.remove('theme-dark');
+                document.getElementById('themeToggle').textContent = '☀️';
+            }
+        }
+
+        // ============================================================
+        // STEP RENDERING
+        // ============================================================
+        function renderStepBar() {
+            const stepBar = document.getElementById('stepBar');
+            stepBar.innerHTML = '';
+
+            steps.forEach(step => {
+                const dot = document.createElement('button');
+                dot.className = 'step-dot';
+
+                if (state.currentStep === step.id) {
+                    dot.classList.add('active');
+                } else if (state.completedSteps.has(step.id)) {
+                    dot.classList.add('done');
+                } else if (step.id > 9) {
+                    dot.classList.add('disabled');
+                }
+
+                const number = document.createElement('div');
+                number.className = 'step-dot-number';
+                number.textContent = step.id;
+
+                const label = document.createElement('span');
+                label.textContent = step.title;
+
+                dot.appendChild(number);
+                dot.appendChild(label);
+
+                if (step.id <= 9) {
+                    dot.addEventListener('click', () => switchStep(step.id));
+                }
+
+                stepBar.appendChild(dot);
+            });
+        }
+
+        function switchStep(stepId) {
+            state.completedSteps.add(state.currentStep);
+            state.currentStep = stepId;
+            renderStepBar();
+            renderStepContent();
+            updateYamlPreview();
+        }
+
+        function renderStepContent() {
+            const leftPanel = document.getElementById('leftPanel');
+            leftPanel.innerHTML = '';
+
+            const step = steps[state.currentStep - 1];
+            if (!step) return;
+
+            const content = document.createElement('div');
+            content.className = 'step-content active';
+
+            const title = document.createElement('h2');
+            title.className = 'step-title';
+            title.textContent = step.title;
+
+            const desc = document.createElement('p');
+            desc.className = 'step-desc';
+            desc.textContent = step.desc;
+
+            content.appendChild(title);
+            content.appendChild(desc);
+
+            const form = renderStepForm(state.currentStep);
+            content.appendChild(form);
+
+            leftPanel.appendChild(content);
+        }
+
+        function renderStepForm(stepId) {
+            const form = document.createElement('form');
+
+            switch(stepId) {
+                case 1: return renderStep1(form);
+                case 2: return renderStep2(form);
+                case 3: return renderStep3(form);
+                case 4: return renderStep4(form);
+                case 5: return renderStep5(form);
+                case 6: return renderStep6(form);
+                case 7: return renderStep7(form);
+                case 8: return renderStep8(form);
+                case 9: return renderStep9(form);
+                case 10: return renderStep10(form);
+                case 11: return renderStep11(form);
+                case 12: return renderStep12(form);
+                case 13: return renderStep13(form);
+                case 14: return renderStep14(form);
+                default: return form;
+            }
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 1)
+        // ============================================================
+        function renderStep1(form) {
+            const section1 = createFormSection('Ansible 연결', [
+                { type: 'select', label: 'Ansible 연결 방식', key: 'ansible_connection',
+                  options: [{ value: 'ssh', label: 'SSH' }, { value: 'local', label: 'Local' }] },
+                { type: 'text', label: 'Ansible 사용자', key: 'ansible_user', required: true },
+                { type: 'number', label: 'Ansible 포트', key: 'ansible_port', default: 22 },
+                { type: 'toggle', label: 'Ansible Become', key: 'ansible_become' },
+                { type: 'text', label: 'Python 경로 (선택)', key: 'ansible_python_interpreter',
+                  help: '예: /usr/bin/python3.11' },
+            ]);
+            form.appendChild(section1);
+
+            const section2 = createFormSection('배포 전략', [
+                { type: 'radio', label: '배포 전략', key: 'deployment_strategy',
+                  options: [
+                    { value: 'rolling', label: '순차 배포', tag: { text: '기본', class: 'tag-recommended' } },
+                    { value: 'parallel', label: '병렬 배포', tag: { text: '고급', class: 'tag-advanced' } }
+                  ] },
+                { type: 'select', label: 'Ansible Strategy', key: 'ansible_strategy',
+                  options: [{ value: 'linear', label: 'Linear' }, { value: 'parallel', label: 'Parallel' }] },
+            ]);
+            form.appendChild(section2);
+
+            const section3 = createFormSection('Java 설정', [
+                { type: 'toggle', label: 'Java 자동 설치', key: 'install_java' },
+                { type: 'text', label: '커스텀 Java 경로', key: 'custom_java_path',
+                  help: 'install_java=false 시 필수. 예: /usr/lib/jvm/java-17-openjdk',
+                  visible: () => !state.data.install_java },
+            ]);
+            form.appendChild(section3);
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 2)
+        // ============================================================
+        function renderStep2(form) {
+            const section1 = createFormSection('설치 방식', [
+                { type: 'radio', label: '설치 방식 선택', key: 'installation_method',
+                  options: [
+                    { value: 'package', label: 'Package', desc: 'YUM/APT 패키지 관리자' },
+                    { value: 'archive', label: 'Archive', desc: 'ZIP/TAR (에어갭 환경)' }
+                  ] },
+            ]);
+            form.appendChild(section1);
+
+            if (state.data.installation_method === 'package') {
+                const section2 = createFormSection('Package 설정', [
+                    { type: 'text', label: 'Confluent 버전', key: 'confluent_package_version', default: '8.0.2' },
+                    { type: 'toggle', label: 'Confluent Server 활성화', key: 'confluent_server_enabled' },
+                    { type: 'radio', label: '저장소 설정', key: 'repository_configuration',
+                      options: [
+                        { value: 'confluent', label: 'Confluent 공식 저장소' },
+                        { value: 'custom', label: '커스텀 저장소' }
+                      ] },
+                    { type: 'text', label: 'YUM 저장소 경로', key: 'custom_yum_repo_path',
+                      visible: () => state.data.repository_configuration === 'custom' },
+                    { type: 'text', label: 'APT 저장소 경로', key: 'custom_apt_repo_path',
+                      visible: () => state.data.repository_configuration === 'custom' },
+                ]);
+                form.appendChild(section2);
+            } else {
+                const section2 = createFormSection('Archive 설정', [
+                    { type: 'text', label: 'Confluent 버전', key: 'confluent_package_version', default: '8.0.2' },
+                    { type: 'text', label: '아카이브 파일 경로', key: 'confluent_archive_file_source', required: true },
+                    { type: 'toggle', label: '원격 파일', key: 'confluent_archive_file_remote',
+                      help: '로컬 파일이면 해제' },
+                    { type: 'text', label: '설치 경로', key: 'archive_destination_path', default: '/opt/confluent' },
+                    { type: 'text', label: '소유자', key: 'archive_owner', required: true },
+                    { type: 'text', label: '그룹', key: 'archive_group', required: true },
+                ]);
+                form.appendChild(section2);
+            }
+
+            const section3 = createFormSection('추가 설정', [
+                { type: 'text', label: 'Control Center NG 버전', key: 'confluent_control_center_next_gen_package_version',
+                  default: '2.3.0',
+                  visible: () => state.data.components.control_center_next_gen },
+                { type: 'toggle', label: 'Confluent CLI 다운로드', key: 'confluent_cli_download_enabled' },
+            ]);
+            form.appendChild(section3);
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 3)
+        // ============================================================
+        function renderStep3(form) {
+            const section1 = createFormSection('컴포넌트 선택', [
+                { type: 'checkbox', label: '배포 컴포넌트', key: 'components',
+                  options: [
+                    { value: 'kafka_controller', label: 'Kafka Controller (KRaft)', disabled: true,
+                      help: '필수 컴포넌트' },
+                    { value: 'kafka_broker', label: 'Kafka Broker', disabled: true,
+                      help: '필수 컴포넌트' },
+                    { value: 'schema_registry', label: 'Schema Registry' },
+                    { value: 'kafka_connect', label: 'Kafka Connect' },
+                    { value: 'ksql', label: 'ksqlDB' },
+                    { value: 'kafka_rest', label: 'Kafka REST Proxy' },
+                    { value: 'control_center_next_gen', label: 'Control Center Next Gen' },
+                  ] },
+            ]);
+            form.appendChild(section1);
+
+            const section2 = createFormSection('호스트 정의', []);
+
+            const controllerDiv = document.createElement('div');
+            controllerDiv.innerHTML = '<h4 style="margin: 1.5rem 0 1rem; color: var(--text); font-weight: 600;">Kafka Controller</h4>';
+            section2.appendChild(controllerDiv);
+            section2.appendChild(renderHostList('kafka_controller', 'Controller'));
+
+            const brokerDiv = document.createElement('div');
+            brokerDiv.innerHTML = '<h4 style="margin: 1.5rem 0 1rem; color: var(--text); font-weight: 600;">Kafka Broker</h4>';
+            section2.appendChild(brokerDiv);
+
+            const colocateLabel = document.createElement('label');
+            colocateLabel.className = 'form-label';
+            colocateLabel.style.display = 'flex';
+            colocateLabel.style.alignItems = 'center';
+            colocateLabel.style.gap = '0.5rem';
+            colocateLabel.innerHTML = `
+                <input type="checkbox" id="brokerCollocated" ${state.data.broker_collocated ? 'checked' : ''}
+                       style="width: auto;">
+                <span>Controller와 동일 호스트 사용 (Co-located)</span>
+            `;
+            const brokerCheckbox = colocateLabel.querySelector('input');
+            brokerCheckbox.addEventListener('change', (e) => {
+                state.data.broker_collocated = e.target.checked;
+                if (e.target.checked) {
+                    state.data.hosts.kafka_broker = JSON.parse(JSON.stringify(
+                        state.data.hosts.kafka_controller.map((h, i) => ({
+                            hostname: h.hostname,
+                            ansible_host: h.ansible_host,
+                            broker_id: i + 1,
+                            broker_ip: h.node_ip
+                        }))
+                    ));
+                }
+                renderStepContent();
+                updateYamlPreview();
+            });
+            section2.appendChild(colocateLabel);
+            section2.appendChild(renderHostList('kafka_broker', 'Broker'));
+
+            if (state.data.components.schema_registry) {
+                const srDiv = document.createElement('div');
+                srDiv.innerHTML = '<h4 style="margin: 1.5rem 0 1rem; color: var(--text); font-weight: 600;">Schema Registry</h4>';
+                section2.appendChild(srDiv);
+                section2.appendChild(renderHostList('schema_registry', 'SR'));
+            }
+
+            if (state.data.components.kafka_connect) {
+                const kcDiv = document.createElement('div');
+                kcDiv.innerHTML = '<h4 style="margin: 1.5rem 0 1rem; color: var(--text); font-weight: 600;">Kafka Connect</h4>';
+                section2.appendChild(kcDiv);
+                section2.appendChild(renderHostList('kafka_connect', 'KC'));
+            }
+
+            if (state.data.components.ksql) {
+                const ksqlDiv = document.createElement('div');
+                ksqlDiv.innerHTML = '<h4 style="margin: 1.5rem 0 1rem; color: var(--text); font-weight: 600;">ksqlDB</h4>';
+                section2.appendChild(ksqlDiv);
+                section2.appendChild(renderHostList('ksql', 'KSQL'));
+            }
+
+            if (state.data.components.kafka_rest) {
+                const krDiv = document.createElement('div');
+                krDiv.innerHTML = '<h4 style="margin: 1.5rem 0 1rem; color: var(--text); font-weight: 600;">Kafka REST Proxy</h4>';
+                section2.appendChild(krDiv);
+                section2.appendChild(renderHostList('kafka_rest', 'KR'));
+            }
+
+            if (state.data.components.control_center_next_gen) {
+                const c3Div = document.createElement('div');
+                c3Div.innerHTML = '<h4 style="margin: 1.5rem 0 1rem; color: var(--text); font-weight: 600;">Control Center Next Gen</h4>';
+                section2.appendChild(c3Div);
+                section2.appendChild(renderHostList('control_center_next_gen', 'C3'));
+            }
+
+            form.appendChild(section2);
+            return form;
+        }
+
+        function renderHostList(component, label) {
+            const container = document.createElement('div');
+            const hosts = state.data.hosts[component] || [];
+
+            hosts.forEach((host, idx) => {
+                const item = document.createElement('div');
+                item.className = 'host-input-group';
+
+                let html = `
+                    <div class="list-item-header">
+                        <span class="list-item-title">${label} #${idx + 1}</span>
+                        <button type="button" class="list-item-remove" data-component="${component}" data-index="${idx}">
+                            삭제
+                        </button>
+                    </div>
+                    <div class="host-input-grid">
+                        <div class="form-group">
+                            <label class="form-label">Hostname</label>
+                            <input type="text" class="text-input" value="${host.hostname || ''}"
+                                   data-component="${component}" data-index="${idx}" data-field="hostname" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">IP (ansible_host)</label>
+                            <input type="text" class="text-input" value="${host.ansible_host || ''}"
+                                   data-component="${component}" data-index="${idx}" data-field="ansible_host" required>
+                        </div>
+                `;
+
+                if (component === 'kafka_controller') {
+                    html += `
+                        <div class="form-group full">
+                            <label class="form-label">node_id</label>
+                            <input type="number" class="number-input" value="${host.node_id || 9991}"
+                                   data-component="${component}" data-index="${idx}" data-field="node_id">
+                        </div>
+                    `;
+                } else if (component === 'kafka_broker') {
+                    html += `
+                        <div class="form-group full">
+                            <label class="form-label">broker_id</label>
+                            <input type="number" class="number-input" value="${host.broker_id || idx + 1}"
+                                   data-component="${component}" data-index="${idx}" data-field="broker_id">
+                        </div>
+                    `;
+                }
+
+                html += `</div>`;
+                item.innerHTML = html;
+                container.appendChild(item);
+            });
+
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.className = 'add-button';
+            addBtn.textContent = `${label} 호스트 추가`;
+            addBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!state.data.hosts[component]) {
+                    state.data.hosts[component] = [];
+                }
+
+                let newHost = {
+                    hostname: '',
+                    ansible_host: '',
+                };
+
+                if (component === 'kafka_controller') {
+                    newHost.node_id = 9991 + state.data.hosts[component].length;
+                    newHost.node_ip = '';
+                } else if (component === 'kafka_broker') {
+                    newHost.broker_id = state.data.hosts[component].length + 1;
+                    newHost.broker_ip = '';
+                }
+
+                state.data.hosts[component].push(newHost);
+                renderStepContent();
+                updateYamlPreview();
+            });
+            container.appendChild(addBtn);
+
+            container.addEventListener('change', (e) => {
+                if (e.target.dataset.component && e.target.dataset.field) {
+                    const comp = e.target.dataset.component;
+                    const idx = parseInt(e.target.dataset.index);
+                    const field = e.target.dataset.field;
+                    state.data.hosts[comp][idx][field] = e.target.type === 'number' ?
+                        parseInt(e.target.value) : e.target.value;
+                    updateYamlPreview();
+                }
+            });
+
+            container.addEventListener('click', (e) => {
+                if (e.target.classList.contains('list-item-remove')) {
+                    e.preventDefault();
+                    const comp = e.target.dataset.component;
+                    const idx = parseInt(e.target.dataset.index);
+                    state.data.hosts[comp].splice(idx, 1);
+                    renderStepContent();
+                    updateYamlPreview();
+                }
+            });
+
+            return container;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 4)
+        // ============================================================
+        function renderStep4(form) {
+            const section1 = createFormSection('사용자 & 그룹 모드', [
+                { type: 'toggle', label: '모든 컴포넌트에 동일 사용자/그룹 사용', key: 'common_user_group' },
+            ]);
+            form.appendChild(section1);
+
+            if (state.data.common_user_group) {
+                const section2 = createFormSection('공통 설정', [
+                    { type: 'text', label: '사용자명', key: 'common_user', required: true },
+                    { type: 'text', label: '그룹명', key: 'common_group', required: true },
+                ]);
+                form.appendChild(section2);
+            } else {
+                const section2 = createFormSection('컴포넌트별 사용자/그룹', []);
+
+                const components = [
+                    { key: 'kafka_controller', label: 'Kafka Controller' },
+                    { key: 'kafka_broker', label: 'Kafka Broker' },
+                    { key: 'schema_registry', label: 'Schema Registry', visible: () => state.data.components.schema_registry },
+                    { key: 'kafka_connect', label: 'Kafka Connect', visible: () => state.data.components.kafka_connect },
+                    { key: 'control_center_next_gen', label: 'Control Center', visible: () => state.data.components.control_center_next_gen },
+                ];
+
+                components.forEach(comp => {
+                    if (comp.visible && !comp.visible()) return;
+
+                    const div = document.createElement('div');
+                    div.style.marginBottom = '1rem';
+                    div.innerHTML = `<p style="font-weight: 600; margin-bottom: 0.75rem; color: var(--text);">${comp.label}</p>`;
+
+                    const grid = document.createElement('div');
+                    grid.className = 'host-input-grid';
+                    grid.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">사용자</label>
+                            <input type="text" class="text-input" value="${state.data.component_users[comp.key + '_user'] || ''}"
+                                   data-key="${comp.key}_user">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">그룹</label>
+                            <input type="text" class="text-input" value="${state.data.component_users[comp.key + '_group'] || ''}"
+                                   data-key="${comp.key}_group">
+                        </div>
+                    `;
+
+                    grid.addEventListener('change', (e) => {
+                        if (e.target.dataset.key) {
+                            state.data.component_users[e.target.dataset.key] = e.target.value;
+                            updateYamlPreview();
+                        }
+                    });
+
+                    div.appendChild(grid);
+                    section2.appendChild(div);
+                });
+
+                form.appendChild(section2);
+            }
+
+            const section3 = createFormSection('로그 디렉토리', [
+                { type: 'text', label: 'Controller 로그 경로', key: 'kafka_controller_log_dir' },
+                { type: 'text', label: 'Broker 로그 경로', key: 'kafka_broker_log_dir' },
+                { type: 'text', label: 'Schema Registry 로그 경로', key: 'schema_registry_log_dir',
+                  visible: () => state.data.components.schema_registry },
+                { type: 'text', label: 'Control Center 로그 경로', key: 'control_center_next_gen_log_dir',
+                  visible: () => state.data.components.control_center_next_gen },
+            ]);
+            form.appendChild(section3);
+
+            const section4 = createFormSection('데이터 디렉토리', [
+                { type: 'text', label: 'Broker log.dirs', key: 'kafka_broker_log_dirs',
+                  help: '예: /data01/sol/kafka/confluent/broker' },
+                { type: 'text', label: 'Controller log.dirs', key: 'kafka_controller_log_dirs' },
+                { type: 'text', label: 'Control Center data_dir', key: 'control_center_next_gen_data_dir',
+                  visible: () => state.data.components.control_center_next_gen },
+            ]);
+            form.appendChild(section4);
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 5)
+        // ============================================================
+        function renderStep5(form) {
+            const section1 = createFormSection('Listener Security Protocol', [
+                { type: 'radio', label: '프로토콜 선택', key: 'listener_protocol',
+                  options: [
+                    { value: 'PLAINTEXT', label: 'PLAINTEXT', desc: '인증/암호화 없음',
+                      tag: { text: '비권장', class: 'tag-not-recommended' } },
+                    { value: 'SASL_PLAINTEXT', label: 'SASL_PLAINTEXT', desc: 'SASL 인증만',
+                      tag: { text: '기본', class: 'tag-recommended' } },
+                    { value: 'SSL', label: 'SSL', desc: 'TLS 암호화만' },
+                    { value: 'SASL_SSL', label: 'SASL_SSL', desc: 'SASL + TLS',
+                      tag: { text: '프로덕션 권장', class: 'tag-recommended' } },
+                  ] },
+            ]);
+            form.appendChild(section1);
+
+            if (state.data.listener_protocol.includes('SSL')) {
+                const section2 = createFormSection('TLS/SSL 설정', [
+                    { type: 'radio', label: '인증서 방식', key: 'ssl_method',
+                      options: [
+                        { value: 'self-signed', label: 'Self-Signed', desc: '자동 생성' },
+                        { value: 'custom-certs', label: 'Custom Certificates' },
+                        { value: 'provided-keystore', label: 'Provided Keystore/Truststore' },
+                      ] },
+                ]);
+
+                if (state.data.ssl_method === 'custom-certs') {
+                    const customSection = createFormSection('커스텀 인증서', [
+                        { type: 'text', label: 'CA 인증서 경로', key: 'ssl_ca_cert_path' },
+                        { type: 'text', label: '서명된 인증서 경로', key: 'ssl_signed_cert_path' },
+                        { type: 'text', label: '개인 키 경로', key: 'ssl_key_path' },
+                        { type: 'text', label: '키 비밀번호', key: 'ssl_key_password', inputType: 'password' },
+                        { type: 'toggle', label: '인증서가 원격 호스트에 이미 존재', key: 'ssl_custom_certs_remote_src' },
+                    ]);
+                    section2.appendChild(customSection);
+                } else if (state.data.ssl_method === 'provided-keystore') {
+                    const keystoreSection = createFormSection('Keystore/Truststore', [
+                        { type: 'text', label: 'Keystore 경로', key: 'ssl_keystore_path', required: true },
+                        { type: 'text', label: 'Keystore 비밀번호', key: 'ssl_keystore_password', inputType: 'password', required: true },
+                        { type: 'text', label: 'Truststore 경로', key: 'ssl_truststore_path', required: true },
+                        { type: 'text', label: 'Truststore 비밀번호', key: 'ssl_truststore_password', inputType: 'password', required: true },
+                        { type: 'toggle', label: 'Keystore/Truststore가 원격 호스트에 이미 존재', key: 'ssl_provided_keystore_and_truststore_remote_src' },
+                    ]);
+                    section2.appendChild(keystoreSection);
+                }
+
+                form.appendChild(section2);
+
+                if (state.data.ssl_method === 'self-signed') {
+                    const selfSignedSection = createFormSection('Self-Signed 인증서', [
+                        { type: 'toggle', label: 'CA 인증서 재생성', key: 'regenerate_ca', default: true },
+                    ]);
+                    form.appendChild(selfSignedSection);
+                }
+
+                const section3 = createFormSection('고급 SSL 설정', [
+                    { type: 'toggle', label: 'mTLS (양방향 인증)', key: 'ssl_mutual_auth_enabled' },
+                    { type: 'toggle', label: 'FIPS 모드', key: 'fips_enabled' },
+                ]);
+                form.appendChild(section3);
+
+                if (state.data.fips_enabled) {
+                    const section3b = createFormSection('FIPS 상세 설정', [
+                        { type: 'select', label: 'FIPS 버전', key: 'fips_mode',
+                          options: [
+                            { value: 'fips-140-2', label: 'FIPS 140-2' },
+                            { value: 'fips-140-3', label: 'FIPS 140-3' },
+                          ] },
+                    ]);
+                    form.appendChild(section3b);
+                }
+            }
+
+            const section4 = createFormSection('KRaft Controller 보안', [
+                { type: 'radio', label: '프로토콜 선택', key: 'kraft_controller_security_protocol',
+                  options: [
+                    { value: 'PLAINTEXT', label: 'PLAINTEXT' },
+                    { value: 'SSL', label: 'SSL' },
+                    { value: 'SASL_SSL', label: 'SASL_SSL' },
+                  ] },
+            ]);
+            form.appendChild(section4);
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 6)
+        // ============================================================
+        function renderStep6(form) {
+            if (!state.data.listener_protocol.includes('SASL')) {
+                form.innerHTML = '<p style="color: var(--text-secondary);">SASL이 포함되지 않은 프로토콜입니다.</p>';
+                return form;
+            }
+
+            const section1 = createFormSection('SASL 메커니즘', [
+                { type: 'radio', label: '메커니즘 선택', key: 'sasl_mechanism',
+                  options: [
+                    { value: 'plain', label: 'PLAIN', desc: '평문 비밀번호',
+                      tag: { text: '기본', class: 'tag-recommended' } },
+                    { value: 'scram-sha-512', label: 'SCRAM-SHA-512', desc: 'Salted Challenge' },
+                    { value: 'scram-sha-256', label: 'SCRAM-SHA-256' },
+                    { value: 'kerberos', label: 'GSSAPI (Kerberos)' },
+                    { value: 'oauth', label: 'OAUTHBEARER' },
+                  ] },
+            ]);
+            form.appendChild(section1);
+
+            if (state.data.sasl_mechanism === 'plain') {
+                const usersSection = createFormSection('PLAIN 사용자', []);
+                usersSection.appendChild(renderKeyValueEditor('sasl_plain_users', '사용자명', '비밀번호'));
+                form.appendChild(usersSection);
+            } else if (state.data.sasl_mechanism.includes('scram')) {
+                const usersSection = createFormSection('SCRAM 사용자', []);
+                usersSection.appendChild(renderKeyValueEditor('sasl_scram_users', '사용자명', '비밀번호'));
+                form.appendChild(usersSection);
+            } else if (state.data.sasl_mechanism === 'kerberos') {
+                const kerberosSection = createFormSection('Kerberos 설정', [
+                    { type: 'text', label: 'Realm', key: 'kerberos_realm', required: true },
+                    { type: 'text', label: 'KDC Hostname', key: 'kerberos_kdc_hostname', required: true },
+                ]);
+                form.appendChild(kerberosSection);
+            } else if (state.data.sasl_mechanism === 'oauth') {
+                const oauthSection = createFormSection('OAuth 설정', [
+                    { type: 'text', label: 'Token URI', key: 'oauth_token_uri', required: true },
+                    { type: 'text', label: 'Issuer URL', key: 'oauth_issuer_url', required: true },
+                ]);
+                form.appendChild(oauthSection);
+            }
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 7)
+        // ============================================================
+        function renderStep7(form) {
+            const section1 = createFormSection('Authorization 방식', [
+                { type: 'radio', label: '방식 선택', key: 'authorization_type',
+                  options: [
+                    { value: 'none', label: '없음', desc: '인증된 사용자만' },
+                    { value: 'acl', label: 'ACL', desc: 'Kafka 기본 ACL' },
+                    { value: 'rbac', label: 'RBAC', desc: 'Confluent RBAC (MDS 필수)',
+                      tag: { text: '엔터프라이즈', class: 'tag-enterprise' } },
+                  ] },
+            ]);
+            form.appendChild(section1);
+
+            if (state.data.authorization_type === 'rbac') {
+                const depNotice = document.createElement('div');
+                depNotice.className = 'dep-notice';
+                depNotice.textContent = 'RBAC는 MDS(Metadata Service)와 LDAP이 필수입니다. Step 8에서 LDAP을 구성하세요.';
+                form.appendChild(depNotice);
+
+                const section2 = createFormSection('MDS 슈퍼 유저', [
+                    { type: 'text', label: '사용자명', key: 'mds_super_user', default: 'c3svc' },
+                    { type: 'text', label: '비밀번호', key: 'mds_super_user_password', inputType: 'password', required: true },
+                ]);
+                form.appendChild(section2);
+
+                const section3 = createFormSection('RBAC 슈퍼 유저', []);
+                section3.appendChild(renderKeyValueEditorSimple('rbac_super_users', '사용자명'));
+                form.appendChild(section3);
+
+                const section4 = createFormSection('인증서 설정', [
+                    { type: 'toggle', label: '토큰 키 쌍 자동 생성', key: 'create_mds_certs', default: true },
+                ]);
+                form.appendChild(section4);
+
+                const section5 = createFormSection('컴포넌트 LDAP 사용자', []);
+
+                const components = [
+                    { key: 'kafka_broker', label: 'Kafka Broker' },
+                    { key: 'schema_registry', label: 'Schema Registry', visible: () => state.data.components.schema_registry },
+                    { key: 'control_center_next_gen', label: 'Control Center', visible: () => state.data.components.control_center_next_gen },
+                ];
+
+                components.forEach(comp => {
+                    if (comp.visible && !comp.visible()) return;
+
+                    const div = document.createElement('div');
+                    div.style.marginBottom = '1.5rem';
+                    div.innerHTML = `<p style="font-weight: 600; margin-bottom: 0.75rem; color: var(--text);">${comp.label}</p>`;
+
+                    const grid = document.createElement('div');
+                    grid.className = 'host-input-grid';
+                    grid.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">LDAP 사용자</label>
+                            <input type="text" class="text-input"
+                                   value="${state.data.component_ldap_users[comp.key + '_ldap_user'] || ''}"
+                                   data-key="${comp.key}_ldap_user">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">비밀번호</label>
+                            <input type="password" class="text-input"
+                                   value="${state.data.component_ldap_users[comp.key + '_ldap_password'] || ''}"
+                                   data-key="${comp.key}_ldap_password">
+                        </div>
+                    `;
+
+                    grid.addEventListener('change', (e) => {
+                        if (e.target.dataset.key) {
+                            state.data.component_ldap_users[e.target.dataset.key] = e.target.value;
+                            updateYamlPreview();
+                        }
+                    });
+
+                    div.appendChild(grid);
+                    section5.appendChild(div);
+                });
+
+                form.appendChild(section5);
+
+                const section6 = createFormSection('MDS Broker Listener 설정', [
+                    { type: 'toggle', label: 'SSL 활성화', key: 'mds_broker_listener_ssl_enabled', default: true },
+                    { type: 'toggle', label: 'mTLS (양방향 인증)', key: 'mds_broker_listener_ssl_mutual_auth_enabled' },
+                    { type: 'select', label: 'SASL Protocol', key: 'mds_broker_listener_sasl_protocol',
+                      options: [
+                        { value: 'none', label: 'None' },
+                        { value: 'plain', label: 'PLAIN' },
+                        { value: 'scram-sha-256', label: 'SCRAM-SHA-256' },
+                        { value: 'scram-sha-512', label: 'SCRAM-SHA-512' },
+                      ] },
+                ]);
+                form.appendChild(section6);
+
+                const section7 = createFormSection('Kafka Broker REST Proxy', [
+                    { type: 'toggle', label: 'REST Proxy 활성화', key: 'kafka_broker_rest_proxy_enabled', default: true },
+                ]);
+                form.appendChild(section7);
+            }
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 8)
+        // ============================================================
+        function renderStep8(form) {
+            const section1 = createFormSection('LDAP 연동', [
+                { type: 'toggle', label: 'LDAP 사용', key: 'ldap_enabled' },
+            ]);
+            form.appendChild(section1);
+
+            if (!state.data.ldap_enabled) {
+                return form;
+            }
+
+            const section2 = createFormSection('LDAP 프리셋', [
+                { type: 'radio', label: '프리셋 선택', key: 'ldap_preset',
+                  options: [
+                    { value: 'active-directory', label: 'Active Directory' },
+                    { value: 'openldap', label: 'OpenLDAP' },
+                    { value: 'authentik', label: 'Authentik', tag: { text: '권장', class: 'tag-recommended' } },
+                    { value: 'custom', label: '커스텀' },
+                  ] },
+            ]);
+            form.appendChild(section2);
+
+            const section3 = createFormSection('LDAP 기본 설정', [
+                { type: 'text', label: 'LDAP URL', key: 'ldap_url', required: true,
+                  help: '예: ldap://server:389' },
+                { type: 'text', label: 'Base DN', key: 'ldap_base_dn', required: true },
+                { type: 'text', label: '사용자 검색 Base', key: 'ldap_user_search_base' },
+                { type: 'text', label: '그룹 검색 Base', key: 'ldap_group_search_base' },
+                { type: 'text', label: 'Bind DN (선택)', key: 'ldap_bind_dn',
+                  help: 'LDAP 바인드에 사용할 DN' },
+                { type: 'text', label: 'Bind 비밀번호 (선택)', key: 'ldap_bind_password',
+                  inputType: 'password', help: 'Bind DN 비밀번호' },
+            ]);
+            form.appendChild(section3);
+
+            const section4 = createFormSection('속성 매핑', [
+                { type: 'text', label: '사용자명 속성', key: 'ldap_user_name_attribute', default: 'cn',
+                  help: 'cn, sAMAccountName, uid 등' },
+                { type: 'text', label: '사용자 객체 클래스', key: 'ldap_user_object_class', default: 'inetOrgPerson' },
+                { type: 'text', label: '그룹 객체 클래스', key: 'ldap_group_object_class', default: 'groupOfUniqueNames' },
+                { type: 'text', label: '그룹 멤버 속성', key: 'ldap_group_member_attribute', default: 'uniqueMember' },
+                { type: 'select', label: '검색 모드', key: 'ldap_search_mode',
+                  options: [
+                    { value: 'GROUPS', label: 'Groups' },
+                    { value: 'USERS', label: 'Users' },
+                  ] },
+                { type: 'text', label: '그룹명 속성', key: 'ldap_group_name_attribute', default: 'cn' },
+                { type: 'text', label: '그룹 멤버 속성 패턴 (선택)', key: 'ldap_group_member_attribute_pattern',
+                  help: '예: dn' },
+                { type: 'text', label: '사용자 memberOf 속성 (선택)', key: 'ldap_user_memberof_attribute',
+                  help: '예: memberOf' },
+            ]);
+            form.appendChild(section4);
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 9)
+        // ============================================================
+        function renderStep9(form) {
+            if (!state.data.components.control_center_next_gen) {
+                form.innerHTML = '<p style="color: var(--text-secondary);">Control Center Next Gen을 Step 3에서 선택해야 합니다.</p>';
+                return form;
+            }
+
+            const section1 = createFormSection('SSO 설정', [
+                { type: 'toggle', label: 'C3 OIDC SSO 활성화', key: 'control_center_oidc_enabled' },
+            ]);
+            form.appendChild(section1);
+
+            if (!state.data.control_center_oidc_enabled) {
+                return form;
+            }
+
+            const section2 = createFormSection('SSO 모드', [
+                { type: 'radio', label: '모드 선택', key: 'sso_mode',
+                  options: [
+                    { value: 'oidc', label: 'OIDC' },
+                    { value: 'basic', label: 'BASIC' },
+                  ] },
+            ]);
+            form.appendChild(section2);
+
+            const section3 = createFormSection('IdP 프리셋', [
+                { type: 'radio', label: '프리셋 선택', key: 'idp_preset',
+                  options: [
+                    { value: 'authentik', label: 'Authentik', tag: { text: '권장', class: 'tag-recommended' } },
+                    { value: 'keycloak', label: 'Keycloak' },
+                    { value: 'azure-ad', label: 'Azure AD' },
+                    { value: 'okta', label: 'Okta' },
+                    { value: 'custom', label: '커스텀' },
+                  ] },
+            ]);
+            form.appendChild(section3);
+
+            const section4 = createFormSection('OIDC 설정', [
+                { type: 'text', label: 'Client ID', key: 'oidc_client_id', required: true },
+                { type: 'text', label: 'Client Secret', key: 'oidc_client_secret', inputType: 'password', required: true },
+                { type: 'text', label: 'Issuer', key: 'oidc_issuer', required: true },
+                { type: 'text', label: 'JWKS URI', key: 'oidc_jwks_uri', required: true },
+                { type: 'text', label: 'Authorize Base URI', key: 'oidc_authorize_uri' },
+                { type: 'text', label: 'Token Base URI', key: 'oidc_token_uri' },
+            ]);
+            form.appendChild(section4);
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 10)
+        // ============================================================
+        function renderStep10(form) {
+            const section1 = createFormSection('성능 프리셋', [
+                { type: 'radio', label: '프리셋 선택', key: 'broker_performance_preset',
+                  options: [
+                    { value: 'dev', label: '개발/테스트', desc: '낮은 리소스' },
+                    { value: 'small-production', label: '소규모 프로덕션', desc: '기본값',
+                      tag: { text: '권장', class: 'tag-recommended' } },
+                    { value: 'large-production', label: '대규모 프로덕션', desc: '고성능',
+                      tag: { text: '고급', class: 'tag-advanced' } },
+                  ] },
+            ]);
+            form.appendChild(section1);
+
+            const section2 = createFormSection('스키마 검증', [
+                { type: 'toggle', label: 'Schema Validation 활성화', key: 'kafka_broker_schema_validation_enabled' },
+            ]);
+            form.appendChild(section2);
+
+            const section3 = createFormSection('커스텀 Listener', []);
+            const listenerDiv = document.createElement('div');
+            listenerDiv.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">커스텀 Listener 정의 (Key=Listener 이름, Value=설정)</p>';
+            section3.appendChild(listenerDiv);
+            section3.appendChild(renderKeyValueEditor('kafka_broker_custom_listeners', 'Listener 이름', 'Listener 설정'));
+            form.appendChild(section3);
+
+            const section4 = createFormSection('커스텀 프로퍼티', []);
+            section4.appendChild(renderKeyValueEditor('broker_custom_properties', 'Key', 'Value'));
+            form.appendChild(section4);
+
+            const section5 = createFormSection('Tiered Storage', [
+                { type: 'toggle', label: 'Tiered Storage 활성화', key: 'tiered_storage_enabled' },
+            ]);
+            form.appendChild(section5);
+
+            if (state.data.tiered_storage_enabled) {
+                const section5b = createFormSection('Tiered Storage 설정', [
+                    { type: 'select', label: 'Backend 선택', key: 'tiered_storage_backend',
+                      options: [
+                        { value: 'S3', label: 'AWS S3' },
+                        { value: 'GCS', label: 'Google Cloud Storage' },
+                        { value: 'Azure', label: 'Azure Blob Storage' },
+                      ] },
+                    { type: 'text', label: 'S3 Bucket 이름', key: 'tiered_storage_s3_bucket',
+                      visible: () => state.data.tiered_storage_backend === 'S3' },
+                    { type: 'text', label: 'S3 Region', key: 'tiered_storage_s3_region',
+                      visible: () => state.data.tiered_storage_backend === 'S3' },
+                    { type: 'text', label: 'GCS Bucket 이름', key: 'tiered_storage_gcs_bucket',
+                      visible: () => state.data.tiered_storage_backend === 'GCS' },
+                    { type: 'text', label: 'Azure Container 이름', key: 'tiered_storage_azure_container',
+                      visible: () => state.data.tiered_storage_backend === 'Azure' },
+                ]);
+                form.appendChild(section5b);
+            }
+
+            const section6 = createFormSection('Self-Balancing Clusters', [
+                { type: 'toggle', label: 'Self-Balancing 활성화', key: 'self_balancing_enabled' },
+            ]);
+            form.appendChild(section6);
+
+            const section7 = createFormSection('Controller 커스텀 프로퍼티', []);
+            section7.appendChild(renderKeyValueEditor('kafka_controller_custom_properties', 'Key', 'Value'));
+            form.appendChild(section7);
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 11)
+        // ============================================================
+        function renderStep11(form) {
+            if (state.data.components.schema_registry) {
+                const section1 = createFormSection('Schema Registry', [
+                    { type: 'number', label: 'Listener Port', key: 'schema_registry_listener_port', default: 9081 },
+                ]);
+                form.appendChild(section1);
+
+                const section2 = createFormSection('Schema Registry 커스텀 프로퍼티', []);
+                section2.appendChild(renderKeyValueEditor('schema_registry_custom_properties', 'Key', 'Value'));
+                form.appendChild(section2);
+            }
+
+            if (state.data.components.kafka_connect) {
+                const section3 = createFormSection('Kafka Connect', [
+                    { type: 'number', label: 'REST API Port', key: 'kafka_connect_rest_port', default: 8083 },
+                ]);
+                form.appendChild(section3);
+
+                const section3b = createFormSection('Kafka Connect 커스텀 프로퍼티', []);
+                section3b.appendChild(renderKeyValueEditor('kafka_connect_custom_properties', 'Key', 'Value'));
+                form.appendChild(section3b);
+
+                const section3c = createFormSection('Kafka Connect 플러그인', []);
+                const pluginDiv = document.createElement('div');
+                pluginDiv.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">로컬 플러그인 경로 (한 줄에 하나)</p>';
+                section3c.appendChild(pluginDiv);
+                section3c.appendChild(renderKeyValueEditorSimple('kafka_connect_plugins', '플러그인 경로'));
+                form.appendChild(section3c);
+
+                const section3d = createFormSection('Confluent Hub 플러그인', []);
+                const hubDiv = document.createElement('div');
+                hubDiv.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">Confluent Hub 플러그인 (형식: confluentinc/connector:latest)</p>';
+                section3d.appendChild(hubDiv);
+                section3d.appendChild(renderKeyValueEditorSimple('kafka_connect_confluent_hub_plugins', 'Hub 플러그인'));
+                form.appendChild(section3d);
+            }
+
+            if (state.data.components.ksql) {
+                const section4 = createFormSection('ksqlDB', [
+                    { type: 'number', label: 'Listener Port', key: 'ksql_listener_port', default: 8088 },
+                ]);
+                form.appendChild(section4);
+
+                const section4b = createFormSection('ksqlDB 커스텀 프로퍼티', []);
+                section4b.appendChild(renderKeyValueEditor('ksql_custom_properties', 'Key', 'Value'));
+                form.appendChild(section4b);
+            }
+
+            if (state.data.components.kafka_rest) {
+                const section5 = createFormSection('Kafka REST Proxy', [
+                    { type: 'number', label: 'Listener Port', key: 'kafka_rest_port', default: 8082 },
+                ]);
+                form.appendChild(section5);
+
+                const section5b = createFormSection('Kafka REST Proxy 커스텀 프로퍼티', []);
+                section5b.appendChild(renderKeyValueEditor('kafka_rest_custom_properties', 'Key', 'Value'));
+                form.appendChild(section5b);
+            }
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 12)
+        // ============================================================
+        function renderStep12(form) {
+            if (!state.data.components.control_center_next_gen) {
+                form.innerHTML = '<p style="color: var(--text-secondary);">Control Center Next Gen을 Step 3에서 선택해야 합니다.</p>';
+                return form;
+            }
+
+            const section1 = createFormSection('Control Center 기본', [
+                { type: 'select', label: '인증 방식', key: 'c3_authentication_type',
+                  options: [
+                    { value: 'ldap', label: 'LDAP' },
+                    { value: 'basic', label: 'Basic' },
+                    { value: 'none', label: 'None' },
+                  ] },
+                { type: 'text', label: 'Data 디렉토리', key: 'c3_data_dir' },
+            ]);
+            form.appendChild(section1);
+
+            const section2 = createFormSection('Prometheus / Alertmanager', [
+                { type: 'number', label: 'Prometheus 포트', key: 'prometheus_port', default: 9090 },
+                { type: 'number', label: 'Alertmanager 포트', key: 'alertmanager_port', default: 9098 },
+            ]);
+            form.appendChild(section2);
+
+            const section3 = createFormSection('Control Center 커스텀 프로퍼티', []);
+            section3.appendChild(renderKeyValueEditor('c3_custom_properties', 'Key', 'Value'));
+            form.appendChild(section3);
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 13)
+        // ============================================================
+        function renderStep13(form) {
+            const section1 = createFormSection('JVM 힙 설정', [
+                { type: 'text', label: 'Broker KAFKA_HEAP_OPTS', key: 'kafka_broker_heap_opts',
+                  default: '-Xms4g -Xmx4g' },
+                { type: 'text', label: 'Controller KAFKA_HEAP_OPTS', key: 'kafka_controller_heap_opts',
+                  default: '-Xms4g -Xmx4g' },
+                { type: 'text', label: 'Schema Registry HEAP_OPTS', key: 'schema_registry_heap_opts',
+                  default: '-Xms1g -Xmx1g',
+                  visible: () => state.data.components.schema_registry },
+                { type: 'text', label: 'Kafka Connect HEAP_OPTS', key: 'kafka_connect_heap_opts',
+                  default: '-Xms1g -Xmx1g',
+                  visible: () => state.data.components.kafka_connect },
+                { type: 'text', label: 'ksqlDB HEAP_OPTS', key: 'ksql_heap_opts',
+                  default: '-Xms1g -Xmx1g',
+                  visible: () => state.data.components.ksql },
+                { type: 'text', label: 'Kafka REST HEAP_OPTS', key: 'kafka_rest_heap_opts',
+                  default: '-Xms512m -Xmx512m',
+                  visible: () => state.data.components.kafka_rest },
+                { type: 'text', label: 'Control Center HEAP_OPTS', key: 'c3_heap_opts',
+                  default: '-Xms2g -Xmx2g',
+                  visible: () => state.data.components.control_center_next_gen },
+            ]);
+            form.appendChild(section1);
+
+            const section2 = createFormSection('JMX Exporter', [
+                { type: 'toggle', label: 'JMX Exporter 활성화', key: 'jmx_enabled' },
+                { type: 'text', label: 'JMX Exporter JAR URL', key: 'jmxexporter_jar_url',
+                  visible: () => state.data.jmx_enabled,
+                  help: 'JMX Exporter JAR 다운로드 URL' },
+                { type: 'text', label: 'JMX Exporter JAR 배포 경로', key: 'jmxexporter_jar_path',
+                  visible: () => state.data.jmx_enabled,
+                  help: '배포 대상 JAR 경로 (예: /opt/prometheus)' },
+                { type: 'toggle', label: '원격 URL', key: 'jmxexporter_url_remote',
+                  visible: () => state.data.jmx_enabled,
+                  help: 'JAR을 원격 URL에서 다운로드' },
+                { type: 'text', label: 'JMX Config 배포 경로', key: 'jmxexporter_config_path',
+                  visible: () => state.data.jmx_enabled },
+                { type: 'text', label: 'JMX Config 소스 경로', key: 'jmxexporter_config_url',
+                  visible: () => state.data.jmx_enabled },
+                { type: 'toggle', label: 'Broker JMX Exporter 활성화', key: 'kafka_broker_jmxexporter_enabled',
+                  visible: () => state.data.jmx_enabled },
+                { type: 'toggle', label: 'Controller JMX Exporter 활성화', key: 'kafka_controller_jmxexporter_enabled',
+                  visible: () => state.data.jmx_enabled },
+                { type: 'toggle', label: 'Schema Registry JMX Exporter 활성화', key: 'schema_registry_jmxexporter_enabled',
+                  visible: () => state.data.jmx_enabled && state.data.components.schema_registry },
+                { type: 'toggle', label: 'Control Center JMX Exporter 활성화', key: 'control_center_next_gen_jmxexporter_enabled',
+                  visible: () => state.data.jmx_enabled && state.data.components.control_center_next_gen },
+                { type: 'toggle', label: 'Kafka Connect JMX Exporter 활성화', key: 'kafka_connect_jmxexporter_enabled',
+                  visible: () => state.data.jmx_enabled && state.data.components.kafka_connect },
+            ]);
+            form.appendChild(section2);
+
+            const section3 = createFormSection('Jolokia', [
+                { type: 'toggle', label: 'Jolokia 활성화', key: 'jolokia_enabled' },
+                { type: 'text', label: 'Jolokia JAR 경로', key: 'jolokia_jar_path',
+                  visible: () => state.data.jolokia_enabled },
+                { type: 'select', label: 'Jolokia 인증 모드', key: 'jolokia_auth_mode',
+                  visible: () => state.data.jolokia_enabled,
+                  options: [
+                    { value: 'none', label: '인증 없음' },
+                    { value: 'basic', label: 'Basic 인증' },
+                  ] },
+            ]);
+            form.appendChild(section3);
+
+            if (state.data.jolokia_enabled) {
+                const section3b = createFormSection('컴포넌트별 Jolokia 활성화', [
+                    { type: 'toggle', label: 'Broker', key: 'kafka_broker_jolokia_enabled' },
+                    { type: 'toggle', label: 'Controller', key: 'kafka_controller_jolokia_enabled' },
+                    { type: 'toggle', label: 'Schema Registry', key: 'schema_registry_jolokia_enabled',
+                      visible: () => state.data.components.schema_registry },
+                    { type: 'toggle', label: 'Kafka Connect', key: 'kafka_connect_jolokia_enabled',
+                      visible: () => state.data.components.kafka_connect },
+                    { type: 'toggle', label: 'ksqlDB', key: 'ksql_jolokia_enabled',
+                      visible: () => state.data.components.ksql },
+                    { type: 'toggle', label: 'Kafka REST', key: 'kafka_rest_jolokia_enabled',
+                      visible: () => state.data.components.kafka_rest },
+                    { type: 'toggle', label: 'Control Center', key: 'control_center_next_gen_jolokia_enabled',
+                      visible: () => state.data.components.control_center_next_gen },
+                ]);
+                form.appendChild(section3b);
+            }
+
+            const section4 = createFormSection('커스텀 Java 인자', [
+                { type: 'text', label: 'Controller 커스텀 Java 인자', key: 'kafka_controller_custom_java_args' },
+                { type: 'text', label: 'Broker 커스텀 Java 인자', key: 'kafka_broker_custom_java_args' },
+                { type: 'text', label: 'Schema Registry 커스텀 Java 인자', key: 'schema_registry_custom_java_args',
+                  visible: () => state.data.components.schema_registry },
+                { type: 'text', label: 'Kafka Connect 커스텀 Java 인자', key: 'kafka_connect_custom_java_args',
+                  visible: () => state.data.components.kafka_connect },
+                { type: 'text', label: 'ksqlDB 커스텀 Java 인자', key: 'ksql_custom_java_args',
+                  visible: () => state.data.components.ksql },
+                { type: 'text', label: 'Kafka REST 커스텀 Java 인자', key: 'kafka_rest_custom_java_args',
+                  visible: () => state.data.components.kafka_rest },
+                { type: 'text', label: 'Control Center 커스텀 Java 인자', key: 'control_center_next_gen_custom_java_args',
+                  visible: () => state.data.components.control_center_next_gen },
+            ]);
+            form.appendChild(section4);
+
+            return form;
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 14)
+        // ============================================================
+        function renderStep14(form) {
+            const section1 = createFormSection('라이선스', [
+                { type: 'textarea', label: 'Confluent License', key: 'confluent_license',
+                  help: '라이선스 키 문자열' },
+            ]);
+            form.appendChild(section1);
+
+            // === Secrets Protection ===
+            const section2 = createFormSection('Secrets Protection', [
+                { type: 'toggle', label: 'Secrets Protection 활성화', key: 'secrets_protection_enabled' },
+            ]);
+            form.appendChild(section2);
+
+            if (state.data.secrets_protection_enabled) {
+                const section2b = createFormSection('Secrets Protection 상세 설정', [
+                    { type: 'text', label: '마스터 키', key: 'secrets_protection_masterkey',
+                      help: '비워두면 자동 생성됨. Confluent Secret CLI로 직접 생성 가능', required: false },
+                    { type: 'text', label: '보안 파일 경로', key: 'secrets_protection_security_file',
+                      help: '비워두면 자동 생성됨. 보안 파일 저장 경로' },
+                    { type: 'toggle', label: '시크릿 파일 재생성 (recreate_secrets_file)', key: 'recreate_secrets_file' },
+                    { type: 'toggle', label: '마스터 키 재생성 (regenerate_masterkey)', key: 'regenerate_masterkey' },
+                ]);
+                form.appendChild(section2b);
+
+                // === Per-Component Secrets Protection Enabled ===
+                const section2_enabled = createFormSection('컴포넌트별 Secrets Protection 활성화/비활성화', [
+                    { type: 'toggle', label: 'Kafka Broker', key: 'kafka_broker_secrets_protection_enabled' },
+                    { type: 'toggle', label: 'Kafka Controller (KRaft)', key: 'kafka_controller_secrets_protection_enabled' },
+                    { type: 'toggle', label: 'Schema Registry', key: 'schema_registry_secrets_protection_enabled',
+                      visible: () => state.data.components.schema_registry },
+                    { type: 'toggle', label: 'Kafka Connect', key: 'kafka_connect_secrets_protection_enabled',
+                      visible: () => state.data.components.kafka_connect },
+                    { type: 'toggle', label: 'ksqlDB', key: 'ksql_secrets_protection_enabled',
+                      visible: () => state.data.components.ksql },
+                    { type: 'toggle', label: 'Kafka REST Proxy', key: 'kafka_rest_secrets_protection_enabled',
+                      visible: () => state.data.components.kafka_rest },
+                    { type: 'toggle', label: 'Control Center', key: 'control_center_next_gen_secrets_protection_enabled',
+                      visible: () => state.data.components.control_center_next_gen },
+                ]);
+                form.appendChild(section2_enabled);
+
+                // === Per-Component Encrypt Passwords & Properties ===
+                const section2c = createFormSection('컴포넌트별 비밀번호/속성 암호화', [
+                    // Kafka Broker
+                    { type: 'toggle', label: 'Broker 비밀번호 암호화', key: 'kafka_broker_secrets_protection_encrypt_passwords',
+                      visible: () => state.data.kafka_broker_secrets_protection_enabled },
+                    { type: 'textarea', label: 'Broker 암호화할 속성', key: 'kafka_broker_secrets_protection_encrypt_properties',
+                      help: '쉼표로 구분. password, basic.auth.user.info, sasl.jaas.config 외 추가 속성',
+                      visible: () => state.data.kafka_broker_secrets_protection_enabled && state.data.kafka_broker_secrets_protection_encrypt_passwords },
+                    // Kafka Controller (KRaft)
+                    { type: 'toggle', label: 'Controller 비밀번호 암호화', key: 'kafka_controller_secrets_protection_encrypt_passwords',
+                      visible: () => state.data.kafka_controller_secrets_protection_enabled },
+                    { type: 'textarea', label: 'Controller 암호화할 속성', key: 'kafka_controller_secrets_protection_encrypt_properties',
+                      help: '쉼표로 구분된 속성 목록',
+                      visible: () => state.data.kafka_controller_secrets_protection_enabled && state.data.kafka_controller_secrets_protection_encrypt_passwords },
+                    // Schema Registry
+                    { type: 'toggle', label: 'Schema Registry 비밀번호 암호화', key: 'schema_registry_secrets_protection_encrypt_passwords',
+                      visible: () => state.data.schema_registry_secrets_protection_enabled && state.data.components.schema_registry },
+                    { type: 'textarea', label: 'Schema Registry 암호화할 속성', key: 'schema_registry_secrets_protection_encrypt_properties',
+                      help: '쉼표로 구분된 속성 목록',
+                      visible: () => state.data.schema_registry_secrets_protection_enabled && state.data.schema_registry_secrets_protection_encrypt_passwords && state.data.components.schema_registry },
+                    // Kafka Connect
+                    { type: 'toggle', label: 'Kafka Connect 비밀번호 암호화', key: 'kafka_connect_secrets_protection_encrypt_passwords',
+                      visible: () => state.data.kafka_connect_secrets_protection_enabled && state.data.components.kafka_connect },
+                    { type: 'textarea', label: 'Kafka Connect 암호화할 속성', key: 'kafka_connect_secrets_protection_encrypt_properties',
+                      help: '쉼표로 구분된 속성 목록',
+                      visible: () => state.data.kafka_connect_secrets_protection_enabled && state.data.kafka_connect_secrets_protection_encrypt_passwords && state.data.components.kafka_connect },
+                    // ksqlDB
+                    { type: 'toggle', label: 'ksqlDB 비밀번호 암호화', key: 'ksql_secrets_protection_encrypt_passwords',
+                      visible: () => state.data.ksql_secrets_protection_enabled && state.data.components.ksql },
+                    { type: 'textarea', label: 'ksqlDB 암호화할 속성', key: 'ksql_secrets_protection_encrypt_properties',
+                      help: '쉼표로 구분된 속성 목록',
+                      visible: () => state.data.ksql_secrets_protection_enabled && state.data.ksql_secrets_protection_encrypt_passwords && state.data.components.ksql },
+                    // Kafka REST
+                    { type: 'toggle', label: 'Kafka REST 비밀번호 암호화', key: 'kafka_rest_secrets_protection_encrypt_passwords',
+                      visible: () => state.data.kafka_rest_secrets_protection_enabled && state.data.components.kafka_rest },
+                    { type: 'textarea', label: 'Kafka REST 암호화할 속성', key: 'kafka_rest_secrets_protection_encrypt_properties',
+                      help: '쉼표로 구분된 속성 목록',
+                      visible: () => state.data.kafka_rest_secrets_protection_enabled && state.data.kafka_rest_secrets_protection_encrypt_passwords && state.data.components.kafka_rest },
+                    // Control Center
+                    { type: 'toggle', label: 'Control Center 비밀번호 암호화', key: 'control_center_next_gen_secrets_protection_encrypt_passwords',
+                      visible: () => state.data.control_center_next_gen_secrets_protection_enabled && state.data.components.control_center_next_gen },
+                    { type: 'textarea', label: 'Control Center 암호화할 속성', key: 'control_center_next_gen_secrets_protection_encrypt_properties',
+                      help: '쉼표로 구분된 속성 목록',
+                      visible: () => state.data.control_center_next_gen_secrets_protection_enabled && state.data.control_center_next_gen_secrets_protection_encrypt_passwords && state.data.components.control_center_next_gen },
+                ]);
+                form.appendChild(section2c);
+
+                // === Client-Level Secrets Protection ===
+                const section2d = createFormSection('클라이언트 레벨 Secrets Protection (Broker/Controller 클라이언트 설정 암호화)', [
+                    // Kafka Broker Client
+                    { type: 'toggle', label: 'Broker Client Secrets Protection 활성화', key: 'kafka_broker_client_secrets_protection_enabled',
+                      help: 'Broker의 클라이언트 설정(예: SR/Connect가 Broker에 접속 시 사용하는 인증정보) 암호화' },
+                    { type: 'toggle', label: 'Broker Client 비밀번호 암호화', key: 'kafka_broker_client_secrets_protection_encrypt_passwords',
+                      visible: () => state.data.kafka_broker_client_secrets_protection_enabled },
+                    { type: 'textarea', label: 'Broker Client 암호화할 속성', key: 'kafka_broker_client_secrets_protection_encrypt_properties',
+                      help: '쉼표로 구분된 속성 목록',
+                      visible: () => state.data.kafka_broker_client_secrets_protection_enabled && state.data.kafka_broker_client_secrets_protection_encrypt_passwords },
+                    // Kafka Controller Client
+                    { type: 'toggle', label: 'Controller Client Secrets Protection 활성화', key: 'kafka_controller_client_secrets_protection_enabled',
+                      help: 'Controller의 클라이언트 설정 암호화 (KRaft 모드)' },
+                    { type: 'toggle', label: 'Controller Client 비밀번호 암호화', key: 'kafka_controller_client_secrets_protection_encrypt_passwords',
+                      visible: () => state.data.kafka_controller_client_secrets_protection_enabled },
+                    { type: 'textarea', label: 'Controller Client 암호화할 속성', key: 'kafka_controller_client_secrets_protection_encrypt_properties',
+                      help: '쉼표로 구분된 속성 목록',
+                      visible: () => state.data.kafka_controller_client_secrets_protection_enabled && state.data.kafka_controller_client_secrets_protection_encrypt_passwords },
+                ]);
+                form.appendChild(section2d);
+            }
+
+            // === Telemetry / Health+ ===
+            const section3 = createFormSection('Telemetry / Health+', [
+                { type: 'toggle', label: 'Telemetry 수집 활성화', key: 'telemetry_enabled' },
+            ]);
+            form.appendChild(section3);
+
+            if (state.data.telemetry_enabled) {
+                const section3b = createFormSection('Telemetry 상세 설정', [
+                    { type: 'text', label: 'API Key', key: 'telemetry_api_key', required: true },
+                    { type: 'text', label: 'API Secret', key: 'telemetry_api_secret',
+                      inputType: 'password', required: true },
+                    { type: 'text', label: 'Proxy URL (선택)', key: 'telemetry_proxy_url' },
+                    { type: 'text', label: 'Proxy 사용자명 (선택)', key: 'telemetry_proxy_username' },
+                    { type: 'text', label: 'Proxy 비밀번호 (선택)', key: 'telemetry_proxy_password',
+                      inputType: 'password' },
+                ]);
+                form.appendChild(section3b);
+
+                const section3c = createFormSection('컴포넌트별 Telemetry 활성화', [
+                    { type: 'toggle', label: 'Broker', key: 'kafka_broker_telemetry_enabled', default: true },
+                    { type: 'toggle', label: 'Schema Registry', key: 'schema_registry_telemetry_enabled', default: true,
+                      visible: () => state.data.components.schema_registry },
+                    { type: 'toggle', label: 'Kafka Connect', key: 'kafka_connect_telemetry_enabled', default: true,
+                      visible: () => state.data.components.kafka_connect },
+                    { type: 'toggle', label: 'ksqlDB', key: 'ksql_telemetry_enabled', default: true,
+                      visible: () => state.data.components.ksql },
+                    { type: 'toggle', label: 'Kafka REST', key: 'kafka_rest_telemetry_enabled', default: true,
+                      visible: () => state.data.components.kafka_rest },
+                    { type: 'toggle', label: 'Control Center', key: 'control_center_next_gen_telemetry_enabled', default: true,
+                      visible: () => state.data.components.control_center_next_gen },
+                ]);
+                form.appendChild(section3c);
+            }
+
+            // === Audit Logs ===
+            const section4 = createFormSection('Audit Logs', [
+                { type: 'toggle', label: 'Audit Logs 외부 저장소 활성화', key: 'audit_logs_destination_enabled' },
+            ]);
+            form.appendChild(section4);
+
+            if (state.data.audit_logs_destination_enabled) {
+                const section4b = createFormSection('Audit Logs 상세 설정', [
+                    { type: 'text', label: '외부 Kafka Bootstrap Servers', key: 'audit_logs_destination_bootstrap_servers',
+                      required: true, help: '예: kafka1:9092,kafka2:9092' },
+                    { type: 'text', label: 'Listener 이름', key: 'audit_logs_destination_listener' },
+                    { type: 'text', label: '인증 프린시펄', key: 'audit_logs_destination_principal' },
+                    { type: 'text', label: 'ERP URL', key: 'audit_logs_destination_erp_url' },
+                    { type: 'text', label: '관리자 사용자', key: 'audit_logs_destination_admin_user' },
+                    { type: 'text', label: '관리자 비밀번호', key: 'audit_logs_destination_admin_password',
+                      inputType: 'password' },
+                ]);
+                form.appendChild(section4b);
+            }
+
+            // === Log Redaction ===
+            const section5 = createFormSection('Log Redaction', [
+                { type: 'toggle', label: 'Log Redaction 활성화', key: 'logredactor_enabled' },
+            ]);
+            form.appendChild(section5);
+
+            if (state.data.logredactor_enabled) {
+                const section5b = createFormSection('Log Redaction 상세 설정', [
+                    { type: 'text', label: '규칙 URL', key: 'logredactor_rule_url' },
+                    { type: 'text', label: '규칙 파일 경로 (원격)', key: 'logredactor_rule_path' },
+                    { type: 'text', label: '규칙 파일 경로 (로컬)', key: 'logredactor_rule_path_local' },
+                    { type: 'toggle', label: 'Log4j 커스텀 활성화', key: 'custom_log4j' },
+                ]);
+                form.appendChild(section5b);
+            }
+
+            // === Confluent Cloud Hybrid ===
+            const section6 = createFormSection('Confluent Cloud 연동', [
+                { type: 'toggle', label: 'Confluent Cloud Kafka 연동', key: 'ccloud_kafka_enabled' },
+            ]);
+            form.appendChild(section6);
+
+            if (state.data.ccloud_kafka_enabled) {
+                const section6b = createFormSection('Confluent Cloud Kafka 상세 설정', [
+                    { type: 'text', label: 'Bootstrap Servers', key: 'ccloud_kafka_bootstrap_servers', required: true },
+                    { type: 'text', label: 'API Key', key: 'ccloud_kafka_key', required: true },
+                    { type: 'text', label: 'API Secret', key: 'ccloud_kafka_secret',
+                      inputType: 'password', required: true },
+                ]);
+                form.appendChild(section6b);
+            }
+
+            const section7 = createFormSection('Confluent Cloud Schema Registry 연동', [
+                { type: 'toggle', label: 'Confluent Cloud Schema Registry 연동', key: 'ccloud_schema_registry_enabled' },
+            ]);
+            form.appendChild(section7);
+
+            if (state.data.ccloud_schema_registry_enabled) {
+                const section7b = createFormSection('Confluent Cloud Schema Registry 상세 설정', [
+                    { type: 'text', label: 'Schema Registry URL', key: 'ccloud_schema_registry_url', required: true },
+                    { type: 'text', label: 'API Key', key: 'ccloud_schema_registry_key', required: true },
+                    { type: 'text', label: 'API Secret', key: 'ccloud_schema_registry_secret',
+                      inputType: 'password', required: true },
+                ]);
+                form.appendChild(section7b);
+            }
+
+            // === Copy Files ===
+            const section8 = createFormSection('파일 복사 설정', []);
+            const fileDiv = document.createElement('div');
+            fileDiv.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">각 컴포넌트별로 배포 시 복사할 파일 정의</p>';
+            section8.appendChild(fileDiv);
+
+            if (state.data.components.kafka_controller) {
+                const section8a = document.createElement('div');
+                section8a.style.marginBottom = '2rem';
+                const title = document.createElement('div');
+                title.style.fontWeight = '600';
+                title.style.marginBottom = '0.75rem';
+                title.textContent = 'Kafka Controller 파일 복사';
+                section8a.appendChild(title);
+                section8a.appendChild(renderKeyValueEditor('kafka_controller_copy_files', '소스 경로', '대상 경로'));
+                section8.appendChild(section8a);
+            }
+
+            if (state.data.components.kafka_broker) {
+                const section8b = document.createElement('div');
+                section8b.style.marginBottom = '2rem';
+                const title = document.createElement('div');
+                title.style.fontWeight = '600';
+                title.style.marginBottom = '0.75rem';
+                title.textContent = 'Kafka Broker 파일 복사';
+                section8b.appendChild(title);
+                section8b.appendChild(renderKeyValueEditor('kafka_broker_copy_files', '소스 경로', '대상 경로'));
+                section8.appendChild(section8b);
+            }
+
+            if (state.data.components.schema_registry) {
+                const section8c = document.createElement('div');
+                section8c.style.marginBottom = '2rem';
+                const title = document.createElement('div');
+                title.style.fontWeight = '600';
+                title.style.marginBottom = '0.75rem';
+                title.textContent = 'Schema Registry 파일 복사';
+                section8c.appendChild(title);
+                section8c.appendChild(renderKeyValueEditor('schema_registry_copy_files', '소스 경로', '대상 경로'));
+                section8.appendChild(section8c);
+            }
+
+            if (state.data.components.kafka_connect) {
+                const section8d = document.createElement('div');
+                section8d.style.marginBottom = '2rem';
+                const title = document.createElement('div');
+                title.style.fontWeight = '600';
+                title.style.marginBottom = '0.75rem';
+                title.textContent = 'Kafka Connect 파일 복사';
+                section8d.appendChild(title);
+                section8d.appendChild(renderKeyValueEditor('kafka_connect_copy_files', '소스 경로', '대상 경로'));
+                section8.appendChild(section8d);
+            }
+
+            if (state.data.components.ksql) {
+                const section8e = document.createElement('div');
+                section8e.style.marginBottom = '2rem';
+                const title = document.createElement('div');
+                title.style.fontWeight = '600';
+                title.style.marginBottom = '0.75rem';
+                title.textContent = 'ksqlDB 파일 복사';
+                section8e.appendChild(title);
+                section8e.appendChild(renderKeyValueEditor('ksql_copy_files', '소스 경로', '대상 경로'));
+                section8.appendChild(section8e);
+            }
+
+            if (state.data.components.kafka_rest) {
+                const section8f = document.createElement('div');
+                section8f.style.marginBottom = '2rem';
+                const title = document.createElement('div');
+                title.style.fontWeight = '600';
+                title.style.marginBottom = '0.75rem';
+                title.textContent = 'Kafka REST Proxy 파일 복사';
+                section8f.appendChild(title);
+                section8f.appendChild(renderKeyValueEditor('kafka_rest_copy_files', '소스 경로', '대상 경로'));
+                section8.appendChild(section8f);
+            }
+
+            if (state.data.components.control_center_next_gen) {
+                const section8g = document.createElement('div');
+                section8g.style.marginBottom = '2rem';
+                const title = document.createElement('div');
+                title.style.fontWeight = '600';
+                title.style.marginBottom = '0.75rem';
+                title.textContent = 'Control Center 파일 복사';
+                section8g.appendChild(title);
+                section8g.appendChild(renderKeyValueEditor('control_center_next_gen_copy_files', '소스 경로', '대상 경로'));
+                section8.appendChild(section8g);
+            }
+
+            form.appendChild(section8);
+
+            // === Health Checks ===
+            const section9 = createFormSection('Health Checks', [
+                { type: 'toggle', label: 'Health Checks 활성화', key: 'health_checks_enabled' },
+            ]);
+            form.appendChild(section9);
+
+            return form;
+        }
+
+        // ============================================================
+        // FORM HELPERS
+        // ============================================================
+        function createFormSection(title, fields) {
+            const section = document.createElement('div');
+            section.className = 'form-section';
+
+            if (title) {
+                const sectionTitle = document.createElement('div');
+                sectionTitle.className = 'form-section-title';
+                sectionTitle.textContent = title;
+                section.appendChild(sectionTitle);
+            }
+
+            fields.forEach(field => {
+                if (field.visible && !field.visible()) {
+                    return;
+                }
+
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                switch(field.type) {
+                    case 'text':
+                    case 'number':
+                        const label = document.createElement('label');
+                        label.className = 'form-label' + (field.required ? ' required' : '');
+                        label.textContent = field.label;
+                        group.appendChild(label);
+
+                        const input = document.createElement('input');
+                        input.type = field.inputType || field.type;
+                        input.className = field.type === 'number' ? 'number-input' : 'text-input';
+                        input.value = state.data[field.key] || field.default || '';
+                        input.required = field.required || false;
+                        input.addEventListener('change', (e) => {
+                            state.data[field.key] = field.type === 'number' ?
+                                parseInt(e.target.value) : e.target.value;
+                            updateYamlPreview();
+                        });
+                        group.appendChild(input);
+
+                        if (field.help) {
+                            const help = document.createElement('div');
+                            help.className = 'form-help';
+                            help.textContent = field.help;
+                            group.appendChild(help);
+                        }
+                        break;
+
+                    case 'select':
+                        const selectLabel = document.createElement('label');
+                        selectLabel.className = 'form-label';
+                        selectLabel.textContent = field.label;
+                        group.appendChild(selectLabel);
+
+                        const select = document.createElement('select');
+                        select.className = 'select-input';
+                        select.value = state.data[field.key] || '';
+                        field.options.forEach(opt => {
+                            const option = document.createElement('option');
+                            option.value = opt.value;
+                            option.textContent = opt.label;
+                            select.appendChild(option);
+                        });
+                        select.addEventListener('change', (e) => {
+                            state.data[field.key] = e.target.value;
+                            renderStepContent();
+                            updateYamlPreview();
+                        });
+                        group.appendChild(select);
+                        break;
+
+                    case 'toggle':
+                        const toggleLabel = document.createElement('label');
+                        toggleLabel.className = 'form-label';
+                        toggleLabel.style.display = 'flex';
+                        toggleLabel.style.alignItems = 'center';
+                        toggleLabel.style.gap = '0.5rem';
+
+                        const toggle = document.createElement('div');
+                        toggle.className = 'toggle-switch' + (state.data[field.key] ? ' active' : '');
+                        toggle.addEventListener('click', () => {
+                            state.data[field.key] = !state.data[field.key];
+                            toggle.classList.toggle('active');
+                            renderStepContent();
+                            updateYamlPreview();
+                        });
+
+                        toggleLabel.appendChild(toggle);
+                        toggleLabel.appendChild(document.createTextNode(field.label));
+                        group.appendChild(toggleLabel);
+
+                        if (field.help) {
+                            const help = document.createElement('div');
+                            help.className = 'form-help';
+                            help.style.marginTop = '0.5rem';
+                            help.textContent = field.help;
+                            group.appendChild(help);
+                        }
+                        break;
+
+                    case 'radio':
+                        const radioLabel = document.createElement('label');
+                        radioLabel.className = 'form-label';
+                        radioLabel.textContent = field.label;
+                        group.appendChild(radioLabel);
+
+                        const radioContainer = document.createElement('div');
+                        radioContainer.className = 'radio-card-group';
+                        field.options.forEach(opt => {
+                            if (opt.disabled) return;
+
+                            const card = document.createElement('div');
+                            card.className = 'option-card' + (state.data[field.key] === opt.value ? ' active' : '');
+
+                            const radio = document.createElement('div');
+                            radio.className = 'option-radio';
+                            card.appendChild(radio);
+
+                            const title = document.createElement('div');
+                            title.className = 'option-title';
+                            title.textContent = opt.label;
+                            card.appendChild(title);
+
+                            if (opt.desc) {
+                                const desc = document.createElement('div');
+                                desc.className = 'option-desc';
+                                desc.textContent = opt.desc;
+                                card.appendChild(desc);
+                            }
+
+                            if (opt.tag) {
+                                const tag = document.createElement('div');
+                                tag.className = 'option-tag ' + opt.tag.class;
+                                tag.textContent = opt.tag.text;
+                                card.appendChild(tag);
+                            }
+
+                            card.addEventListener('click', () => {
+                                state.data[field.key] = opt.value;
+                                renderStepContent();
+                                updateYamlPreview();
+                            });
+
+                            radioContainer.appendChild(card);
+                        });
+                        group.appendChild(radioContainer);
+                        break;
+
+                    case 'checkbox':
+                        const checkboxLabel = document.createElement('label');
+                        checkboxLabel.className = 'form-label';
+                        checkboxLabel.textContent = field.label;
+                        group.appendChild(checkboxLabel);
+
+                        const checkboxContainer = document.createElement('div');
+                        checkboxContainer.className = 'checkbox-card-group';
+                        field.options.forEach(opt => {
+                            const card = document.createElement('div');
+                            card.className = 'option-card' + (state.data[field.key][opt.value] ? ' active' : '') +
+                                           (opt.disabled ? ' disabled' : '');
+
+                            if (opt.disabled) {
+                                card.style.cursor = 'not-allowed';
+                                card.style.opacity = '0.6';
+                            }
+
+                            const checkbox = document.createElement('div');
+                            checkbox.className = 'option-check';
+                            card.appendChild(checkbox);
+
+                            const title = document.createElement('div');
+                            title.className = 'option-title';
+                            title.textContent = opt.label;
+                            card.appendChild(title);
+
+                            if (opt.help) {
+                                const help = document.createElement('div');
+                                help.className = 'option-desc';
+                                help.textContent = opt.help;
+                                card.appendChild(help);
+                            }
+
+                            if (!opt.disabled) {
+                                card.addEventListener('click', () => {
+                                    state.data[field.key][opt.value] = !state.data[field.key][opt.value];
+                                    renderStepContent();
+                                    updateYamlPreview();
+                                });
+                            }
+
+                            checkboxContainer.appendChild(card);
+                        });
+                        group.appendChild(checkboxContainer);
+                        break;
+
+                    case 'textarea':
+                        const textareaLabel = document.createElement('label');
+                        textareaLabel.className = 'form-label';
+                        textareaLabel.textContent = field.label;
+                        group.appendChild(textareaLabel);
+
+                        const textarea = document.createElement('textarea');
+                        textarea.className = 'textarea-input';
+                        textarea.value = state.data[field.key] || '';
+                        textarea.addEventListener('change', (e) => {
+                            state.data[field.key] = e.target.value;
+                            updateYamlPreview();
+                        });
+                        group.appendChild(textarea);
+
+                        if (field.help) {
+                            const help = document.createElement('div');
+                            help.className = 'form-help';
+                            help.textContent = field.help;
+                            group.appendChild(help);
+                        }
+                        break;
+                }
+
+                section.appendChild(group);
+            });
+
+            return section;
+        }
+
+        function renderKeyValueEditor(key, keyLabel, valueLabel) {
+            const container = document.createElement('div');
+            container.className = 'kv-editor';
+
+            const data = state.data[key] || {};
+            const entries = Array.isArray(data) ? data : Object.entries(data).map(([k, v]) => ({ key: k, value: v }));
+
+            entries.forEach((entry, idx) => {
+                const pair = document.createElement('div');
+                pair.className = 'kv-pair';
+
+                const keyInput = document.createElement('input');
+                keyInput.type = 'text';
+                keyInput.className = 'text-input';
+                keyInput.placeholder = keyLabel;
+                keyInput.value = typeof entry === 'object' && entry.key ? entry.key : entry;
+
+                const valueInput = document.createElement('input');
+                valueInput.type = 'text';
+                valueInput.className = 'text-input';
+                valueInput.placeholder = valueLabel;
+                valueInput.value = typeof entry === 'object' && entry.value ? entry.value : '';
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'kv-remove';
+                removeBtn.textContent = '✕';
+                removeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    entries.splice(idx, 1);
+                    updateStateFromKeyValueEditor(key, entries);
+                });
+
+                pair.appendChild(keyInput);
+                pair.appendChild(valueInput);
+                pair.appendChild(removeBtn);
+                container.appendChild(pair);
+
+                [keyInput, valueInput].forEach(input => {
+                    input.addEventListener('change', () => {
+                        entries[idx] = { key: keyInput.value, value: valueInput.value };
+                        updateStateFromKeyValueEditor(key, entries);
+                    });
+                });
+            });
+
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.className = 'add-button';
+            addBtn.style.marginTop = '1rem';
+            addBtn.textContent = '항목 추가';
+            addBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                entries.push({ key: '', value: '' });
+                renderStepContent();
+                updateYamlPreview();
+            });
+            container.appendChild(addBtn);
+
+            return container;
+        }
+
+        function renderKeyValueEditorSimple(key, keyLabel) {
+            const container = document.createElement('div');
+            container.className = 'kv-editor';
+
+            const data = state.data[key] || [];
+
+            data.forEach((item, idx) => {
+                const pair = document.createElement('div');
+                pair.className = 'kv-pair';
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'text-input';
+                input.placeholder = keyLabel;
+                input.value = item;
+                input.style.gridColumn = '1 / 3';
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'kv-remove';
+                removeBtn.textContent = '✕';
+                removeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    state.data[key].splice(idx, 1);
+                    renderStepContent();
+                    updateYamlPreview();
+                });
+
+                pair.appendChild(input);
+                pair.appendChild(removeBtn);
+                container.appendChild(pair);
+
+                input.addEventListener('change', () => {
+                    state.data[key][idx] = input.value;
+                    updateYamlPreview();
+                });
+            });
+
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.className = 'add-button';
+            addBtn.style.marginTop = '1rem';
+            addBtn.textContent = '항목 추가';
+            addBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                state.data[key].push('');
+                renderStepContent();
+                updateYamlPreview();
+            });
+            container.appendChild(addBtn);
+
+            return container;
+        }
+
+        function updateStateFromKeyValueEditor(key, entries) {
+            state.data[key] = {};
+            entries.forEach(entry => {
+                if (entry.key) {
+                    state.data[key][entry.key] = entry.value;
+                }
+            });
+            updateYamlPreview();
+        }
+
+        // ============================================================
+        // YAML GENERATION
+        // ============================================================
+        function generateYaml() {
+            const lines = [];
+
+            lines.push('---');
+            lines.push('# Confluent Platform hosts.yml');
+            lines.push('# Generated by CP-Ansible hosts.yml Generator');
+            lines.push('');
+            lines.push('all:');
+            lines.push('  vars:');
+
+            lines.push('    # === Step 1: Basic Environment ===');
+            lines.push(`    ansible_connection: ${state.data.ansible_connection}`);
+            if (state.data.ansible_user) lines.push(`    ansible_user: ${state.data.ansible_user}`);
+            lines.push(`    ansible_port: ${state.data.ansible_port}`);
+            lines.push(`    ansible_become: ${state.data.ansible_become ? 'true' : 'false'}`);
+            if (state.data.ansible_python_interpreter) {
+                lines.push(`    ansible_python_interpreter: ${state.data.ansible_python_interpreter}`);
+            }
+            lines.push(`    deployment_strategy: ${state.data.deployment_strategy}`);
+            lines.push(`    ansible_strategy: ${state.data.ansible_strategy}`);
+            if (state.data.install_java === false && state.data.custom_java_path) {
+                lines.push(`    install_java: false`);
+                lines.push(`    custom_java_path: ${state.data.custom_java_path}`);
+            } else {
+                lines.push(`    install_java: ${state.data.install_java ? 'true' : 'false'}`);
+            }
+            lines.push('');
+
+            lines.push('    # === Step 2: Installation Method ===');
+            lines.push(`    installation_method: ${state.data.installation_method}`);
+            lines.push(`    confluent_package_version: "${state.data.confluent_package_version}"`);
+            if (state.data.installation_method === 'archive') {
+                if (state.data.confluent_archive_file_source) {
+                    lines.push(`    confluent_archive_file_source: ${state.data.confluent_archive_file_source}`);
+                }
+                lines.push(`    confluent_archive_file_remote: ${state.data.confluent_archive_file_remote ? 'true' : 'false'}`);
+                if (state.data.archive_destination_path) {
+                    lines.push(`    archive_destination_path: ${state.data.archive_destination_path}`);
+                }
+                if (state.data.archive_owner) {
+                    lines.push(`    archive_owner: ${state.data.archive_owner}`);
+                }
+                if (state.data.archive_group) {
+                    lines.push(`    archive_group: ${state.data.archive_group}`);
+                }
+            }
+            if (state.data.repository_configuration === 'custom') {
+                if (state.data.custom_yum_repo_path) lines.push(`    custom_yum_repofile_path: ${state.data.custom_yum_repo_path}`);
+                if (state.data.custom_apt_repo_path) lines.push(`    custom_apt_repo_filepath: ${state.data.custom_apt_repo_path}`);
+            }
+            if (state.data.components.control_center_next_gen) {
+                lines.push(`    confluent_control_center_next_gen_package_version: "${state.data.confluent_control_center_next_gen_package_version}"`);
+            }
+            lines.push(`    confluent_server_enabled: ${state.data.confluent_server_enabled ? 'true' : 'false'}`);
+            lines.push(`    confluent_cli_download_enabled: ${state.data.confluent_cli_download_enabled ? 'true' : 'false'}`);
+            lines.push('');
+
+            lines.push('    # === Step 4: Users/Groups/Paths ===');
+            if (state.data.common_user_group) {
+                if (state.data.common_user) lines.push(`    kafka_controller_user: ${state.data.common_user}`);
+                if (state.data.common_group) lines.push(`    kafka_controller_group: ${state.data.common_group}`);
+                if (state.data.common_user) lines.push(`    kafka_broker_user: ${state.data.common_user}`);
+                if (state.data.common_group) lines.push(`    kafka_broker_group: ${state.data.common_group}`);
+                if (state.data.components.schema_registry) {
+                    if (state.data.common_user) lines.push(`    schema_registry_user: ${state.data.common_user}`);
+                    if (state.data.common_group) lines.push(`    schema_registry_group: ${state.data.common_group}`);
+                }
+                if (state.data.components.control_center_next_gen) {
+                    if (state.data.common_user) lines.push(`    control_center_next_gen_user: ${state.data.common_user}`);
+                    if (state.data.common_group) lines.push(`    control_center_next_gen_group: ${state.data.common_group}`);
+                }
+            } else {
+                Object.entries(state.data.component_users).forEach(([key, value]) => {
+                    if (value) lines.push(`    ${key}: ${value}`);
+                });
+            }
+
+            Object.entries(state.data.log_dirs).forEach(([key, value]) => {
+                if (value) lines.push(`    ${key}: ${value}`);
+            });
+
+            if (state.data.data_dirs.kafka_broker_log_dirs) {
+                lines.push('    kafka_broker_custom_properties:');
+                lines.push(`      log.dirs: ${state.data.data_dirs.kafka_broker_log_dirs}`);
+            }
+            if (state.data.data_dirs.kafka_controller_log_dirs) {
+                if (!state.data.data_dirs.kafka_broker_log_dirs) {
+                    lines.push('    kafka_controller_custom_properties:');
+                }
+                lines.push(`      log.dirs: ${state.data.data_dirs.kafka_controller_log_dirs}`);
+            }
+            lines.push('');
+
+            lines.push('    # === Step 5: Listener & Encryption ===');
+            lines.push(`    sasl_protocol: ${state.data.listener_protocol.includes('SASL') ?
+                (state.data.sasl_mechanism === 'plain' ? 'plain' : state.data.sasl_mechanism) : 'none'}`);
+            lines.push(`    kafka_controller_sasl_protocol: ${state.data.kraft_controller_security_protocol === 'PLAINTEXT' ? 'none' : 'plain'}`);
+            if (state.data.listener_protocol.includes('SSL')) {
+                if (state.data.ssl_method === 'provided-keystore') {
+                    lines.push(`    ssl_provided_keystore_and_truststore: true`);
+                    if (state.data.ssl_keystore_path) lines.push(`    ssl_keystore_filepath: ${state.data.ssl_keystore_path}`);
+                    if (state.data.ssl_keystore_password) lines.push(`    ssl_keystore_store_password: ${state.data.ssl_keystore_password}`);
+                    if (state.data.ssl_truststore_path) lines.push(`    ssl_truststore_filepath: ${state.data.ssl_truststore_path}`);
+                    if (state.data.ssl_truststore_password) lines.push(`    ssl_truststore_password: ${state.data.ssl_truststore_password}`);
+                    if (state.data.ssl_provided_keystore_and_truststore_remote_src) {
+                        lines.push(`    ssl_provided_keystore_and_truststore_remote_src: true`);
+                    }
+                }
+                if (state.data.ssl_method === 'custom-certs') {
+                    lines.push('    ssl_custom_certs: true');
+                    if (state.data.ssl_ca_cert_path) lines.push(`    ssl_ca_cert_filepath: ${state.data.ssl_ca_cert_path}`);
+                    if (state.data.ssl_signed_cert_path) lines.push(`    ssl_signed_cert_filepath: ${state.data.ssl_signed_cert_path}`);
+                    if (state.data.ssl_key_path) lines.push(`    ssl_key_filepath: ${state.data.ssl_key_path}`);
+                    if (state.data.ssl_key_password) lines.push(`    ssl_key_password: ${state.data.ssl_key_password}`);
+                    if (state.data.ssl_custom_certs_remote_src) {
+                        lines.push(`    ssl_custom_certs_remote_src: true`);
+                    }
+                }
+                if (state.data.ssl_method === 'self-signed' && !state.data.regenerate_ca) {
+                    lines.push(`    regenerate_ca: false`);
+                }
+                if (state.data.ssl_mutual_auth_enabled) {
+                    lines.push('    ssl_mutual_auth_enabled: true');
+                }
+            }
+            lines.push('');
+
+            if (state.data.sasl_mechanism === 'plain' && Object.keys(state.data.sasl_plain_users).length > 0) {
+                lines.push('    # === Step 6: SASL Users ===');
+                lines.push('    sasl_plain_users:');
+                Object.entries(state.data.sasl_plain_users).forEach(([user, pass]) => {
+                    if (user) lines.push(`      ${user}: ${pass}`);
+                });
+                lines.push('');
+            }
+
+            if ((state.data.sasl_mechanism === 'scram-sha-512' || state.data.sasl_mechanism === 'scram-sha-256') &&
+                Object.keys(state.data.sasl_scram_users || {}).length > 0) {
+                lines.push('    # === Step 6: SASL SCRAM Users ===');
+                lines.push('    sasl_scram_users:');
+                Object.entries(state.data.sasl_scram_users).forEach(([user, pass]) => {
+                    if (user) lines.push(`      ${user}: ${pass}`);
+                });
+                lines.push('');
+            }
+
+            if (state.data.sasl_mechanism === 'kerberos') {
+                lines.push('    # === Step 6: Kerberos ===');
+                if (state.data.kerberos_realm) lines.push(`    kerberos_kafka_broker_primary: kafka`);
+                if (state.data.kerberos_realm) lines.push(`    realm: ${state.data.kerberos_realm}`);
+                if (state.data.kerberos_kdc_hostname) lines.push(`    kdc_hostname: ${state.data.kerberos_kdc_hostname}`);
+                lines.push('');
+            }
+
+            if (state.data.sasl_mechanism === 'oauth') {
+                lines.push('    # === Step 6: OAUTHBEARER ===');
+                if (state.data.oauth_token_uri) lines.push(`    oauth_token_uri: ${state.data.oauth_token_uri}`);
+                if (state.data.oauth_issuer_url) lines.push(`    oauth_issuer_url: ${state.data.oauth_issuer_url}`);
+                lines.push('');
+            }
+
+            if (state.data.authorization_type === 'rbac') {
+                lines.push('    # === Step 7: Authorization (RBAC) ===');
+                lines.push(`    rbac_enabled: true`);
+                lines.push(`    mds_super_user: ${state.data.mds_super_user}`);
+                if (state.data.mds_super_user_password) {
+                    lines.push(`    mds_super_user_password: ${state.data.mds_super_user_password}`);
+                }
+                if (state.data.rbac_super_users.length > 0) {
+                    lines.push('    rbac_super_users:');
+                    state.data.rbac_super_users.forEach(user => {
+                        if (user) lines.push(`      - "${user}"`);
+                    });
+                }
+
+                Object.entries(state.data.component_ldap_users).forEach(([key, value]) => {
+                    if (value) lines.push(`    ${key}: "${value}"`);
+                });
+                if (state.data.create_mds_certs !== undefined) {
+                    lines.push(`    create_mds_certs: ${state.data.create_mds_certs ? 'true' : 'false'}`);
+                }
+                lines.push('    mds_broker_listener:');
+                lines.push(`      ssl_enabled: ${state.data.mds_broker_listener_ssl_enabled ? 'true' : 'false'}`);
+                lines.push(`      ssl_mutual_auth_enabled: ${state.data.mds_broker_listener_ssl_mutual_auth_enabled ? 'true' : 'false'}`);
+                lines.push(`      sasl_protocol: ${state.data.mds_broker_listener_sasl_protocol}`);
+                if (state.data.kafka_broker_rest_proxy_enabled) {
+                    lines.push('    kafka_broker_rest_proxy_enabled: true');
+                }
+                lines.push('');
+            }
+
+            if (state.data.ldap_enabled) {
+                lines.push('    # === Step 8: LDAP ===');
+                if (state.data.ldap_url) lines.push(`    ldap_url: "${state.data.ldap_url}"`);
+                if (state.data.ldap_base_dn) lines.push(`    ldap_base_dn: "${state.data.ldap_base_dn}"`);
+                if (state.data.ldap_user_search_base) lines.push(`    ldap_user_search_base: "${state.data.ldap_user_search_base}"`);
+                if (state.data.ldap_group_search_base) lines.push(`    ldap_group_search_base: "${state.data.ldap_group_search_base}"`);
+                if (state.data.ldap_bind_dn) lines.push(`    ldap_bind_dn: "${state.data.ldap_bind_dn}"`);
+                if (state.data.ldap_bind_password) lines.push(`    ldap_bind_password: "${state.data.ldap_bind_password}"`);
+                lines.push(`    ldap_user_name_attribute: ${state.data.ldap_user_name_attribute}`);
+                lines.push(`    ldap_user_object_class: ${state.data.ldap_user_object_class}`);
+                lines.push(`    ldap_group_object_class: ${state.data.ldap_group_object_class}`);
+                lines.push(`    ldap_group_member_attribute: ${state.data.ldap_group_member_attribute}`);
+                if (state.data.ldap_search_mode) lines.push(`    ldap_search_mode: ${state.data.ldap_search_mode}`);
+                if (state.data.ldap_group_name_attribute) lines.push(`    ldap_group_name_attribute: ${state.data.ldap_group_name_attribute}`);
+                if (state.data.ldap_group_member_attribute_pattern) lines.push(`    ldap_group_member_attribute_pattern: ${state.data.ldap_group_member_attribute_pattern}`);
+                if (state.data.ldap_user_memberof_attribute) lines.push(`    ldap_user_memberof_attribute: ${state.data.ldap_user_memberof_attribute}`);
+                lines.push('');
+            }
+
+            lines.push('    # === Step 13: JVM & Monitoring ===');
+            lines.push('    kafka_broker_service_environment_overrides:');
+            lines.push(`      KAFKA_HEAP_OPTS: "${state.data.kafka_broker_heap_opts}"`);
+            lines.push('    kafka_controller_service_environment_overrides:');
+            lines.push(`      KAFKA_HEAP_OPTS: "${state.data.kafka_controller_heap_opts}"`);
+            if (state.data.components.schema_registry) {
+                lines.push('    schema_registry_service_environment_overrides:');
+                lines.push(`      SCHEMA_REGISTRY_HEAP_OPTS: "${state.data.schema_registry_heap_opts}"`);
+            }
+            if (state.data.components.kafka_connect) {
+                lines.push('    kafka_connect_service_environment_overrides:');
+                lines.push(`      KAFKA_CONNECT_HEAP_OPTS: "${state.data.kafka_connect_heap_opts}"`);
+            }
+            if (state.data.components.ksql) {
+                lines.push('    ksql_service_environment_overrides:');
+                lines.push(`      KSQL_HEAP_OPTS: "${state.data.ksql_heap_opts}"`);
+            }
+            if (state.data.components.kafka_rest) {
+                lines.push('    kafka_rest_service_environment_overrides:');
+                lines.push(`      KAFKA_REST_HEAP_OPTS: "${state.data.kafka_rest_heap_opts}"`);
+            }
+            if (state.data.components.control_center_next_gen) {
+                lines.push('    control_center_next_gen_service_environment_overrides:');
+                lines.push(`      CONTROL_CENTER_HEAP_OPTS: "${state.data.c3_heap_opts}"`);
+            }
+            lines.push('');
+
+            if (Object.keys(state.data.broker_custom_properties).length > 0 || state.data.tiered_storage_enabled || state.data.self_balancing_enabled) {
+                lines.push('    # === Step 10: Kafka Broker Custom Properties ===');
+                lines.push('    kafka_broker_custom_properties:');
+                Object.entries(state.data.broker_custom_properties).forEach(([key, value]) => {
+                    if (key) lines.push(`      ${key}: ${value}`);
+                });
+                if (state.data.tiered_storage_enabled) {
+                    lines.push(`      confluent.tier.feature: "true"`);
+                    lines.push(`      confluent.tier.enable: "true"`);
+                    lines.push(`      confluent.tier.backend: ${state.data.tiered_storage_backend}`);
+                    if (state.data.tiered_storage_backend === 'S3' && state.data.tiered_storage_s3_bucket) {
+                        lines.push(`      confluent.tier.s3.bucket.name: ${state.data.tiered_storage_s3_bucket}`);
+                        if (state.data.tiered_storage_s3_region) {
+                            lines.push(`      confluent.tier.s3.region: ${state.data.tiered_storage_s3_region}`);
+                        }
+                    }
+                    if (state.data.tiered_storage_backend === 'GCS' && state.data.tiered_storage_gcs_bucket) {
+                        lines.push(`      confluent.tier.gcs.bucket.name: ${state.data.tiered_storage_gcs_bucket}`);
+                    }
+                    if (state.data.tiered_storage_backend === 'Azure' && state.data.tiered_storage_azure_container) {
+                        lines.push(`      confluent.tier.azure.container.name: ${state.data.tiered_storage_azure_container}`);
+                    }
+                }
+                if (state.data.self_balancing_enabled) {
+                    lines.push(`      confluent.balancer.enable: "true"`);
+                }
+                lines.push('');
+            }
+
+            if (state.data.components.schema_registry) {
+                lines.push('    # === Step 11: Schema Registry ===');
+                lines.push(`    schema_registry_listener_port: ${state.data.schema_registry_listener_port}`);
+                if (Object.keys(state.data.schema_registry_custom_properties).length > 0) {
+                    lines.push('    schema_registry_custom_properties:');
+                    Object.entries(state.data.schema_registry_custom_properties).forEach(([key, value]) => {
+                        if (key) lines.push(`      ${key}: ${value}`);
+                    });
+                }
+                lines.push('');
+            }
+
+            if (state.data.components.kafka_connect) {
+                lines.push('    # === Step 11: Kafka Connect ===');
+                lines.push(`    kafka_connect_rest_port: ${state.data.kafka_connect_rest_port}`);
+                if (Object.keys(state.data.kafka_connect_custom_properties).length > 0) {
+                    lines.push('    kafka_connect_custom_properties:');
+                    Object.entries(state.data.kafka_connect_custom_properties).forEach(([key, value]) => {
+                        if (key) lines.push(`      ${key}: ${value}`);
+                    });
+                }
+                if (state.data.kafka_connect_plugins && state.data.kafka_connect_plugins.length > 0) {
+                    lines.push('    kafka_connect_plugins:');
+                    state.data.kafka_connect_plugins.forEach(plugin => {
+                        if (plugin) lines.push(`      - ${plugin}`);
+                    });
+                }
+                if (state.data.kafka_connect_confluent_hub_plugins && state.data.kafka_connect_confluent_hub_plugins.length > 0) {
+                    lines.push('    kafka_connect_confluent_hub_plugins:');
+                    state.data.kafka_connect_confluent_hub_plugins.forEach(plugin => {
+                        if (plugin) lines.push(`      - ${plugin}`);
+                    });
+                }
+                lines.push('');
+            }
+
+            if (state.data.components.ksql) {
+                lines.push('    # === Step 11: ksqlDB ===');
+                lines.push(`    ksql_listener_port: ${state.data.ksql_listener_port}`);
+                if (Object.keys(state.data.ksql_custom_properties).length > 0) {
+                    lines.push('    ksql_custom_properties:');
+                    Object.entries(state.data.ksql_custom_properties).forEach(([key, value]) => {
+                        if (key) lines.push(`      ${key}: ${value}`);
+                    });
+                }
+                lines.push('');
+            }
+
+            if (state.data.components.kafka_rest) {
+                lines.push('    # === Step 11: Kafka REST Proxy ===');
+                lines.push(`    kafka_rest_port: ${state.data.kafka_rest_port}`);
+                if (Object.keys(state.data.kafka_rest_custom_properties).length > 0) {
+                    lines.push('    kafka_rest_custom_properties:');
+                    Object.entries(state.data.kafka_rest_custom_properties).forEach(([key, value]) => {
+                        if (key) lines.push(`      ${key}: ${value}`);
+                    });
+                }
+                lines.push('');
+            }
+
+            if (state.data.components.control_center_next_gen) {
+                lines.push('    # === Step 12: Control Center ===');
+                lines.push(`    control_center_next_gen_authentication_type: ${state.data.c3_authentication_type}`);
+                lines.push(`    control_center_next_gen_data_dir: ${state.data.c3_data_dir}`);
+                lines.push(`    control_center_next_gen_dependency_prometheus_port: ${state.data.prometheus_port}`);
+                lines.push(`    control_center_next_gen_dependency_alertmanager_port: ${state.data.alertmanager_port}`);
+                if (Object.keys(state.data.c3_custom_properties).length > 0 || state.data.control_center_oidc_enabled) {
+                    lines.push('    control_center_next_gen_custom_properties:');
+                    if (state.data.control_center_oidc_enabled) {
+                        lines.push(`      confluent.controlcenter.auth.sso.mode: ${state.data.sso_mode.toUpperCase()}`);
+                        if (state.data.oidc_client_id) {
+                            lines.push(`      confluent.oidc.idp.client.id: ${state.data.oidc_client_id}`);
+                        }
+                        if (state.data.oidc_client_secret) {
+                            lines.push(`      confluent.oidc.idp.client.secret: ${state.data.oidc_client_secret}`);
+                        }
+                        if (state.data.oidc_issuer) {
+                            lines.push(`      confluent.oidc.idp.issuer: ${state.data.oidc_issuer}`);
+                        }
+                    }
+                    Object.entries(state.data.c3_custom_properties).forEach(([key, value]) => {
+                        if (key) lines.push(`      ${key}: ${value}`);
+                    });
+                }
+                lines.push('');
+            }
+
+            // === Step 5: FIPS Enhancement ===
+            if (state.data.fips_enabled) {
+                lines.push('    # === Step 5: FIPS Enhancement ===');
+                lines.push(`    fips_enabled: true`);
+                lines.push(`    fips_mode: ${state.data.fips_mode}`);
+                lines.push('');
+            }
+
+            // === Step 10: Enhanced Broker Settings ===
+            if (state.data.kafka_broker_schema_validation_enabled) {
+                lines.push('    # === Step 10: Broker Enhancements ===');
+                lines.push(`    kafka_broker_schema_validation_enabled: true`);
+            }
+            if (Object.keys(state.data.kafka_broker_custom_listeners).length > 0) {
+                if (!state.data.kafka_broker_schema_validation_enabled) {
+                    lines.push('    # === Step 10: Broker Enhancements ===');
+                }
+                lines.push('    kafka_broker_custom_listeners:');
+                Object.entries(state.data.kafka_broker_custom_listeners).forEach(([key, value]) => {
+                    if (key) lines.push(`      ${key}: ${value}`);
+                });
+                lines.push('');
+            }
+
+            // === Step 13: Enhanced Monitoring ===
+            if (state.data.jmx_enabled) {
+                lines.push('    # === Step 13: JMX Exporter Enhancements ===');
+                if (state.data.jmxexporter_jar_path) lines.push(`    jmxexporter_jar_path: ${state.data.jmxexporter_jar_path}`);
+                if (state.data.jmxexporter_url_remote) lines.push(`    jmxexporter_url_remote: true`);
+                if (state.data.jmxexporter_config_path) lines.push(`    jmxexporter_config_path: ${state.data.jmxexporter_config_path}`);
+                if (state.data.jmxexporter_config_url) lines.push(`    jmxexporter_config_url: ${state.data.jmxexporter_config_url}`);
+                if (state.data.kafka_broker_jmxexporter_enabled) lines.push(`    kafka_broker_jmxexporter_enabled: true`);
+                if (state.data.kafka_controller_jmxexporter_enabled) lines.push(`    kafka_controller_jmxexporter_enabled: true`);
+                if (state.data.schema_registry_jmxexporter_enabled) lines.push(`    schema_registry_jmxexporter_enabled: true`);
+                if (state.data.control_center_next_gen_jmxexporter_enabled) lines.push(`    control_center_next_gen_jmxexporter_enabled: true`);
+                if (state.data.kafka_connect_jmxexporter_enabled) lines.push(`    kafka_connect_jmxexporter_enabled: true`);
+                lines.push('');
+            }
+
+            if (state.data.jolokia_enabled) {
+                lines.push('    # === Step 13: Jolokia ===');
+                lines.push(`    jolokia_enabled: true`);
+                if (state.data.jolokia_jar_path) lines.push(`    jolokia_jar_path: ${state.data.jolokia_jar_path}`);
+                lines.push(`    jolokia_auth_mode: ${state.data.jolokia_auth_mode}`);
+                if (state.data.kafka_broker_jolokia_enabled) lines.push(`    kafka_broker_jolokia_enabled: true`);
+                if (state.data.kafka_controller_jolokia_enabled) lines.push(`    kafka_controller_jolokia_enabled: true`);
+                if (state.data.schema_registry_jolokia_enabled) lines.push(`    schema_registry_jolokia_enabled: true`);
+                if (state.data.kafka_connect_jolokia_enabled) lines.push(`    kafka_connect_jolokia_enabled: true`);
+                if (state.data.ksql_jolokia_enabled) lines.push(`    ksql_jolokia_enabled: true`);
+                if (state.data.kafka_rest_jolokia_enabled) lines.push(`    kafka_rest_jolokia_enabled: true`);
+                if (state.data.control_center_next_gen_jolokia_enabled) lines.push(`    control_center_next_gen_jolokia_enabled: true`);
+                lines.push('');
+            }
+
+            if (state.data.kafka_controller_custom_java_args || state.data.kafka_broker_custom_java_args ||
+                state.data.schema_registry_custom_java_args || state.data.kafka_connect_custom_java_args ||
+                state.data.ksql_custom_java_args || state.data.kafka_rest_custom_java_args ||
+                state.data.control_center_next_gen_custom_java_args) {
+                lines.push('    # === Step 13: Custom Java Arguments ===');
+                if (state.data.kafka_controller_custom_java_args)
+                    lines.push(`    kafka_controller_custom_java_args: "${state.data.kafka_controller_custom_java_args}"`);
+                if (state.data.kafka_broker_custom_java_args)
+                    lines.push(`    kafka_broker_custom_java_args: "${state.data.kafka_broker_custom_java_args}"`);
+                if (state.data.schema_registry_custom_java_args)
+                    lines.push(`    schema_registry_custom_java_args: "${state.data.schema_registry_custom_java_args}"`);
+                if (state.data.kafka_connect_custom_java_args)
+                    lines.push(`    kafka_connect_custom_java_args: "${state.data.kafka_connect_custom_java_args}"`);
+                if (state.data.ksql_custom_java_args)
+                    lines.push(`    ksql_custom_java_args: "${state.data.ksql_custom_java_args}"`);
+                if (state.data.kafka_rest_custom_java_args)
+                    lines.push(`    kafka_rest_custom_java_args: "${state.data.kafka_rest_custom_java_args}"`);
+                if (state.data.control_center_next_gen_custom_java_args)
+                    lines.push(`    control_center_next_gen_custom_java_args: "${state.data.control_center_next_gen_custom_java_args}"`);
+                lines.push('');
+            }
+
+            // === Step 14: Advanced ===
+            if (state.data.confluent_license || state.data.secrets_protection_enabled || state.data.telemetry_enabled ||
+                state.data.audit_logs_destination_enabled || state.data.logredactor_enabled ||
+                state.data.ccloud_kafka_enabled || state.data.ccloud_schema_registry_enabled ||
+                Object.keys(state.data.copy_files || {}).length > 0 || state.data.health_checks_enabled) {
+                lines.push('    # === Step 14: Advanced Settings ===');
+            }
+
+            if (state.data.confluent_license) {
+                lines.push(`    confluent_license: "${state.data.confluent_license}"`);
+            }
+
+            if (state.data.secrets_protection_enabled) {
+                lines.push('');
+                lines.push('    # --- Secrets Protection ---');
+                lines.push('    secrets_protection_enabled: true');
+                if (state.data.secrets_protection_masterkey)
+                    lines.push(`    secrets_protection_masterkey: "${state.data.secrets_protection_masterkey}"`);
+                if (state.data.secrets_protection_security_file)
+                    lines.push(`    secrets_protection_security_file: ${state.data.secrets_protection_security_file}`);
+                if (state.data.recreate_secrets_file)
+                    lines.push('    recreate_secrets_file: true');
+                if (state.data.regenerate_masterkey)
+                    lines.push('    regenerate_masterkey: true');
+
+                // Per-component secrets_protection_enabled (only output if disabled, since default=true when global is on)
+                if (!state.data.kafka_broker_secrets_protection_enabled)
+                    lines.push('    kafka_broker_secrets_protection_enabled: false');
+                if (!state.data.kafka_controller_secrets_protection_enabled)
+                    lines.push('    kafka_controller_secrets_protection_enabled: false');
+                if (!state.data.schema_registry_secrets_protection_enabled)
+                    lines.push('    schema_registry_secrets_protection_enabled: false');
+                if (!state.data.kafka_connect_secrets_protection_enabled)
+                    lines.push('    kafka_connect_secrets_protection_enabled: false');
+                if (!state.data.ksql_secrets_protection_enabled)
+                    lines.push('    ksql_secrets_protection_enabled: false');
+                if (!state.data.kafka_rest_secrets_protection_enabled)
+                    lines.push('    kafka_rest_secrets_protection_enabled: false');
+                if (!state.data.control_center_next_gen_secrets_protection_enabled)
+                    lines.push('    control_center_next_gen_secrets_protection_enabled: false');
+
+                // Kafka Broker encrypt
+                if (state.data.kafka_broker_secrets_protection_enabled) {
+                    if (!state.data.kafka_broker_secrets_protection_encrypt_passwords)
+                        lines.push('    kafka_broker_secrets_protection_encrypt_passwords: false');
+                    if (state.data.kafka_broker_secrets_protection_encrypt_properties)
+                        lines.push(`    kafka_broker_secrets_protection_encrypt_properties: "${state.data.kafka_broker_secrets_protection_encrypt_properties}"`);
+                }
+                // Kafka Controller encrypt (KRaft)
+                if (state.data.kafka_controller_secrets_protection_enabled) {
+                    if (!state.data.kafka_controller_secrets_protection_encrypt_passwords)
+                        lines.push('    kafka_controller_secrets_protection_encrypt_passwords: false');
+                    if (state.data.kafka_controller_secrets_protection_encrypt_properties)
+                        lines.push(`    kafka_controller_secrets_protection_encrypt_properties: "${state.data.kafka_controller_secrets_protection_encrypt_properties}"`);
+                }
+                // Schema Registry encrypt
+                if (state.data.schema_registry_secrets_protection_enabled) {
+                    if (!state.data.schema_registry_secrets_protection_encrypt_passwords)
+                        lines.push('    schema_registry_secrets_protection_encrypt_passwords: false');
+                    if (state.data.schema_registry_secrets_protection_encrypt_properties)
+                        lines.push(`    schema_registry_secrets_protection_encrypt_properties: "${state.data.schema_registry_secrets_protection_encrypt_properties}"`);
+                }
+                // Kafka Connect encrypt
+                if (state.data.kafka_connect_secrets_protection_enabled) {
+                    if (!state.data.kafka_connect_secrets_protection_encrypt_passwords)
+                        lines.push('    kafka_connect_secrets_protection_encrypt_passwords: false');
+                    if (state.data.kafka_connect_secrets_protection_encrypt_properties)
+                        lines.push(`    kafka_connect_secrets_protection_encrypt_properties: "${state.data.kafka_connect_secrets_protection_encrypt_properties}"`);
+                }
+                // ksqlDB encrypt
+                if (state.data.ksql_secrets_protection_enabled) {
+                    if (!state.data.ksql_secrets_protection_encrypt_passwords)
+                        lines.push('    ksql_secrets_protection_encrypt_passwords: false');
+                    if (state.data.ksql_secrets_protection_encrypt_properties)
+                        lines.push(`    ksql_secrets_protection_encrypt_properties: "${state.data.ksql_secrets_protection_encrypt_properties}"`);
+                }
+                // Kafka REST encrypt
+                if (state.data.kafka_rest_secrets_protection_enabled) {
+                    if (!state.data.kafka_rest_secrets_protection_encrypt_passwords)
+                        lines.push('    kafka_rest_secrets_protection_encrypt_passwords: false');
+                    if (state.data.kafka_rest_secrets_protection_encrypt_properties)
+                        lines.push(`    kafka_rest_secrets_protection_encrypt_properties: "${state.data.kafka_rest_secrets_protection_encrypt_properties}"`);
+                }
+                // Control Center encrypt
+                if (state.data.control_center_next_gen_secrets_protection_enabled) {
+                    if (!state.data.control_center_next_gen_secrets_protection_encrypt_passwords)
+                        lines.push('    control_center_next_gen_secrets_protection_encrypt_passwords: false');
+                    if (state.data.control_center_next_gen_secrets_protection_encrypt_properties)
+                        lines.push(`    control_center_next_gen_secrets_protection_encrypt_properties: "${state.data.control_center_next_gen_secrets_protection_encrypt_properties}"`);
+                }
+
+                // Client-Level Secrets Protection
+                if (!state.data.kafka_broker_client_secrets_protection_enabled)
+                    lines.push('    kafka_broker_client_secrets_protection_enabled: false');
+                else {
+                    if (!state.data.kafka_broker_client_secrets_protection_encrypt_passwords)
+                        lines.push('    kafka_broker_client_secrets_protection_encrypt_passwords: false');
+                    if (state.data.kafka_broker_client_secrets_protection_encrypt_properties)
+                        lines.push(`    kafka_broker_client_secrets_protection_encrypt_properties: "${state.data.kafka_broker_client_secrets_protection_encrypt_properties}"`);
+                }
+                if (!state.data.kafka_controller_client_secrets_protection_enabled)
+                    lines.push('    kafka_controller_client_secrets_protection_enabled: false');
+                else {
+                    if (!state.data.kafka_controller_client_secrets_protection_encrypt_passwords)
+                        lines.push('    kafka_controller_client_secrets_protection_encrypt_passwords: false');
+                    if (state.data.kafka_controller_client_secrets_protection_encrypt_properties)
+                        lines.push(`    kafka_controller_client_secrets_protection_encrypt_properties: "${state.data.kafka_controller_client_secrets_protection_encrypt_properties}"`);
+                }
+            }
+
+            if (state.data.telemetry_enabled) {
+                lines.push('    telemetry_enabled: true');
+                if (state.data.telemetry_api_key)
+                    lines.push(`    telemetry_api_key: ${state.data.telemetry_api_key}`);
+                if (state.data.telemetry_api_secret)
+                    lines.push(`    telemetry_api_secret: ${state.data.telemetry_api_secret}`);
+                if (state.data.telemetry_proxy_url)
+                    lines.push(`    telemetry_proxy_url: ${state.data.telemetry_proxy_url}`);
+                if (state.data.telemetry_proxy_username)
+                    lines.push(`    telemetry_proxy_username: ${state.data.telemetry_proxy_username}`);
+                if (state.data.telemetry_proxy_password)
+                    lines.push(`    telemetry_proxy_password: ${state.data.telemetry_proxy_password}`);
+                if (!state.data.kafka_broker_telemetry_enabled) lines.push(`    kafka_broker_telemetry_enabled: false`);
+                if (!state.data.schema_registry_telemetry_enabled) lines.push(`    schema_registry_telemetry_enabled: false`);
+                if (!state.data.kafka_connect_telemetry_enabled) lines.push(`    kafka_connect_telemetry_enabled: false`);
+                if (!state.data.ksql_telemetry_enabled) lines.push(`    ksql_telemetry_enabled: false`);
+                if (!state.data.kafka_rest_telemetry_enabled) lines.push(`    kafka_rest_telemetry_enabled: false`);
+                if (!state.data.control_center_next_gen_telemetry_enabled) lines.push(`    control_center_next_gen_telemetry_enabled: false`);
+            }
+
+            if (state.data.audit_logs_destination_enabled) {
+                lines.push('    audit_logs_destination_enabled: true');
+                if (state.data.audit_logs_destination_bootstrap_servers)
+                    lines.push(`    audit_logs_destination_bootstrap_servers: "${state.data.audit_logs_destination_bootstrap_servers}"`);
+                if (state.data.audit_logs_destination_listener)
+                    lines.push(`    audit_logs_destination_listener: ${state.data.audit_logs_destination_listener}`);
+                if (state.data.audit_logs_destination_principal)
+                    lines.push(`    audit_logs_destination_principal: ${state.data.audit_logs_destination_principal}`);
+                if (state.data.audit_logs_destination_erp_url)
+                    lines.push(`    audit_logs_destination_erp_url: ${state.data.audit_logs_destination_erp_url}`);
+                if (state.data.audit_logs_destination_admin_user)
+                    lines.push(`    audit_logs_destination_admin_user: ${state.data.audit_logs_destination_admin_user}`);
+                if (state.data.audit_logs_destination_admin_password)
+                    lines.push(`    audit_logs_destination_admin_password: ${state.data.audit_logs_destination_admin_password}`);
+            }
+
+            if (state.data.logredactor_enabled) {
+                lines.push('    logredactor_enabled: true');
+                if (state.data.logredactor_rule_url)
+                    lines.push(`    logredactor_rule_url: ${state.data.logredactor_rule_url}`);
+                if (state.data.logredactor_rule_path)
+                    lines.push(`    logredactor_rule_path: ${state.data.logredactor_rule_path}`);
+                if (state.data.logredactor_rule_path_local)
+                    lines.push(`    logredactor_rule_path_local: ${state.data.logredactor_rule_path_local}`);
+                if (state.data.custom_log4j)
+                    lines.push(`    custom_log4j: true`);
+            }
+
+            if (state.data.ccloud_kafka_enabled) {
+                lines.push('    ccloud_kafka_enabled: true');
+                if (state.data.ccloud_kafka_bootstrap_servers)
+                    lines.push(`    ccloud_kafka_bootstrap_servers: "${state.data.ccloud_kafka_bootstrap_servers}"`);
+                if (state.data.ccloud_kafka_key)
+                    lines.push(`    ccloud_kafka_key: ${state.data.ccloud_kafka_key}`);
+                if (state.data.ccloud_kafka_secret)
+                    lines.push(`    ccloud_kafka_secret: ${state.data.ccloud_kafka_secret}`);
+            }
+
+            if (state.data.ccloud_schema_registry_enabled) {
+                lines.push('    ccloud_schema_registry_enabled: true');
+                if (state.data.ccloud_schema_registry_url)
+                    lines.push(`    ccloud_schema_registry_url: "${state.data.ccloud_schema_registry_url}"`);
+                if (state.data.ccloud_schema_registry_key)
+                    lines.push(`    ccloud_schema_registry_key: ${state.data.ccloud_schema_registry_key}`);
+                if (state.data.ccloud_schema_registry_secret)
+                    lines.push(`    ccloud_schema_registry_secret: ${state.data.ccloud_schema_registry_secret}`);
+            }
+
+            // Per-component copy_files
+            if (Object.keys(state.data.kafka_controller_copy_files).length > 0) {
+                lines.push('    kafka_controller_copy_files:');
+                Object.entries(state.data.kafka_controller_copy_files).forEach(([source, dest]) => {
+                    if (source) lines.push(`      - { source_path: "${source}", destination_path: "${dest}" }`);
+                });
+            }
+            if (Object.keys(state.data.kafka_broker_copy_files).length > 0) {
+                lines.push('    kafka_broker_copy_files:');
+                Object.entries(state.data.kafka_broker_copy_files).forEach(([source, dest]) => {
+                    if (source) lines.push(`      - { source_path: "${source}", destination_path: "${dest}" }`);
+                });
+            }
+            if (Object.keys(state.data.schema_registry_copy_files).length > 0) {
+                lines.push('    schema_registry_copy_files:');
+                Object.entries(state.data.schema_registry_copy_files).forEach(([source, dest]) => {
+                    if (source) lines.push(`      - { source_path: "${source}", destination_path: "${dest}" }`);
+                });
+            }
+            if (Object.keys(state.data.kafka_connect_copy_files).length > 0) {
+                lines.push('    kafka_connect_copy_files:');
+                Object.entries(state.data.kafka_connect_copy_files).forEach(([source, dest]) => {
+                    if (source) lines.push(`      - { source_path: "${source}", destination_path: "${dest}" }`);
+                });
+            }
+            if (Object.keys(state.data.ksql_copy_files).length > 0) {
+                lines.push('    ksql_copy_files:');
+                Object.entries(state.data.ksql_copy_files).forEach(([source, dest]) => {
+                    if (source) lines.push(`      - { source_path: "${source}", destination_path: "${dest}" }`);
+                });
+            }
+            if (Object.keys(state.data.kafka_rest_copy_files).length > 0) {
+                lines.push('    kafka_rest_copy_files:');
+                Object.entries(state.data.kafka_rest_copy_files).forEach(([source, dest]) => {
+                    if (source) lines.push(`      - { source_path: "${source}", destination_path: "${dest}" }`);
+                });
+            }
+            if (Object.keys(state.data.control_center_next_gen_copy_files).length > 0) {
+                lines.push('    control_center_next_gen_copy_files:');
+                Object.entries(state.data.control_center_next_gen_copy_files).forEach(([source, dest]) => {
+                    if (source) lines.push(`      - { source_path: "${source}", destination_path: "${dest}" }`);
+                });
+            }
+
+            if (state.data.health_checks_enabled) {
+                lines.push('    health_checks_enabled: true');
+            }
+
+            if ((state.data.confluent_license || state.data.secrets_protection_enabled || state.data.telemetry_enabled ||
+                state.data.audit_logs_destination_enabled || state.data.logredactor_enabled ||
+                state.data.ccloud_kafka_enabled || state.data.ccloud_schema_registry_enabled ||
+                Object.keys(state.data.copy_files || {}).length > 0 || state.data.health_checks_enabled) &&
+                (state.data.components.schema_registry || state.data.components.kafka_connect ||
+                 state.data.components.control_center_next_gen || state.data.components.ksql)) {
+                lines.push('');
+            }
+
+            lines.push('  # === Component Host Groups ===');
+            lines.push('kafka_controller:');
+            lines.push('  hosts:');
+            (state.data.hosts.kafka_controller || []).forEach(host => {
+                if (host.hostname) {
+                    lines.push(`    ${host.hostname}:`);
+                    if (host.ansible_host) lines.push(`      ansible_host: ${host.ansible_host}`);
+                    if (host.node_id) lines.push(`      node_id: ${host.node_id}`);
+                    if (host.node_ip) lines.push(`      node_ip: ${host.node_ip}`);
+                }
+            });
+            lines.push('');
+
+            lines.push('kafka_broker:');
+            lines.push('  hosts:');
+            (state.data.hosts.kafka_broker || []).forEach(host => {
+                if (host.hostname) {
+                    lines.push(`    ${host.hostname}:`);
+                    if (host.ansible_host) lines.push(`      ansible_host: ${host.ansible_host}`);
+                    if (host.broker_id) lines.push(`      broker_id: ${host.broker_id}`);
+                    if (host.broker_ip) lines.push(`      broker_ip: ${host.broker_ip}`);
+                }
+            });
+            lines.push('');
+
+            if (state.data.components.schema_registry && state.data.hosts.schema_registry && state.data.hosts.schema_registry.length > 0) {
+                lines.push('schema_registry:');
+                lines.push('  hosts:');
+                state.data.hosts.schema_registry.forEach(host => {
+                    if (host.hostname) {
+                        lines.push(`    ${host.hostname}:`);
+                        if (host.ansible_host) lines.push(`      ansible_host: ${host.ansible_host}`);
+                    }
+                });
+                lines.push('');
+            }
+
+            if (state.data.components.control_center_next_gen && state.data.hosts.control_center_next_gen && state.data.hosts.control_center_next_gen.length > 0) {
+                lines.push('control_center_next_gen:');
+                lines.push('  hosts:');
+                state.data.hosts.control_center_next_gen.forEach(host => {
+                    if (host.hostname) {
+                        lines.push(`    ${host.hostname}:`);
+                        if (host.ansible_host) lines.push(`      ansible_host: ${host.ansible_host}`);
+                    }
+                });
+                lines.push('');
+            }
+
+            if (state.data.components.kafka_connect && state.data.hosts.kafka_connect && Object.keys(state.data.hosts.kafka_connect).length > 0) {
+                lines.push('kafka_connect:');
+                lines.push('  hosts:');
+                Object.entries(state.data.hosts.kafka_connect).forEach(([hostname, hostData]) => {
+                    if (hostname) {
+                        lines.push(`    ${hostname}:`);
+                        if (hostData && hostData.ansible_host) lines.push(`      ansible_host: ${hostData.ansible_host}`);
+                    }
+                });
+                lines.push('');
+            }
+
+            if (state.data.components.ksql && state.data.hosts.ksql && Object.keys(state.data.hosts.ksql).length > 0) {
+                lines.push('ksql:');
+                lines.push('  hosts:');
+                Object.entries(state.data.hosts.ksql).forEach(([hostname, hostData]) => {
+                    if (hostname) {
+                        lines.push(`    ${hostname}:`);
+                        if (hostData && hostData.ansible_host) lines.push(`      ansible_host: ${hostData.ansible_host}`);
+                    }
+                });
+                lines.push('');
+            }
+
+            if (state.data.components.kafka_rest && state.data.hosts.kafka_rest && state.data.hosts.kafka_rest.length > 0) {
+                lines.push('kafka_rest:');
+                lines.push('  hosts:');
+                state.data.hosts.kafka_rest.forEach(host => {
+                    if (host.hostname) {
+                        lines.push(`    ${host.hostname}:`);
+                        if (host.ansible_host) lines.push(`      ansible_host: ${host.ansible_host}`);
+                    }
+                });
+                lines.push('');
+            }
+
+            return lines.join('\n');
+        }
+
+        function updateYamlPreview() {
+            const yaml = generateYaml();
+            const preview = document.getElementById('yamlPreview');
+
+            const highlighted = yaml
+                .split('\n')
+                .map(line => {
+                    if (line.startsWith('#')) {
+                        return `<span class="yaml-comment">${escapeHtml(line)}</span>`;
+                    }
+                    const match = line.match(/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*):\s*(.*)$/);
+                    if (match) {
+                        const [_, indent, key, value] = match;
+                        let valueHtml = value;
+                        if (value.startsWith('"') && value.endsWith('"')) {
+                            valueHtml = `<span class="yaml-string">${escapeHtml(value)}</span>`;
+                        } else if (value === 'true' || value === 'false' || /^\d+$/.test(value)) {
+                            valueHtml = `<span class="yaml-value">${escapeHtml(value)}</span>`;
+                        } else if (value) {
+                            valueHtml = `<span class="yaml-value">${escapeHtml(value)}</span>`;
+                        }
+                        return `${indent}<span class="yaml-key">${key}</span>: ${valueHtml}`;
+                    }
+                    return escapeHtml(line);
+                })
+                .join('\n');
+
+            preview.innerHTML = highlighted;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        document.getElementById('copyYaml').addEventListener('click', copyYaml);
+        document.getElementById('downloadYaml').addEventListener('click', downloadYaml);
+        document.getElementById('copyYamlBtn').addEventListener('click', copyYaml);
+        document.getElementById('downloadYamlBtn').addEventListener('click', downloadYaml);
+        document.getElementById('exportPng').addEventListener('click', exportPng);
+        document.getElementById('resetAll').addEventListener('click', resetAll);
+
+        function copyYaml() {
+            const yaml = generateYaml();
+            navigator.clipboard.writeText(yaml).then(() => {
+                showToast('YAML이 클립보드에 복사되었습니다');
+            });
+        }
+
+        function downloadYaml() {
+            const yaml = generateYaml();
+            const blob = new Blob([yaml], { type: 'text/yaml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hosts.yml';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('YAML이 다운로드되었습니다');
+        }
+
+        function exportPng() {
+            const element = document.querySelector('.main');
+            html2canvas(element, {
+                scale: 2,
+                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg')
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL();
+                link.download = 'hosts-config.png';
+                link.click();
+                showToast('PNG이 다운로드되었습니다');
+            });
+        }
+
+        function resetAll() {
+            if (confirm('모든 설정을 초기화하시겠습니까?')) {
+                state.currentStep = 1;
+                state.completedSteps.clear();
+                // Reset state.data to initial values
+                location.reload();
+            }
+        }
+
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        loadTheme();
+        renderStepBar();
+        renderStepContent();
+        updateYamlPreview();
+    </script>
+</body>
+</html>

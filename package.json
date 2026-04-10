@@ -1,0 +1,16 @@
+{
+  "name": "ansible-guide",
+  "version": "1.0.0",
+  "description": "이 패키지는 다음 파일을 포함합니다.",
+  "main": "test_steps.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "js-yaml": "^4.1.1"
+  }
+}
