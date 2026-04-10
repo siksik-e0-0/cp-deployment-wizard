@@ -9,13 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html.theme-dark {
       --bg: #0f0f1a; --surface: #1a1a2e; --surface-hover: #252540;
       --border: rgba(255,255,255,0.08);
       --text: #EDEDED; --text-secondary: #8892a4;
       --accent: #00B4D8; --accent-secondary: #0077B6;
-      --positive: #10b981; --negative: #f43f5e; --warning: #f59e0b;
       --accent-glow: rgba(0,180,216,0.15);
     }
     html.theme-light {
@@ -23,10 +21,8 @@
       --border: rgba(0,0,0,0.08);
       --text: #0f172a; --text-secondary: #64748b;
       --accent: #0077B6; --accent-secondary: #00B4D8;
-      --positive: #059669; --negative: #e11d48; --warning: #d97706;
       --accent-glow: rgba(0,119,182,0.1);
     }
-
     body {
       font-family: 'Noto Sans KR', 'Inter', -apple-system, sans-serif;
       background: var(--bg); color: var(--text);
@@ -34,41 +30,22 @@
       min-height: 100vh; display: flex; flex-direction: column;
       align-items: center; justify-content: center; padding: 24px;
     }
-
-    .container {
-      max-width: 720px; width: 100%; text-align: center;
-    }
-
+    .container { max-width: 720px; width: 100%; text-align: center; }
     .logo-mark {
       width: 64px; height: 64px; border-radius: 16px;
       background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
       display: inline-flex; align-items: center; justify-content: center;
-      color: white; font-weight: 800; font-size: 24px;
-      margin-bottom: 24px;
+      color: white; font-weight: 800; font-size: 24px; margin-bottom: 24px;
     }
-
-    h1 {
-      font-size: 2.2rem; font-weight: 700; letter-spacing: -0.03em;
-      line-height: 1.2; margin-bottom: 12px;
-    }
-
-    .subtitle {
-      font-size: 16px; color: var(--text-secondary); margin-bottom: 48px;
-      line-height: 1.6;
-    }
-
-    .card-grid {
-      display: grid; gap: 20px;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    }
-
+    h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 12px; }
+    .subtitle { font-size: 16px; color: var(--text-secondary); margin-bottom: 48px; line-height: 1.6; }
+    .card-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
     .tool-card {
       background: var(--surface); border: 2px solid var(--border);
       border-radius: 16px; padding: 32px 24px;
       text-decoration: none; color: var(--text);
       transition: all 0.25s ease; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center;
-      text-align: center; position: relative;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
     }
     .tool-card:hover {
       border-color: var(--accent);
@@ -76,56 +53,31 @@
       transform: translateY(-4px);
     }
     .tool-card:active { transform: translateY(-2px); }
-
     .tool-icon {
       width: 56px; height: 56px; border-radius: 14px;
       background: var(--accent-glow);
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
     }
     .tool-icon svg { color: var(--accent); }
-
-    .tool-title {
-      font-size: 1.25rem; font-weight: 600; margin-bottom: 8px;
-      letter-spacing: -0.02em;
-    }
-
-    .tool-desc {
-      font-size: 14px; color: var(--text-secondary); line-height: 1.5;
-      margin-bottom: 20px;
-    }
-
+    .tool-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.02em; }
+    .tool-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
     .tool-badge {
       display: inline-flex; align-items: center; gap: 6px;
       font-size: 13px; font-weight: 500; color: var(--accent);
-      padding: 6px 14px; border-radius: 8px;
-      background: var(--accent-glow);
+      padding: 6px 14px; border-radius: 8px; background: var(--accent-glow);
     }
-    .tool-badge svg { flex-shrink: 0; }
-
     .theme-toggle {
       position: fixed; top: 16px; right: 16px;
       width: 44px; height: 44px; border-radius: 12px;
       background: var(--surface); border: 1px solid var(--border);
       color: var(--text); cursor: pointer; display: flex;
-      align-items: center; justify-content: center;
-      transition: all 0.2s; z-index: 100;
+      align-items: center; justify-content: center; transition: all 0.2s; z-index: 100;
     }
     .theme-toggle:hover { background: var(--surface-hover); }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
     .animate { animation: fadeInUp 0.6s ease-out both; }
-    .delay-1 { animation-delay: 0.1s; }
     .delay-2 { animation-delay: 0.2s; }
     .delay-3 { animation-delay: 0.3s; }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation: none !important; transition: none !important; }
-    }
-
     @media (max-width: 640px) {
       h1 { font-size: 1.6rem; }
       .card-grid { grid-template-columns: 1fr; }
@@ -134,7 +86,6 @@
   </style>
 </head>
 <body>
-
   <button class="theme-toggle" onclick="toggleTheme()" aria-label="테마 전환">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -152,22 +103,26 @@
       <a href="confluent-deployment-wizard.html" class="tool-card animate delay-2">
         <div class="tool-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3v18"/>
-            <path d="M3 12h18"/>
-            <path d="M16 6l-4-3-4 3"/>
-            <path d="M8 18l4 3 4-3"/>
+            <path d="M12 3v18"/><path d="M3 12h18"/><path d="M16 6l-4-3-4 3"/><path d="M8 18l4 3 4-3"/>
             <rect x="3" y="8" width="18" height="8" rx="2"/>
           </svg>
         </div>
         <div class="tool-title">배포 설정 위자드</div>
-        <div class="tool-desc">
-          Confluent Platform 클러스터 배포 구성을 단계별로 설정합니다.
-          인프라, 보안, 인증, 데이터, 모니터링까지 한 번에 구성할 수 있습니다.
+        <div class="tool-desc">Confluent Platform 클러스터 배포 구성을 단계별로 설정합니다. 인프라, 보안, 인증, 데이터, 모니터링까지 한 번에 구성할 수 있습니다.</div>
+        <span class="tool-badge">시작하기 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </a>
+
+      <a href="confluent-architecture.html" class="tool-card animate delay-3">
+        <div class="tool-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="8" height="6" rx="1"/><rect x="14" y="3" width="8" height="6" rx="1"/>
+            <rect x="7" y="15" width="10" height="6" rx="1"/>
+            <path d="M6 9v3h12V9"/><path d="M12 12v3"/>
+          </svg>
         </div>
-        <span class="tool-badge">
-          시작하기
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </span>
+        <div class="tool-title">아키텍처 가이드</div>
+        <div class="tool-desc">Confluent Platform 아키텍처 구성을 시각적으로 확인합니다. 컴포넌트 간 관계와 배포 구조를 한눈에 파악할 수 있습니다.</div>
+        <span class="tool-badge">보러가기 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
       </a>
     </div>
   </div>
@@ -176,11 +131,9 @@
     function toggleTheme() {
       var html = document.documentElement;
       if (html.classList.contains('theme-dark')) {
-        html.classList.remove('theme-dark');
-        html.classList.add('theme-light');
+        html.classList.remove('theme-dark'); html.classList.add('theme-light');
       } else {
-        html.classList.remove('theme-light');
-        html.classList.add('theme-dark');
+        html.classList.remove('theme-light'); html.classList.add('theme-dark');
       }
     }
   </script>
