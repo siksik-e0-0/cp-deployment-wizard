@@ -919,14 +919,14 @@
             </div>
             <div class="flow-arrow">
               <div class="flow-arrow-line"><div class="line" style="background:var(--positive);"></div><div class="arrow" style="border-left:8px solid var(--positive);"></div></div>
-              <div class="flow-arrow-label">OIDC Token</div>
+              <div class="flow-arrow-label">Auth Code + Callback</div>
             </div>
             <div class="flow-step">
               <div class="flow-step-node" style="background:var(--glow-green);border:2px solid var(--positive);border-radius:16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--positive)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
               </div>
               <div class="flow-step-name">C3 :9021</div>
-              <div class="flow-step-detail">BASIC -> MDS</div>
+              <div class="flow-step-detail">Code→Token + MDS</div>
             </div>
             <div class="flow-arrow">
               <div class="flow-arrow-line"><div class="line" style="background:var(--accent-secondary);"></div><div class="arrow" style="border-left:8px solid var(--accent-secondary);"></div></div>
@@ -952,10 +952,10 @@
       </div>
 
       <div class="listener-filters">
-        <button class="listener-filter active" onclick="filterMatrix('all')">All</button>
-        <button class="listener-filter" onclick="filterMatrix('external')">External</button>
-        <button class="listener-filter" onclick="filterMatrix('internal')">Internal</button>
-        <button class="listener-filter" onclick="filterMatrix('authentik')">Authentik Dep.</button>
+        <button class="listener-filter active" onclick="filterMatrix('all', event)">All</button>
+        <button class="listener-filter" onclick="filterMatrix('external', event)">External</button>
+        <button class="listener-filter" onclick="filterMatrix('internal', event)">Internal</button>
+        <button class="listener-filter" onclick="filterMatrix('authentik', event)">Authentik Dep.</button>
       </div>
 
       <div class="matrix-wrapper" style="overflow-x:auto;">
@@ -1232,9 +1232,9 @@
     }
 
     // === Matrix Filter ===
-    function filterMatrix(type) {
+    function filterMatrix(type, e) {
       document.querySelectorAll('.listener-filter').forEach(function(b) { b.classList.remove('active'); });
-      event.target.classList.add('active');
+      e.target.classList.add('active');
       var rows = document.querySelectorAll('#matrixTable tbody tr');
       rows.forEach(function(row) {
         if (type === 'all') { row.style.display = ''; return; }
@@ -1260,7 +1260,7 @@
       },
       broker: {
         title: 'Kafka Broker',
-        body: '<table class="detail-table"><tr><th>Connection</th><th>Listener</th><th>Auth</th></tr><tr><td>Client -> Broker</td><td>EXTERNAL :9093</td><td>OAUTHBEARER (Authentik)</td></tr><tr><td>CP Component -> Broker</td><td>TOKEN :9094</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>Broker <-> Broker</td><td>INTERNAL :9091</td><td>SCRAM-SHA-512</td></tr><tr><td>MDS -> Authentik LDAP</td><td>LDAPS</td><td>LDAP Bind</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">EXTERNAL listener uses CompositeBearerValidatorCallbackHandler to accept both Authentik and MDS tokens.</p>'
+        body: '<table class="detail-table"><tr><th>Connection</th><th>Listener</th><th>Auth</th></tr><tr><td>Client -> Broker</td><td>EXTERNAL :9093</td><td>OAUTHBEARER (Authentik)</td></tr><tr><td>CP Component -> Broker</td><td>TOKEN :9094</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>Broker <-> Broker</td><td>INTERNAL :9091</td><td>SCRAM-SHA-512</td></tr><tr><td>MDS -> Authentik LDAP</td><td>LDAPS</td><td>LDAP Bind</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">EXTERNAL listener validates Authentik JWT via JWKS endpoint. TOKEN listener validates MDS tokens via public.pem. Each listener accepts only its designated token type.</p>'
       },
       controller: {
         title: 'KRaft Controller',
