@@ -451,12 +451,12 @@
     <div class="step-connector"></div>
     <div class="step-item" data-step="2" onclick="goToStep(2)">
       <div class="step-num">2</div>
-      <span class="step-label">보안 설정</span>
+      <span class="step-label">인증 & 인가</span>
     </div>
     <div class="step-connector"></div>
     <div class="step-item" data-step="3" onclick="goToStep(3)">
       <div class="step-num">3</div>
-      <span class="step-label">인증 & 인가</span>
+      <span class="step-label">보안 설정</span>
     </div>
     <div class="step-connector"></div>
     <div class="step-item" data-step="4" onclick="goToStep(4)">
@@ -589,8 +589,131 @@
         </div>
       </section>
 
-      <!-- ====== STEP 2: Security ====== -->
+      <!-- ====== STEP 2: 인증 & 인가 ====== -->
       <section class="wizard-step" id="step2">
+        <div class="step-header animate">
+          <h2>인증 & 인가</h2>
+          <p>RBAC, LDAP 연동 및 SSO/OIDC 설정을 구성합니다. 여기서 RBAC을 활성화하면 다음 단계의 Listener SASL이 자동 설정됩니다.</p>
+        </div>
+
+        <div class="form-group animate delay-1">
+          <div class="toggle-row" onclick="toggleSwitch('rbac')">
+            <div class="toggle-info">
+              <span class="toggle-title">RBAC (역할 기반 접근 제어)</span>
+              <span class="toggle-desc">MDS 기반 세분화된 접근 제어. OAUTHBEARER 프로토콜이 필요합니다.</span>
+            </div>
+            <button class="toggle-switch on" id="toggle-rbac" aria-label="RBAC toggle"></button>
+          </div>
+        </div>
+
+        <div class="form-group animate delay-2">
+          <div class="toggle-row" onclick="toggleSwitch('ldap')">
+            <div class="toggle-info">
+              <span class="toggle-title">LDAP 연동</span>
+              <span class="toggle-desc">외부 디렉토리 서비스 연동 (Active Directory, OpenLDAP 등)</span>
+            </div>
+            <button class="toggle-switch on" id="toggle-ldap" aria-label="LDAP toggle"></button>
+          </div>
+          <div class="config-panel open" id="ldap-config">
+            <div class="config-row full">
+              <div class="field-col">
+                <label class="form-label" style="margin-bottom:6px">LDAP URL</label>
+                <input type="text" class="text-input" placeholder="ldap://ldap.example.com:389" id="ldap-url">
+              </div>
+            </div>
+            <div class="config-row">
+              <div class="field-col">
+                <label class="form-label" style="margin-bottom:6px">Base DN</label>
+                <input type="text" class="text-input" placeholder="dc=example,dc=com" id="ldap-basedn">
+              </div>
+              <div class="field-col">
+                <label class="form-label" style="margin-bottom:6px">User Search Base</label>
+                <input type="text" class="text-input" placeholder="ou=users,dc=example,dc=com" id="ldap-usersearch">
+              </div>
+            </div>
+            <div class="config-row">
+              <div class="field-col">
+                <label class="form-label" style="margin-bottom:6px">Group Search Base</label>
+                <input type="text" class="text-input" placeholder="ou=groups,dc=example,dc=com" id="ldap-groupsearch">
+              </div>
+              <div class="field-col">
+                <label class="form-label" style="margin-bottom:6px">User Name Attribute</label>
+                <select class="select-input" id="ldap-userattr">
+                  <option value="cn" selected>cn</option>
+                  <option value="uid">uid</option>
+                  <option value="sAMAccountName">sAMAccountName</option>
+                </select>
+              </div>
+            </div>
+            <div class="config-row">
+              <div class="field-col">
+                <label class="form-label" style="margin-bottom:6px">User Object Class</label>
+                <select class="select-input" id="ldap-userobjectclass">
+                  <option value="inetOrgPerson" selected>inetOrgPerson</option>
+                  <option value="person">person</option>
+                  <option value="user">user (AD)</option>
+                </select>
+              </div>
+              <div class="field-col">
+                <label class="form-label" style="margin-bottom:6px">Group Object Class</label>
+                <select class="select-input" id="ldap-groupobjectclass">
+                  <option value="groupOfUniqueNames" selected>groupOfUniqueNames</option>
+                  <option value="groupOfNames">groupOfNames</option>
+                  <option value="group">group (AD)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group animate delay-3">
+          <div class="toggle-row" onclick="toggleSwitch('oidc')">
+            <div class="toggle-info">
+              <span class="toggle-title">SSO / OIDC (Control Center)</span>
+              <span class="toggle-desc">OpenID Connect 기반 Single Sign-On</span>
+            </div>
+            <button class="toggle-switch" id="toggle-oidc" aria-label="OIDC toggle"></button>
+          </div>
+          <div class="config-panel" id="oidc-config">
+            <div class="form-group" style="margin-bottom: 16px;">
+              <div class="form-label">OIDC Provider</div>
+              <div class="option-grid" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));">
+                <div class="option-card" onclick="selectOption('oidcProvider','authentik')" id="oidc-authentik">
+                  <div class="opt-title">Authentik</div>
+                </div>
+                <div class="option-card" onclick="selectOption('oidcProvider','keycloak')" id="oidc-keycloak">
+                  <div class="opt-title">Keycloak</div>
+                </div>
+                <div class="option-card" onclick="selectOption('oidcProvider','okta')" id="oidc-okta">
+                  <div class="opt-title">Okta</div>
+                </div>
+                <div class="option-card" onclick="selectOption('oidcProvider','azuread')" id="oidc-azuread">
+                  <div class="opt-title">Azure AD</div>
+                </div>
+              </div>
+            </div>
+            <div class="config-row full">
+              <div class="field-col">
+                <label class="form-label" style="margin-bottom:6px">Issuer URL</label>
+                <input type="text" class="text-input" placeholder="https://idp.example.com/" id="oidc-issuer">
+              </div>
+            </div>
+            <div class="config-row">
+              <div class="field-col">
+                <label class="form-label" style="margin-bottom:6px">Client ID</label>
+                <input type="text" class="text-input" placeholder="your-client-id" id="oidc-clientid">
+              </div>
+              <div class="field-col">
+                <label class="form-label" style="margin-bottom:6px">JWKS URI</label>
+                <input type="text" class="text-input" placeholder="https://idp.example.com/jwks/" id="oidc-jwks">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== STEP 3: 보안 설정 ====== -->
+      <section class="wizard-step" id="step3">
         <div class="step-header animate">
           <h2>보안 설정</h2>
           <p>SSL/TLS 암호화 및 Listener별 인증 프로토콜을 설정합니다. RBAC 활성화 시 External/Token Listener는 OAUTHBEARER가 필수입니다.</p>
@@ -624,7 +747,7 @@
           <!-- RBAC dependency notice -->
           <div class="alert-box warning" id="rbac-listener-notice" style="margin-bottom: 16px;">
             <span class="alert-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
-            <span><strong>RBAC 연동:</strong> Step 3에서 RBAC을 활성화하면 External/Token Listener의 SASL이 자동으로 OAUTHBEARER로 설정됩니다.</span>
+            <span><strong>RBAC 연동:</strong> 이전 단계에서 RBAC이 활성화되어 External/Token Listener의 SASL이 OAUTHBEARER로 고정되었습니다.</span>
           </div>
 
           <div class="listener-card" style="border-left: 3px solid var(--accent);">
@@ -750,129 +873,6 @@
                 <span style="color:var(--text-secondary);">&#8594;</span>
                 <span style="background:var(--accent-glow);color:var(--accent);padding:2px 10px;border-radius:6px;font-weight:500;">Broker</span>
                 <span style="color:var(--text-secondary);font-size:11px;margin-left:8px;">Token :9094 (OAUTH)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ====== STEP 3: Auth ====== -->
-      <section class="wizard-step" id="step3">
-        <div class="step-header animate">
-          <h2>인증 & 인가</h2>
-          <p>RBAC, LDAP 연동 및 SSO/OIDC 설정을 구성합니다.</p>
-        </div>
-
-        <div class="form-group animate delay-1">
-          <div class="toggle-row" onclick="toggleSwitch('rbac')">
-            <div class="toggle-info">
-              <span class="toggle-title">RBAC (역할 기반 접근 제어)</span>
-              <span class="toggle-desc">MDS 기반 세분화된 접근 제어. OAUTHBEARER 프로토콜이 필요합니다.</span>
-            </div>
-            <button class="toggle-switch on" id="toggle-rbac" aria-label="RBAC toggle"></button>
-          </div>
-        </div>
-
-        <div class="form-group animate delay-2">
-          <div class="toggle-row" onclick="toggleSwitch('ldap')">
-            <div class="toggle-info">
-              <span class="toggle-title">LDAP 연동</span>
-              <span class="toggle-desc">외부 디렉토리 서비스 연동 (Active Directory, OpenLDAP 등)</span>
-            </div>
-            <button class="toggle-switch on" id="toggle-ldap" aria-label="LDAP toggle"></button>
-          </div>
-          <div class="config-panel open" id="ldap-config">
-            <div class="config-row full">
-              <div class="field-col">
-                <label class="form-label" style="margin-bottom:6px">LDAP URL</label>
-                <input type="text" class="text-input" placeholder="ldap://ldap.example.com:389" id="ldap-url">
-              </div>
-            </div>
-            <div class="config-row">
-              <div class="field-col">
-                <label class="form-label" style="margin-bottom:6px">Base DN</label>
-                <input type="text" class="text-input" placeholder="dc=example,dc=com" id="ldap-basedn">
-              </div>
-              <div class="field-col">
-                <label class="form-label" style="margin-bottom:6px">User Search Base</label>
-                <input type="text" class="text-input" placeholder="ou=users,dc=example,dc=com" id="ldap-usersearch">
-              </div>
-            </div>
-            <div class="config-row">
-              <div class="field-col">
-                <label class="form-label" style="margin-bottom:6px">Group Search Base</label>
-                <input type="text" class="text-input" placeholder="ou=groups,dc=example,dc=com" id="ldap-groupsearch">
-              </div>
-              <div class="field-col">
-                <label class="form-label" style="margin-bottom:6px">User Name Attribute</label>
-                <select class="select-input" id="ldap-userattr">
-                  <option value="cn" selected>cn</option>
-                  <option value="uid">uid</option>
-                  <option value="sAMAccountName">sAMAccountName</option>
-                </select>
-              </div>
-            </div>
-            <div class="config-row">
-              <div class="field-col">
-                <label class="form-label" style="margin-bottom:6px">User Object Class</label>
-                <select class="select-input" id="ldap-userobjectclass">
-                  <option value="inetOrgPerson" selected>inetOrgPerson</option>
-                  <option value="person">person</option>
-                  <option value="user">user (AD)</option>
-                </select>
-              </div>
-              <div class="field-col">
-                <label class="form-label" style="margin-bottom:6px">Group Object Class</label>
-                <select class="select-input" id="ldap-groupobjectclass">
-                  <option value="groupOfUniqueNames" selected>groupOfUniqueNames</option>
-                  <option value="groupOfNames">groupOfNames</option>
-                  <option value="group">group (AD)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group animate delay-3">
-          <div class="toggle-row" onclick="toggleSwitch('oidc')">
-            <div class="toggle-info">
-              <span class="toggle-title">SSO / OIDC (Control Center)</span>
-              <span class="toggle-desc">OpenID Connect 기반 Single Sign-On</span>
-            </div>
-            <button class="toggle-switch" id="toggle-oidc" aria-label="OIDC toggle"></button>
-          </div>
-          <div class="config-panel" id="oidc-config">
-            <div class="form-group" style="margin-bottom: 16px;">
-              <div class="form-label">OIDC Provider</div>
-              <div class="option-grid" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));">
-                <div class="option-card" onclick="selectOption('oidcProvider','authentik')" id="oidc-authentik">
-                  <div class="opt-title">Authentik</div>
-                </div>
-                <div class="option-card" onclick="selectOption('oidcProvider','keycloak')" id="oidc-keycloak">
-                  <div class="opt-title">Keycloak</div>
-                </div>
-                <div class="option-card" onclick="selectOption('oidcProvider','okta')" id="oidc-okta">
-                  <div class="opt-title">Okta</div>
-                </div>
-                <div class="option-card" onclick="selectOption('oidcProvider','azuread')" id="oidc-azuread">
-                  <div class="opt-title">Azure AD</div>
-                </div>
-              </div>
-            </div>
-            <div class="config-row full">
-              <div class="field-col">
-                <label class="form-label" style="margin-bottom:6px">Issuer URL</label>
-                <input type="text" class="text-input" placeholder="https://idp.example.com/" id="oidc-issuer">
-              </div>
-            </div>
-            <div class="config-row">
-              <div class="field-col">
-                <label class="form-label" style="margin-bottom:6px">Client ID</label>
-                <input type="text" class="text-input" placeholder="your-client-id" id="oidc-clientid">
-              </div>
-              <div class="field-col">
-                <label class="form-label" style="margin-bottom:6px">JWKS URI</label>
-                <input type="text" class="text-input" placeholder="https://idp.example.com/jwks/" id="oidc-jwks">
               </div>
             </div>
           </div>
@@ -1512,17 +1512,6 @@
     // =============================================
     function saveStepData(step) {
       if (step === 2) {
-        config.listeners.internal.port = document.getElementById('listener-internal-port').value;
-        config.listeners.internal.ssl = document.getElementById('listener-internal-ssl').value;
-        config.listeners.internal.sasl = document.getElementById('listener-internal-sasl').value;
-        config.listeners.external.port = document.getElementById('listener-external-port').value;
-        config.listeners.external.ssl = document.getElementById('listener-external-ssl').value;
-        config.listeners.external.sasl = document.getElementById('listener-external-sasl').value;
-        config.listeners.token.port = document.getElementById('listener-token-port').value;
-        config.listeners.token.ssl = document.getElementById('listener-token-ssl').value;
-        config.listeners.token.sasl = document.getElementById('listener-token-sasl').value;
-      }
-      if (step === 3) {
         config.ldapUrl = document.getElementById('ldap-url').value;
         config.ldapBaseDn = document.getElementById('ldap-basedn').value;
         config.ldapUserSearch = document.getElementById('ldap-usersearch').value;
@@ -1535,6 +1524,17 @@
           config.oidcClientId = document.getElementById('oidc-clientid').value;
           config.oidcJwks = document.getElementById('oidc-jwks').value;
         }
+      }
+      if (step === 3) {
+        config.listeners.internal.port = document.getElementById('listener-internal-port').value;
+        config.listeners.internal.ssl = document.getElementById('listener-internal-ssl').value;
+        config.listeners.internal.sasl = document.getElementById('listener-internal-sasl').value;
+        config.listeners.external.port = document.getElementById('listener-external-port').value;
+        config.listeners.external.ssl = document.getElementById('listener-external-ssl').value;
+        config.listeners.external.sasl = document.getElementById('listener-external-sasl').value;
+        config.listeners.token.port = document.getElementById('listener-token-port').value;
+        config.listeners.token.ssl = document.getElementById('listener-token-ssl').value;
+        config.listeners.token.sasl = document.getElementById('listener-token-sasl').value;
       }
       if (step === 4) {
         config.dirController = document.getElementById('dir-controller').value;
