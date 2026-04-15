@@ -1040,6 +1040,11 @@
                 ksql_custom_properties: {},
                 kafka_rest_port: 8082,
                 kafka_rest_custom_properties: {},
+                kafka_broker_port: 9092,
+                kafka_broker_internal_port: 9091,
+                kafka_controller_port: 9093,
+                control_center_next_gen_port: 9022,
+                mds_port: 8090,
                 c3_authentication_type: 'ldap',
                 c3_data_dir: '/data/confluent/c3',
                 c3_service_user: '',
@@ -1252,15 +1257,16 @@
             { id: 3, title: '컴포넌트 & 호스트', desc: '배포할 컴포넌트 선택 및 호스트 정보 입력', active: false },
             { id: 4, title: '사용자/그룹/경로', desc: '컴포넌트별 OS 사용자, 그룹, 디렉토리 설정', active: false },
             { id: 5, title: 'Listener & 암호화', desc: 'Listener 프로토콜 및 TLS/SSL 설정', active: false },
-            { id: 6, title: '인증', desc: 'SASL 메커니즘 및 사용자 설정', active: false },
-            { id: 7, title: '인가', desc: 'ACL 또는 RBAC 기반 권한 관리', active: false },
-            { id: 8, title: 'LDAP 연동', desc: 'LDAP 디렉토리 연동 설정', active: false },
-            { id: 9, title: 'SSO/OIDC', desc: 'Control Center SSO 및 OIDC 연동', active: false },
-            { id: 10, title: 'Kafka Broker 상세', desc: '브로커 성능 튜닝 및 커스텀 설정', active: false },
-            { id: 11, title: 'Schema Registry / Connect', desc: '추가 컴포넌트 상세 설정', active: false },
-            { id: 12, title: 'Control Center', desc: 'Control Center 상세 설정 및 연동', active: false },
-            { id: 13, title: 'JVM & 모니터링', desc: 'JVM 힙 및 JMX Exporter 설정', active: false },
-            { id: 14, title: '고급 설정', desc: '라이선스, Secrets Protection 등', active: false },
+            { id: 6, title: '포트 구성', desc: '컴포넌트별 포트 할당 및 충돌 확인', active: false },
+            { id: 7, title: '인증', desc: 'SASL 메커니즘 및 사용자 설정', active: false },
+            { id: 8, title: '인가', desc: 'ACL 또는 RBAC 기반 권한 관리', active: false },
+            { id: 9, title: 'LDAP 연동', desc: 'LDAP 디렉토리 연동 설정', active: false },
+            { id: 10, title: 'SSO/OIDC', desc: 'Control Center SSO 및 OIDC 연동', active: false },
+            { id: 11, title: 'Kafka Broker 상세', desc: '브로커 성능 튜닝 및 커스텀 설정', active: false },
+            { id: 12, title: 'Schema Registry / Connect', desc: '추가 컴포넌트 상세 설정', active: false },
+            { id: 13, title: 'Control Center', desc: 'Control Center 상세 설정 및 연동', active: false },
+            { id: 14, title: 'JVM & 모니터링', desc: 'JVM 힙 및 JMX Exporter 설정', active: false },
+            { id: 15, title: '고급 설정', desc: '라이선스, Secrets Protection 등', active: false },
         ];
 
         // ============================================================
@@ -1385,6 +1391,7 @@
                 case 12: return renderStep12(form);
                 case 13: return renderStep13(form);
                 case 14: return renderStep14(form);
+                case 15: return renderStep15(form);
                 default: return form;
             }
         }
@@ -1898,9 +1905,156 @@
         }
 
         // ============================================================
-        // STEP IMPLEMENTATIONS (STEP 6)
+        // STEP IMPLEMENTATIONS (STEP 6 — 포트 구성도)
         // ============================================================
         function renderStep6(form) {
+            const comp = state.data.components;
+
+            // 포트 정의: 컴포넌트별 [레이블, state 키, 기본값, 설명]
+            const PORT_DEFS = [
+                { comp: 'kafka_controller', label: 'Kafka Controller (KRaft)', key: 'kafka_controller_port', default: 9093, desc: 'Controller-to-Controller / Broker quorum' },
+                { comp: 'kafka_broker',     label: 'Kafka Broker (Client)',     key: 'kafka_broker_port',     default: 9092, desc: '클라이언트 연결 포트 (PLAINTEXT/SSL/SASL)' },
+                { comp: 'kafka_broker',     label: 'Kafka Broker (Internal)',   key: 'kafka_broker_internal_port', default: 9091, desc: '브로커 간 복제 포트' },
+                { comp: 'kafka_broker',     label: 'MDS REST API',              key: 'mds_port',              default: 8090, desc: 'Metadata Service (RBAC 활성화 시)', visible: () => state.data.authorization_type === 'rbac' },
+                { comp: 'schema_registry',  label: 'Schema Registry',           key: 'schema_registry_listener_port', default: 9081, desc: 'Schema Registry REST API' },
+                { comp: 'kafka_connect',    label: 'Kafka Connect',             key: 'kafka_connect_rest_port', default: 8083, desc: 'Connect REST API' },
+                { comp: 'ksql',             label: 'ksqlDB',                    key: 'ksql_listener_port',    default: 8088, desc: 'ksqlDB REST API' },
+                { comp: 'kafka_rest',       label: 'Kafka REST Proxy',          key: 'kafka_rest_port',       default: 8082, desc: 'REST Proxy API' },
+                { comp: 'control_center_next_gen', label: 'Control Center NG', key: 'control_center_next_gen_port', default: 9022, desc: 'Control Center 웹 UI' },
+                { comp: null,               label: 'Prometheus',                key: 'prometheus_port',       default: 9090, desc: '모니터링 (C3 선택 시)', visible: () => comp.control_center_next_gen },
+                { comp: null,               label: 'Alertmanager',              key: 'alertmanager_port',     default: 9098, desc: '알림 관리 (C3 선택 시)', visible: () => comp.control_center_next_gen },
+            ];
+
+            // 초기값 세팅 (state 값이 없으면 기본값 적용)
+            PORT_DEFS.forEach(def => {
+                if (state.data[def.key] === undefined || state.data[def.key] === null) {
+                    state.data[def.key] = def.default;
+                }
+            });
+
+            const intro = document.createElement('div');
+            intro.className = 'dep-notice';
+            intro.style.setProperty('--warning', 'var(--info)');
+            intro.textContent = '선택한 컴포넌트 기반으로 포트를 확인하고 편집하세요. 포트 충돌 시 아래에 경고가 표시됩니다.';
+            form.appendChild(intro);
+
+            const section = document.createElement('div');
+            section.className = 'form-section';
+            const secTitle = document.createElement('div');
+            secTitle.className = 'form-section-title';
+            secTitle.textContent = '컴포넌트별 포트 설정';
+            section.appendChild(secTitle);
+
+            // 테이블 스타일
+            const tableWrap = document.createElement('div');
+            tableWrap.style.overflowX = 'auto';
+            const table = document.createElement('table');
+            table.style.cssText = 'width:100%;border-collapse:collapse;font-size:0.875rem;';
+
+            const thead = document.createElement('thead');
+            thead.innerHTML = `<tr style="border-bottom:2px solid var(--border);">
+                <th style="text-align:left;padding:0.5rem 0.75rem;color:var(--text-secondary);font-weight:600;">컴포넌트</th>
+                <th style="text-align:center;padding:0.5rem 0.75rem;color:var(--text-secondary);font-weight:600;">포트</th>
+                <th style="text-align:left;padding:0.5rem 0.75rem;color:var(--text-secondary);font-weight:600;">설명</th>
+            </tr>`;
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            const portValues = {};  // key → value map for conflict detection
+
+            PORT_DEFS.forEach(def => {
+                // 컴포넌트 필터
+                if (def.comp && !comp[def.comp]) return;
+                if (def.visible && !def.visible()) return;
+
+                const currentVal = Number(state.data[def.key]) || def.default;
+                portValues[def.key] = currentVal;
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid var(--border)';
+                tr.setAttribute('data-port-key', def.key);
+
+                const tdLabel = document.createElement('td');
+                tdLabel.style.cssText = 'padding:0.5rem 0.75rem;font-weight:500;color:var(--text);';
+                tdLabel.textContent = def.label;
+
+                const tdPort = document.createElement('td');
+                tdPort.style.cssText = 'padding:0.5rem 0.75rem;text-align:center;';
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'text-input';
+                input.style.cssText = 'width:90px;text-align:center;padding:0.25rem 0.5rem;';
+                input.min = '1024';
+                input.max = '65535';
+                input.value = currentVal;
+                input.addEventListener('change', () => {
+                    const v = parseInt(input.value) || def.default;
+                    state.data[def.key] = v;
+                    updateYamlPreview();
+                    refreshPortConflicts(tbody, PORT_DEFS, comp);
+                });
+                tdPort.appendChild(input);
+
+                const tdDesc = document.createElement('td');
+                tdDesc.style.cssText = 'padding:0.5rem 0.75rem;color:var(--text-secondary);font-size:0.8125rem;';
+                tdDesc.textContent = def.desc;
+
+                tr.appendChild(tdLabel);
+                tr.appendChild(tdPort);
+                tr.appendChild(tdDesc);
+                tbody.appendChild(tr);
+            });
+
+            table.appendChild(tbody);
+            tableWrap.appendChild(table);
+            section.appendChild(tableWrap);
+            form.appendChild(section);
+
+            // 충돌 감지
+            const conflictDiv = document.createElement('div');
+            conflictDiv.id = 'portConflictWarning';
+            form.appendChild(conflictDiv);
+
+            refreshPortConflicts(tbody, PORT_DEFS, comp);
+
+            return form;
+        }
+
+        function refreshPortConflicts(tbody, PORT_DEFS, comp) {
+            // 현재 표에서 값 수집
+            const seen = {};
+            const conflicts = [];
+            tbody.querySelectorAll('tr[data-port-key]').forEach(tr => {
+                const key = tr.getAttribute('data-port-key');
+                const input = tr.querySelector('input');
+                if (!input) return;
+                const v = parseInt(input.value);
+                if (!v) return;
+                if (seen[v] !== undefined) {
+                    conflicts.push(`포트 ${v}: ${seen[v]}와 ${key} 충돌`);
+                    tr.style.background = 'rgba(229,115,115,0.12)';
+                } else {
+                    seen[v] = key;
+                    tr.style.background = '';
+                }
+            });
+
+            const div = document.getElementById('portConflictWarning');
+            if (!div) return;
+            div.innerHTML = '';
+            if (conflicts.length > 0) {
+                const warn = document.createElement('div');
+                warn.className = 'dep-notice';
+                warn.style.marginTop = '1rem';
+                warn.innerHTML = `<strong>⚠ 포트 충돌 감지</strong><ul style="margin:0.5rem 0 0 1.25rem;">${conflicts.map(c => `<li>${c}</li>`).join('')}</ul>`;
+                div.appendChild(warn);
+            }
+        }
+
+        // ============================================================
+        // STEP IMPLEMENTATIONS (STEP 7)
+        // ============================================================
+        function renderStep7(form) {
             if (!state.data.listener_protocol.includes('SASL')) {
                 form.innerHTML = '<p style="color: var(--text-secondary);">SASL이 포함되지 않은 프로토콜입니다.</p>';
                 return form;
@@ -1953,9 +2107,9 @@
         }
 
         // ============================================================
-        // STEP IMPLEMENTATIONS (STEP 7)
+        // STEP IMPLEMENTATIONS (STEP 8)
         // ============================================================
-        function renderStep7(form) {
+        function renderStep8(form) {
             const section1 = createFormSection('Authorization 방식', [
                 { type: 'radio', label: '방식 선택', key: 'authorization_type',
                   options: [
@@ -1970,7 +2124,7 @@
             if (state.data.authorization_type === 'rbac') {
                 const depNotice = document.createElement('div');
                 depNotice.className = 'dep-notice';
-                depNotice.textContent = 'RBAC는 MDS(Metadata Service)와 LDAP이 필수입니다. Step 8에서 LDAP을 구성하세요.';
+                depNotice.textContent = 'RBAC는 MDS(Metadata Service)와 LDAP이 필수입니다. Step 9에서 LDAP을 구성하세요.';
                 form.appendChild(depNotice);
 
                 const section2 = createFormSection('MDS 슈퍼 유저', [
@@ -2079,7 +2233,7 @@
         }
 
         // ============================================================
-        // STEP IMPLEMENTATIONS (STEP 8)
+        // STEP IMPLEMENTATIONS (STEP 9)
         // ============================================================
         // LDAP 프리셋 정의 — 선택 시 속성 자동 채움
         const LDAP_PRESETS = {
@@ -2121,7 +2275,7 @@
             }
         }
 
-        function renderStep8(form) {
+        function renderStep9(form) {
             const section1 = createFormSection('LDAP 연동', [
                 { type: 'toggle', label: 'LDAP 사용', key: 'ldap_enabled' },
             ]);
@@ -2271,9 +2425,9 @@
         }
 
         // ============================================================
-        // STEP IMPLEMENTATIONS (STEP 9)
+        // STEP IMPLEMENTATIONS (STEP 10)
         // ============================================================
-        function renderStep9(form) {
+        function renderStep10(form) {
             if (!state.data.components.control_center_next_gen) {
                 form.innerHTML = '<p style="color: var(--text-secondary);">Control Center Next Gen을 Step 3에서 선택해야 합니다.</p>';
                 return form;
@@ -2370,7 +2524,7 @@
         }
 
         // ============================================================
-        // STEP IMPLEMENTATIONS (STEP 10)
+        // STEP IMPLEMENTATIONS (STEP 11)
         // ============================================================
         // 브로커 성능 프리셋 정의
         const BROKER_PRESETS = {
@@ -2422,7 +2576,7 @@
             },
         };
 
-        function renderStep10(form) {
+        function renderStep11(form) {
             // 프리셋 섹션
             const presetSection = document.createElement('div');
             presetSection.className = 'form-section';
@@ -2541,9 +2695,9 @@
         }
 
         // ============================================================
-        // STEP IMPLEMENTATIONS (STEP 11)
+        // STEP IMPLEMENTATIONS (STEP 12)
         // ============================================================
-        function renderStep11(form) {
+        function renderStep12(form) {
             if (state.data.components.schema_registry) {
                 const section1 = createFormSection('Schema Registry', [
                     { type: 'number', label: 'Listener Port', key: 'schema_registry_listener_port', default: 9081 },
@@ -2615,9 +2769,9 @@
         }
 
         // ============================================================
-        // STEP IMPLEMENTATIONS (STEP 12)
+        // STEP IMPLEMENTATIONS (STEP 13)
         // ============================================================
-        function renderStep12(form) {
+        function renderStep13(form) {
             if (!state.data.components.control_center_next_gen) {
                 form.innerHTML = '<p style="color: var(--text-secondary);">Control Center Next Gen을 Step 3에서 선택해야 합니다.</p>';
                 return form;
@@ -2724,9 +2878,9 @@
         }
 
         // ============================================================
-        // STEP IMPLEMENTATIONS (STEP 13)
+        // STEP IMPLEMENTATIONS (STEP 14)
         // ============================================================
-        function renderStep13(form) {
+        function renderStep14(form) {
             const section0 = createFormSection('JAVA_HOME 설정', [
                 { type: 'text', label: '글로벌 JAVA_HOME (선택)', key: 'java_home',
                   help: '예: /usr/lib/jvm/java-17-openjdk (모든 컴포넌트에 공통 적용)' },
@@ -2862,9 +3016,9 @@
         }
 
         // ============================================================
-        // STEP IMPLEMENTATIONS (STEP 14)
+        // STEP IMPLEMENTATIONS (STEP 15)
         // ============================================================
-        function renderStep14(form) {
+        function renderStep15(form) {
             const section1 = createFormSection('라이선스', [
                 { type: 'textarea', label: 'Confluent License', key: 'confluent_license',
                   help: '라이선스 키 문자열' },
@@ -3772,7 +3926,7 @@
             lines.push('');
 
             if (state.data.sasl_mechanism === 'plain' && Object.keys(state.data.sasl_plain_users).length > 0) {
-                lines.push('    # === Step 6: SASL Users ===');
+                lines.push('    # === Step 7: SASL Users ===');
                 lines.push('    sasl_plain_users:');
                 Object.entries(state.data.sasl_plain_users).forEach(([user, pass]) => {
                     if (!user) return;
@@ -3791,7 +3945,7 @@
 
             if ((state.data.sasl_mechanism === 'scram-sha-512' || state.data.sasl_mechanism === 'scram-sha-256') &&
                 Object.keys(state.data.sasl_scram_users || {}).length > 0) {
-                lines.push('    # === Step 6: SASL SCRAM Users ===');
+                lines.push('    # === Step 7: SASL SCRAM Users ===');
                 lines.push('    sasl_scram_users:');
                 Object.entries(state.data.sasl_scram_users).forEach(([user, pass]) => {
                     if (!user) return;
@@ -3808,7 +3962,7 @@
             }
 
             if (state.data.sasl_mechanism === 'kerberos') {
-                lines.push('    # === Step 6: Kerberos ===');
+                lines.push('    # === Step 7: Kerberos ===');
                 if (state.data.kerberos_realm) lines.push(`    kerberos_kafka_broker_primary: kafka`);
                 if (state.data.kerberos_realm) lines.push(`    realm: ${state.data.kerberos_realm}`);
                 if (state.data.kerberos_kdc_hostname) lines.push(`    kdc_hostname: ${state.data.kerberos_kdc_hostname}`);
@@ -3816,7 +3970,7 @@
             }
 
             if (state.data.sasl_mechanism === 'oauth') {
-                lines.push('    # === Step 6: OAUTHBEARER ===');
+                lines.push('    # === Step 7: OAUTHBEARER ===');
                 if (state.data.oauth_token_uri) lines.push(`    oauth_token_uri: ${state.data.oauth_token_uri}`);
                 if (state.data.oauth_issuer_url) lines.push(`    oauth_issuer_url: ${state.data.oauth_issuer_url}`);
                 if (state.data.oauth_jwks_uri) lines.push(`    oauth_jwks_uri: ${state.data.oauth_jwks_uri}`);
@@ -3826,7 +3980,7 @@
             }
 
             if (state.data.authorization_type === 'rbac') {
-                lines.push('    # === Step 7: Authorization (RBAC) ===');
+                lines.push('    # === Step 8: Authorization (RBAC) ===');
                 lines.push(`    rbac_enabled: true`);
                 lines.push(`    mds_super_user: ${state.data.mds_super_user}`);
                 if (state.data.mds_super_user_password) {
@@ -3887,7 +4041,7 @@
             }
 
             if (state.data.ldap_enabled) {
-                lines.push('    # === Step 8: LDAP ===');
+                lines.push('    # === Step 9: LDAP ===');
                 if (state.data.ldap_url) lines.push(`    ldap_url: "${state.data.ldap_url}"`);
                 if (state.data.ldap_base_dn) lines.push(`    ldap_base_dn: "${state.data.ldap_base_dn}"`);
                 if (state.data.ldap_user_search_base) lines.push(`    ldap_user_search_base: "${state.data.ldap_user_search_base}"`);
@@ -3935,13 +4089,13 @@
             // data_dirs.kafka_broker_log_dirs 대신 state.data.kafka_broker_log_dirs를 직접 읽음
             const brokerCustomProps = Object.assign({}, state.data.broker_custom_properties);
             if (state.data.kafka_broker_log_dirs) brokerCustomProps['log.dirs'] = state.data.kafka_broker_log_dirs;
-            // Step 8: LDAP broker custom_properties 병합 (ldap.* 키들)
+            // Step 9: LDAP broker custom_properties 병합 (ldap.* 키들)
             if (state.data.ldap_enabled && state.data.authorization_type === 'rbac' &&
                 state.data.ldap_broker_custom_props && Object.keys(state.data.ldap_broker_custom_props).length > 0) {
                 Object.assign(brokerCustomProps, state.data.ldap_broker_custom_props);
             }
             if (Object.keys(brokerCustomProps).length > 0 || state.data.tiered_storage_enabled || state.data.self_balancing_enabled) {
-                lines.push('    # === Step 10: Kafka Broker Custom Properties ===');
+                lines.push('    # === Step 11: Kafka Broker Custom Properties ===');
                 lines.push('    kafka_broker_custom_properties:');
                 Object.entries(brokerCustomProps).forEach(([key, value]) => {
                     if (key) lines.push(`      ${key}: ${yamlScalar(value)}`);
@@ -3974,7 +4128,7 @@
             const controllerCustomProps = Object.assign({}, state.data.kafka_controller_custom_properties || {});
             if (state.data.kafka_controller_log_dirs) controllerCustomProps['log.dirs'] = state.data.kafka_controller_log_dirs;
             if (Object.keys(controllerCustomProps).length > 0) {
-                lines.push('    # === Step 10: Kafka Controller Custom Properties ===');
+                lines.push('    # === Step 11: Kafka Controller Custom Properties ===');
                 lines.push('    kafka_controller_custom_properties:');
                 Object.entries(controllerCustomProps).forEach(([key, value]) => {
                     if (key) lines.push(`      ${key}: ${yamlCustomPropScalar(value)}`);
@@ -3982,13 +4136,13 @@
                 lines.push('');
             }
 
-            // === Step 10: Broker Enhancements (Schema Validation, Custom Listeners) ===
+            // === Step 11: Broker Enhancements (Schema Validation, Custom Listeners) ===
             // Controller custom_props 이후에 Broker 추가 설정을 출력
             {
                 const hasBrokerEnhancements = state.data.kafka_broker_schema_validation_enabled ||
                     Object.keys(state.data.kafka_broker_custom_listeners).length > 0;
                 if (hasBrokerEnhancements) {
-                    lines.push('    # === Step 10: Broker Enhancements ===');
+                    lines.push('    # === Step 11: Broker Enhancements ===');
                     if (state.data.kafka_broker_schema_validation_enabled)
                         lines.push(`    kafka_broker_schema_validation_enabled: true`);
                     if (Object.keys(state.data.kafka_broker_custom_listeners).length > 0) {
@@ -4012,7 +4166,7 @@
             }
 
             if (state.data.components.schema_registry) {
-                lines.push('    # === Step 11: Schema Registry ===');
+                lines.push('    # === Step 12: Schema Registry ===');
                 lines.push(`    schema_registry_listener_port: ${state.data.schema_registry_listener_port}`);
                 if (state.data.schema_registry_config_prefix)
                     lines.push(`    schema_registry_config_prefix: "${state.data.schema_registry_config_prefix}"`);
@@ -4026,7 +4180,7 @@
             }
 
             if (state.data.components.kafka_connect) {
-                lines.push('    # === Step 11: Kafka Connect ===');
+                lines.push('    # === Step 12: Kafka Connect ===');
                 lines.push(`    kafka_connect_rest_port: ${state.data.kafka_connect_rest_port}`);
                 if (Object.keys(state.data.kafka_connect_custom_properties).length > 0) {
                     lines.push('    kafka_connect_custom_properties:');
@@ -4050,7 +4204,7 @@
             }
 
             if (state.data.components.ksql) {
-                lines.push('    # === Step 11: ksqlDB ===');
+                lines.push('    # === Step 12: ksqlDB ===');
                 lines.push(`    ksql_listener_port: ${state.data.ksql_listener_port}`);
                 if (Object.keys(state.data.ksql_custom_properties).length > 0) {
                     lines.push('    ksql_custom_properties:');
@@ -4062,7 +4216,7 @@
             }
 
             if (state.data.components.kafka_rest) {
-                lines.push('    # === Step 11: Kafka REST Proxy ===');
+                lines.push('    # === Step 12: Kafka REST Proxy ===');
                 lines.push(`    kafka_rest_port: ${state.data.kafka_rest_port}`);
                 if (Object.keys(state.data.kafka_rest_custom_properties).length > 0) {
                     lines.push('    kafka_rest_custom_properties:');
@@ -4074,7 +4228,7 @@
             }
 
             if (state.data.components.control_center_next_gen) {
-                lines.push('    # === Step 12: Control Center ===');
+                lines.push('    # === Step 13: Control Center ===');
                 lines.push(`    control_center_next_gen_authentication_type: ${state.data.c3_authentication_type}`);
                 if (state.data.c3_data_dir) lines.push(`    control_center_next_gen_data_dir: ${state.data.c3_data_dir}`);
                 if (state.data.c3_service_user) lines.push(`    c3_service_user: ${state.data.c3_service_user}`);
@@ -4146,9 +4300,9 @@
                 lines.push('');
             }
 
-            // === Step 13: JVM & Monitoring (service_environment_overrides) ===
-            // Step 12(C3) 이후에 모든 컴포넌트 JVM 환경 변수를 출력
-            lines.push('    # === Step 13: JVM & Monitoring ===');
+            // === Step 14: JVM & Monitoring (service_environment_overrides) ===
+            // Step 13(C3) 이후에 모든 컴포넌트 JVM 환경 변수를 출력
+            lines.push('    # === Step 14: JVM & Monitoring ===');
             // Kafka Broker service_environment_overrides — 값이 있을 때만 출력
             {
                 const brokerEnv = {};
@@ -4263,9 +4417,9 @@
             }
             lines.push('');
 
-            // === Step 13: Enhanced Monitoring (JMX Exporter, Jolokia) ===
+            // === Step 14: Enhanced Monitoring (JMX Exporter, Jolokia) ===
             if (state.data.jmx_enabled) {
-                lines.push('    # === Step 13: JMX Exporter Enhancements ===');
+                lines.push('    # === Step 14: JMX Exporter Enhancements ===');
                 lines.push('    jmxexporter_enabled: true');
                 if (state.data.jmxexporter_url_remote !== undefined)
                     lines.push(`    jmxexporter_url_remote: ${state.data.jmxexporter_url_remote ? 'true' : 'false'}`);
@@ -4320,7 +4474,7 @@
             }
 
             if (state.data.jolokia_enabled) {
-                lines.push('    # === Step 13: Jolokia ===');
+                lines.push('    # === Step 14: Jolokia ===');
                 lines.push(`    jolokia_enabled: true`);
                 if (state.data.jolokia_jar_path) lines.push(`    jolokia_jar_path: ${state.data.jolokia_jar_path}`);
                 lines.push(`    jolokia_auth_mode: ${state.data.jolokia_auth_mode}`);
@@ -4338,7 +4492,7 @@
                 state.data.schema_registry_custom_java_args || state.data.kafka_connect_custom_java_args ||
                 state.data.ksql_custom_java_args || state.data.kafka_rest_custom_java_args ||
                 state.data.control_center_next_gen_custom_java_args) {
-                lines.push('    # === Step 13: Custom Java Arguments ===');
+                lines.push('    # === Step 14: Custom Java Arguments ===');
                 if (state.data.kafka_controller_custom_java_args)
                     lines.push(`    kafka_controller_custom_java_args: "${state.data.kafka_controller_custom_java_args}"`);
                 if (state.data.kafka_broker_custom_java_args)
@@ -4356,14 +4510,14 @@
                 lines.push('');
             }
 
-            // === Step 14: Advanced ===
+            // === Step 15: Advanced ===
             // confluent_license는 cp-ansible 필수 항목 (null 불허) — 항상 출력
             // 그 외 항목이 하나라도 있으면 섹션 헤더 출력
             if (state.data.secrets_protection_enabled || state.data.telemetry_enabled ||
                 state.data.audit_logs_destination_enabled || state.data.logredactor_enabled ||
                 state.data.ccloud_kafka_enabled || state.data.ccloud_schema_registry_enabled ||
                 Object.keys(state.data.copy_files || {}).length > 0 || state.data.health_checks_enabled) {
-                lines.push('    # === Step 14: Advanced Settings ===');
+                lines.push('    # === Step 15: Advanced Settings ===');
             }
 
             // confluent_license: cp-ansible 필수 필드, null 허용 안 됨 — 빈 문자열이라도 반드시 출력
@@ -4968,7 +5122,7 @@
             if (allVars.kafka_broker_custom_listeners !== undefined) set('kafka_broker_custom_listeners', allVars.kafka_broker_custom_listeners);
             if (allVars.sasl_plain_users !== undefined) set('sasl_plain_users', allVars.sasl_plain_users);
 
-            // ── Step 6: TLS / SSL ──
+            // ── Step 6: Port Configuration ──
             // Derive ssl_method from the specific SSL keys present in the YAML.
             // ssl_provided_keystore_and_truststore: true → 'provided-keystore'
             // ssl_custom_certs: true                     → 'custom-certs'
@@ -5047,7 +5201,7 @@
             if (allVars.ssl_provided_keystore_and_truststore_remote_src !== undefined) set('ssl_provided_keystore_and_truststore_remote_src', Boolean(allVars.ssl_provided_keystore_and_truststore_remote_src));
             if (allVars.ssl_custom_certs_remote_src !== undefined) set('ssl_custom_certs_remote_src', Boolean(allVars.ssl_custom_certs_remote_src));
 
-            // ── Step 7: Authorization / RBAC ──
+            // ── Step 8: Authorization / RBAC ──
             // rbac_enabled in YAML maps to state.data.authorization_type ('rbac' | 'none')
             if (allVars.rbac_enabled !== undefined) {
                 state.data.authorization_type = allVars.rbac_enabled ? 'rbac' : 'none';
@@ -5074,7 +5228,7 @@
                 if (mbl.sasl_protocol !== undefined) set('mds_broker_listener_sasl_protocol', String(mbl.sasl_protocol));
             }
 
-            // ── Step 8: LDAP ──
+            // ── Step 9: LDAP ──
             // YAML keys: ldap_url, ldap_base_dn, ldap_user_search_base, ldap_group_search_base,
             //            ldap_bind_dn, ldap_bind_password, ldap_user_name_attribute, etc.
             // Set ldap_enabled = true when any LDAP key is present
@@ -5096,7 +5250,7 @@
             if (allVars.ldap_search_mode !== undefined) set('ldap_search_mode', String(allVars.ldap_search_mode));
             if (allVars.ldap_group_member_attribute_pattern !== undefined) set('ldap_group_member_attribute_pattern', String(allVars.ldap_group_member_attribute_pattern));
 
-            // ── Step 9: C3 SSO / OIDC ──
+            // ── Step 10: C3 SSO / OIDC ──
             if (allVars.sso_mode !== undefined) set('sso_mode', allVars.sso_mode);
             // oidc_idp_issuer_url in YAML → state.data.oidc_issuer
             if (allVars.oidc_idp_issuer_url !== undefined) set('oidc_issuer', String(allVars.oidc_idp_issuer_url));
@@ -5104,7 +5258,7 @@
             if (allVars.oidc_client_secret !== undefined) set('oidc_client_secret', String(allVars.oidc_client_secret));
             if (allVars.oidc_groups_claim !== undefined) set('oidc_groups_claim_name', String(allVars.oidc_groups_claim));
 
-            // ── Step 10: Broker custom_properties ──
+            // ── Step 11: Broker custom_properties ──
             // all.vars 레벨 우선 처리 (가장 일반적인 cp-ansible 패턴)
             {
                 let brokerProps = null;
@@ -5147,7 +5301,7 @@
                 }
             }
 
-            // ── Step 11: Schema Registry ──
+            // ── Step 12: Schema Registry ──
             if (allVars.schema_registry_custom_properties !== undefined) set('schema_registry_custom_properties', preserveCustomPropQuotes(allVars.schema_registry_custom_properties));
             if (allVars.schema_registry_listener_port !== undefined) set('schema_registry_listener_port', Number(allVars.schema_registry_listener_port));
             if (allVars.schema_registry_config_prefix !== undefined) set('schema_registry_config_prefix', String(allVars.schema_registry_config_prefix));
@@ -5159,7 +5313,7 @@
                 if (srVars['kafkastore.topic'] !== undefined) set('schema_registry_kafkastore_topic', String(srVars['kafkastore.topic']));
             }
 
-            // ── Step 12: C3 all.vars config fields (Fix 10+11) ──
+            // ── Step 13: C3 all.vars config fields (Fix 11+12) ──
             // Service accounts
             if (allVars.c3_service_user !== undefined) set('c3_service_user', String(allVars.c3_service_user));
             if (allVars.c3_service_password !== undefined) set('c3_service_password', String(allVars.c3_service_password));
@@ -5176,7 +5330,7 @@
             if (allVars.control_center_next_gen_ssl_enabled !== undefined) set('control_center_next_gen_ssl_enabled', Boolean(allVars.control_center_next_gen_ssl_enabled));
             if (allVars.ssl_file_dir !== undefined) set('ssl_file_dir', String(allVars.ssl_file_dir));
 
-            // ── Step 14: Advanced ──
+            // ── Step 15: Advanced ──
             if (allVars.confluent_license !== undefined) set('confluent_license', String(allVars.confluent_license));
             if (allVars.secrets_protection_enabled !== undefined) set('secrets_protection_enabled', Boolean(allVars.secrets_protection_enabled));
             if (allVars.secrets_protection_masterkey !== undefined) set('secrets_protection_masterkey', String(allVars.secrets_protection_masterkey));
@@ -5185,7 +5339,7 @@
             if (allVars.rbac_enabled_public_pem_path !== undefined) set('rbac_enabled_public_pem_path', String(allVars.rbac_enabled_public_pem_path));
             if (allVars.rbac_enabled_private_pem_path !== undefined) set('rbac_enabled_private_pem_path', String(allVars.rbac_enabled_private_pem_path));
 
-            // ── Step 13: JMX Exporter ──
+            // ── Step 14: JMX Exporter ──
             if (allVars.jmxexporter_jar_url !== undefined) set('jmxexporter_jar_url', String(allVars.jmxexporter_jar_url));
             if (allVars.jmxexporter_jar_path !== undefined) set('jmxexporter_jar_path', String(allVars.jmxexporter_jar_path));
             if (allVars.jmxexporter_url_remote !== undefined) set('jmxexporter_url_remote', Boolean(allVars.jmxexporter_url_remote));
@@ -5220,7 +5374,7 @@
                 }
             }
 
-            // ── Step 13: Service Environment Overrides (JAVA_HOME, heap opts) ──
+            // ── Step 14: Service Environment Overrides (JAVA_HOME, heap opts) ──
             // Helper: strip surrounding double-quotes from env values like "-Xms4g -Xmx4g"
             function stripEnvQuotes(v) {
                 if (typeof v !== 'string') return String(v);
@@ -5567,81 +5721,81 @@
                 if (!state.data.ssl_key_path) errors.push('[Step 5] 개인키 경로(ssl_key_path)가 비어 있습니다.');
             }
 
-            // --- Step 6: SASL 사용자 ---
+            // --- Step 7: SASL 사용자 ---
             if (state.data.sasl_mechanism === 'plain') {
                 const plainUsers = Object.keys(state.data.sasl_plain_users || {});
                 if (plainUsers.length === 0)
-                    warnings.push('[Step 6] SASL PLAIN 선택 시 sasl_plain_users에 최소 1명의 사용자가 필요합니다.');
+                    warnings.push('[Step 7] SASL PLAIN 선택 시 sasl_plain_users에 최소 1명의 사용자가 필요합니다.');
             }
             if (state.data.sasl_mechanism === 'scram-sha-256' || state.data.sasl_mechanism === 'scram-sha-512') {
                 const scramUsers = Object.keys(state.data.sasl_scram_users || {});
                 if (scramUsers.length === 0)
-                    warnings.push('[Step 6] SASL SCRAM 선택 시 sasl_scram_users에 최소 1명의 사용자가 필요합니다.');
+                    warnings.push('[Step 7] SASL SCRAM 선택 시 sasl_scram_users에 최소 1명의 사용자가 필요합니다.');
             }
             if (state.data.sasl_mechanism === 'kerberos') {
-                if (!state.data.kerberos_realm) errors.push('[Step 6] Kerberos Realm이 비어 있습니다.');
-                if (!state.data.kerberos_kdc_hostname) errors.push('[Step 6] Kerberos KDC 호스트명이 비어 있습니다.');
+                if (!state.data.kerberos_realm) errors.push('[Step 7] Kerberos Realm이 비어 있습니다.');
+                if (!state.data.kerberos_kdc_hostname) errors.push('[Step 7] Kerberos KDC 호스트명이 비어 있습니다.');
             }
             if (state.data.sasl_mechanism === 'oauth') {
-                if (!state.data.oauth_token_uri) errors.push('[Step 6] OAuth Token URI가 비어 있습니다.');
-                if (!state.data.oauth_jwks_uri) errors.push('[Step 6] OAuth JWKS URI가 비어 있습니다.');
+                if (!state.data.oauth_token_uri) errors.push('[Step 7] OAuth Token URI가 비어 있습니다.');
+                if (!state.data.oauth_jwks_uri) errors.push('[Step 7] OAuth JWKS URI가 비어 있습니다.');
             }
 
-            // --- Step 7: RBAC / MDS ---
+            // --- Step 8: RBAC / MDS ---
             if (state.data.authorization_type === 'rbac') {
-                if (!state.data.mds_super_user) errors.push('[Step 7] mds_super_user가 비어 있습니다.');
-                if (!state.data.mds_super_user_password) warnings.push('[Step 7] mds_super_user_password가 비어 있습니다.');
+                if (!state.data.mds_super_user) errors.push('[Step 8] mds_super_user가 비어 있습니다.');
+                if (!state.data.mds_super_user_password) warnings.push('[Step 8] mds_super_user_password가 비어 있습니다.');
                 // create_mds_certs=false인 경우 PEM 파일 경로 필수
                 if (!state.data.create_mds_certs) {
                     if (!state.data.ssl_ca_cert_path && state.data.ssl_method !== 'provided-keystore')
-                        warnings.push('[Step 7] create_mds_certs=false 이면 MDS용 CA 인증서 경로(ssl_ca_cert_path)를 확인하세요.');
+                        warnings.push('[Step 8] create_mds_certs=false 이면 MDS용 CA 인증서 경로(ssl_ca_cert_path)를 확인하세요.');
                 }
                 // LDAP 연동 시 MDS LDAP 자격증명 필요
                 if (state.data.ldap_enabled && state.data.sasl_mechanism !== 'oauth') {
-                    if (!state.data.mds_ldap_user) errors.push('[Step 7] LDAP 연동 RBAC에서 mds_ldap_user가 비어 있습니다.');
-                    if (!state.data.mds_ldap_password) errors.push('[Step 7] LDAP 연동 RBAC에서 mds_ldap_password가 비어 있습니다.');
+                    if (!state.data.mds_ldap_user) errors.push('[Step 8] LDAP 연동 RBAC에서 mds_ldap_user가 비어 있습니다.');
+                    if (!state.data.mds_ldap_password) errors.push('[Step 8] LDAP 연동 RBAC에서 mds_ldap_password가 비어 있습니다.');
                 }
                 // OAuth(OAUTHBEARER) 선택 시에는 LDAP 없이도 MDS/RBAC 운영 가능
                 // 그 외(PLAIN, SCRAM, Kerberos)는 LDAP이 사실상 필수
                 if (!state.data.ldap_enabled && state.data.sasl_mechanism !== 'oauth') {
-                    errors.push('[Step 7] RBAC 활성화 시 LDAP 연동이 필요합니다 (Step 8). OAuth 사용 시에는 예외.');
+                    errors.push('[Step 8] RBAC 활성화 시 LDAP 연동이 필요합니다 (Step 9). OAuth 사용 시에는 예외.');
                 }
             }
 
-            // --- Step 8: LDAP ---
+            // --- Step 9: LDAP ---
             if (state.data.ldap_enabled) {
-                if (!state.data.ldap_url) errors.push('[Step 8] LDAP URL이 비어 있습니다.');
-                if (!state.data.ldap_base_dn) errors.push('[Step 8] LDAP Base DN이 비어 있습니다.');
-                if (!state.data.ldap_bind_dn) errors.push('[Step 8] LDAP Bind DN(ldap_bind_dn)이 비어 있습니다.');
-                if (!state.data.ldap_bind_password) errors.push('[Step 8] LDAP Bind 비밀번호(ldap_bind_password)가 비어 있습니다.');
-                if (!state.data.ldap_user_search_base) warnings.push('[Step 8] ldap_user_search_base가 비어 있습니다.');
+                if (!state.data.ldap_url) errors.push('[Step 9] LDAP URL이 비어 있습니다.');
+                if (!state.data.ldap_base_dn) errors.push('[Step 9] LDAP Base DN이 비어 있습니다.');
+                if (!state.data.ldap_bind_dn) errors.push('[Step 9] LDAP Bind DN(ldap_bind_dn)이 비어 있습니다.');
+                if (!state.data.ldap_bind_password) errors.push('[Step 9] LDAP Bind 비밀번호(ldap_bind_password)가 비어 있습니다.');
+                if (!state.data.ldap_user_search_base) warnings.push('[Step 9] ldap_user_search_base가 비어 있습니다.');
             }
 
-            // --- Step 9: OIDC ---
+            // --- Step 10: OIDC ---
             if (state.data.control_center_oidc_enabled) {
-                if (!state.data.oidc_client_id) errors.push('[Step 9] OIDC Client ID 비어 있음');
-                if (!state.data.oidc_client_secret) errors.push('[Step 9] OIDC Client Secret 비어 있음');
-                if (!state.data.oidc_issuer) errors.push('[Step 9] OIDC Issuer URL 비어 있음');
-                if (!state.data.oidc_jwks_uri) errors.push('[Step 9] OIDC JWKS URI 비어 있음');
+                if (!state.data.oidc_client_id) errors.push('[Step 10] OIDC Client ID 비어 있음');
+                if (!state.data.oidc_client_secret) errors.push('[Step 10] OIDC Client Secret 비어 있음');
+                if (!state.data.oidc_issuer) errors.push('[Step 10] OIDC Issuer URL 비어 있음');
+                if (!state.data.oidc_jwks_uri) errors.push('[Step 10] OIDC JWKS URI 비어 있음');
             }
 
-            // --- Step 11: Schema Registry ---
+            // --- Step 12: Schema Registry ---
             if ((state.data.hosts.schema_registry || []).length > 0 && state.data.authorization_type === 'rbac') {
-                if (!state.data.sr_service_user) errors.push('[Step 11] RBAC 활성화 시 sr_service_user가 필요합니다.');
-                if (!state.data.sr_service_password) errors.push('[Step 11] RBAC 활성화 시 sr_service_password가 필요합니다.');
+                if (!state.data.sr_service_user) errors.push('[Step 12] RBAC 활성화 시 sr_service_user가 필요합니다.');
+                if (!state.data.sr_service_password) errors.push('[Step 12] RBAC 활성화 시 sr_service_password가 필요합니다.');
             }
 
-            // --- Step 12: Control Center ---
+            // --- Step 13: Control Center ---
             if ((state.data.hosts.control_center_next_gen || []).length > 0 && state.data.authorization_type === 'rbac') {
-                if (!state.data.c3_service_user) errors.push('[Step 12] RBAC 활성화 시 c3_service_user가 필요합니다.');
-                if (!state.data.c3_service_password) errors.push('[Step 12] RBAC 활성화 시 c3_service_password가 필요합니다.');
+                if (!state.data.c3_service_user) errors.push('[Step 13] RBAC 활성화 시 c3_service_user가 필요합니다.');
+                if (!state.data.c3_service_password) errors.push('[Step 13] RBAC 활성화 시 c3_service_password가 필요합니다.');
             }
 
-            // --- Step 13: JMX Exporter ---
+            // --- Step 14: JMX Exporter ---
             const jmxEnabled = state.data.kafka_broker_jmxexporter_enabled || state.data.kafka_controller_jmxexporter_enabled;
             if (jmxEnabled) {
-                if (!state.data.jmxexporter_jar_url) warnings.push('[Step 13] JMX Exporter 활성화 시 jmxexporter_jar_url이 필요합니다.');
-                if (!state.data.jmxexporter_jar_path) warnings.push('[Step 13] JMX Exporter 활성화 시 jmxexporter_jar_path가 필요합니다.');
+                if (!state.data.jmxexporter_jar_url) warnings.push('[Step 14] JMX Exporter 활성화 시 jmxexporter_jar_url이 필요합니다.');
+                if (!state.data.jmxexporter_jar_path) warnings.push('[Step 14] JMX Exporter 활성화 시 jmxexporter_jar_path가 필요합니다.');
             }
 
             return { errors, warnings };
