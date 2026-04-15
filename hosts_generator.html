@@ -897,6 +897,7 @@
                 ansible_port: 22,
                 ansible_become: true,
                 ansible_python_interpreter: '',
+                deployment_environments: [],
                 deployment_strategy: 'rolling',
                 ansible_strategy: 'linear',
                 install_java: false,
@@ -1400,6 +1401,87 @@
         // STEP IMPLEMENTATIONS (STEP 1)
         // ============================================================
         function renderStep1(form) {
+            // === 배포 환경 섹션 (복수 선택) ===
+            const sectionEnv = document.createElement('div');
+            sectionEnv.className = 'form-section';
+            sectionEnv.innerHTML = `
+                <div class="section-title">배포 환경 <span style="font-size:0.8em;color:var(--text-secondary)">(복수 선택 가능)</span></div>
+            `;
+            const envCardGroup = document.createElement('div');
+            envCardGroup.style.cssText = 'display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;';
+
+            const envOptions = [
+                { value: 'dev',     label: '개발',     icon: '🛠️', desc: '개발/테스트 환경' },
+                { value: 'staging', label: '스테이징', icon: '🔬', desc: '검증/QA 환경' },
+                { value: 'prod',    label: '운영',     icon: '🚀', desc: '프로덕션 환경' },
+            ];
+
+            envOptions.forEach(env => {
+                const isSelected = state.data.deployment_environments.includes(env.value);
+                const label = document.createElement('label');
+                label.className = `env-card ${isSelected ? 'selected' : ''}`;
+                label.style.cssText = `
+                    cursor: pointer;
+                    border: 2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};
+                    border-radius: 10px;
+                    padding: 14px 20px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 4px;
+                    min-width: 110px;
+                    background: ${isSelected ? 'var(--accent-glow)' : 'var(--surface)'};
+                    transition: all 0.2s;
+                    user-select: none;
+                `;
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = env.value;
+                checkbox.checked = isSelected;
+                checkbox.style.display = 'none';
+
+                const icon = document.createElement('span');
+                icon.textContent = env.icon;
+                icon.style.fontSize = '1.5em';
+
+                const labelText = document.createElement('span');
+                labelText.textContent = env.label;
+                labelText.style.cssText = 'font-weight:600;color:var(--text)';
+
+                const desc = document.createElement('span');
+                desc.textContent = env.desc;
+                desc.style.cssText = 'font-size:0.75em;color:var(--text-secondary);text-align:center';
+
+                label.appendChild(checkbox);
+                label.appendChild(icon);
+                label.appendChild(labelText);
+                label.appendChild(desc);
+
+                label.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    checkbox.checked = !checkbox.checked;
+                    const val = checkbox.value;
+                    if (checkbox.checked) {
+                        if (!state.data.deployment_environments.includes(val)) {
+                            state.data.deployment_environments.push(val);
+                        }
+                    } else {
+                        state.data.deployment_environments = state.data.deployment_environments.filter(v => v !== val);
+                    }
+                    // 카드 스타일 업데이트
+                    label.style.border = checkbox.checked ? '2px solid var(--accent)' : '2px solid var(--border)';
+                    label.style.background = checkbox.checked ? 'var(--accent-glow)' : 'var(--surface)';
+                    label.classList.toggle('selected', checkbox.checked);
+                    updateYaml();
+                });
+
+                envCardGroup.appendChild(label);
+            });
+
+            sectionEnv.appendChild(envCardGroup);
+            form.appendChild(sectionEnv);
+
             const section1 = createFormSection('Ansible 연결', [
                 { type: 'select', label: 'Ansible 연결 방식', key: 'ansible_connection',
                   options: [{ value: 'ssh', label: 'SSH' }, { value: 'local', label: 'Local' }] },
@@ -3768,6 +3850,12 @@
             lines.push(`    ansible_become: ${state.data.ansible_become ? 'true' : 'false'}`);
             if (state.data.ansible_python_interpreter) {
                 lines.push(`    ansible_python_interpreter: ${state.data.ansible_python_interpreter}`);
+            }
+            // 배포 환경 (선택된 경우만 출력)
+            if (state.data.deployment_environments && state.data.deployment_environments.length > 0) {
+                const envLabel = { dev: '개발', staging: '스테이징', prod: '운영' };
+                lines.push(`    # 배포 환경: ${state.data.deployment_environments.map(e => envLabel[e] || e).join(', ')}`);
+                lines.push(`    deployment_environments: [${state.data.deployment_environments.map(e => `"${e}"`).join(', ')}]`);
             }
             lines.push(`    deployment_strategy: ${state.data.deployment_strategy}`);
             if (state.data.ansible_strategy) lines.push(`    ansible_strategy: ${state.data.ansible_strategy}`);
