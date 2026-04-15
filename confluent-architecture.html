@@ -13,30 +13,32 @@
     :root { interpolate-size: allow-keywords; }
 
     html.theme-dark {
-      --bg: #0A0A0A; --surface: #141414; --surface-hover: #1C1C1C;
-      --border: rgba(255,255,255,0.06);
-      --text: #EDEDED; --text-secondary: #888;
-      --accent: #3b82f6; --accent-secondary: #8b5cf6;
+      --bg: #0f0f1a; --surface: #1a1a2e; --surface-hover: #252540;
+      --border: rgba(255,255,255,0.08);
+      --text: #EDEDED; --text-secondary: #8892a4;
+      --accent: #00B4D8; --accent-secondary: #8b5cf6;
       --positive: #10b981; --negative: #f43f5e; --warning: #f59e0b;
+      --accent-glow: rgba(0,180,216,0.15);
       --glass: rgba(255,255,255,0.03);
-      --glow-accent: rgba(59,130,246,0.15);
+      --glow-accent: rgba(0,180,216,0.15);
       --glow-purple: rgba(139,92,246,0.15);
       --glow-green: rgba(16,185,129,0.12);
       --glow-orange: rgba(245,158,11,0.12);
-      --surface-elevated: #1a1a1a;
+      --surface-elevated: #12122a;
     }
     html.theme-light {
-      --bg: #FAFAF9; --surface: #FFFFFF; --surface-hover: #F5F5F4;
+      --bg: #f0f4f8; --surface: #FFFFFF; --surface-hover: #e8edf2;
       --border: rgba(0,0,0,0.08);
       --text: #0f172a; --text-secondary: #64748b;
-      --accent: #2563eb; --accent-secondary: #7c3aed;
+      --accent: #0077B6; --accent-secondary: #7c3aed;
       --positive: #059669; --negative: #e11d48; --warning: #d97706;
+      --accent-glow: rgba(0,119,182,0.1);
       --glass: rgba(0,0,0,0.02);
-      --glow-accent: rgba(37,99,235,0.08);
+      --glow-accent: rgba(0,119,182,0.08);
       --glow-purple: rgba(124,58,237,0.08);
       --glow-green: rgba(5,150,105,0.06);
       --glow-orange: rgba(217,119,6,0.06);
-      --surface-elevated: #f8f8f7;
+      --surface-elevated: #f8fafc;
     }
 
     body {
@@ -61,7 +63,7 @@
     }
     .card:hover {
       box-shadow: 0 0 0 1px var(--border), 0 8px 24px rgba(0,0,0,0.12);
-      border-color: rgba(59,130,246,0.2);
+      border-color: rgba(0,180,216,0.3);
     }
 
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
@@ -91,6 +93,30 @@
       * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     }
     @page { margin: 0.75in; }
+
+    /* ===== TOP BAR ===== */
+    .top-bar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 14px 32px; display: flex; align-items: center; gap: 16px;
+      position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px);
+    }
+    .logo-area { display: flex; align-items: center; gap: 12px; }
+    .logo-mark {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), #0077B6);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 700; font-size: 14px; flex-shrink: 0;
+    }
+    .logo-text { font-size: 15px; font-weight: 600; color: var(--text); }
+    .logo-sub { font-size: 12px; color: var(--text-secondary); margin-left: 8px; }
+    .top-bar-nav { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .nav-link {
+      padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); text-decoration: none;
+      background: transparent; border: 1px solid var(--border);
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .nav-link:hover { background: var(--surface-hover); color: var(--text); }
 
     .viz-menu { position: fixed; top: 16px; right: 16px; z-index: 9999; }
     .viz-menu-toggle {
@@ -131,7 +157,7 @@
 
     /* Hero */
     .hero {
-      padding: 80px 0 48px;
+      padding: 48px 0 40px;
       position: relative;
       overflow: hidden;
     }
@@ -167,7 +193,7 @@
     }
     .principle-card:hover {
       box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      border-color: rgba(59,130,246,0.2);
+      border-color: rgba(0,180,216,0.3);
     }
     .principle-icon {
       width: 40px; height: 40px; border-radius: 10px;
@@ -236,8 +262,8 @@
       font-family: 'Inter', monospace;
     }
     .port-internal { background: rgba(245,158,11,0.15); color: var(--warning); }
-    .port-external { background: rgba(59,130,246,0.15); color: var(--accent); }
-    .port-token { background: rgba(139,92,246,0.15); color: var(--accent-secondary); }
+    .port-external { background: rgba(0,180,216,0.15); color: var(--accent); }
+    .port-token { background: rgba(139,92,246,0.15); color: #8b5cf6; }
     .port-https { background: rgba(16,185,129,0.15); color: var(--positive); }
     .port-ldap { background: rgba(244,63,94,0.15); color: var(--negative); }
 
@@ -300,7 +326,7 @@
     .flow-tab:hover { color: var(--text); background: var(--glass); }
     .flow-tab.active {
       background: var(--accent); color: white;
-      box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+      box-shadow: 0 2px 8px rgba(0,180,216,0.3);
     }
 
     .flow-content { display: none; }
@@ -417,7 +443,7 @@
       display: inline-block; padding: 3px 10px; border-radius: 6px;
       font-size: 0.75rem; font-weight: 600;
     }
-    .mech-oauth { background: rgba(59,130,246,0.12); color: var(--accent); }
+    .mech-oauth { background: rgba(0,180,216,0.12); color: var(--accent); }
     .mech-scram { background: rgba(245,158,11,0.12); color: var(--warning); }
     .mech-basic { background: rgba(139,92,246,0.12); color: var(--accent-secondary); }
     .mech-sso { background: rgba(16,185,129,0.12); color: var(--positive); }
@@ -509,6 +535,19 @@
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to content</a>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="logo-area">
+      <div class="logo-mark">C</div>
+      <span class="logo-text">Confluent Platform</span>
+      <span class="logo-sub">인증/인가 아키텍처</span>
+    </div>
+    <div class="top-bar-nav">
+      <a href="confluent-deployment-wizard.html" class="nav-link">← 위자드</a>
+      <a href="index.html" class="nav-link">홈</a>
+    </div>
+  </div>
 
   <div class="viz-menu">
     <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="Menu">
@@ -771,7 +810,7 @@
             </div>
             <div>
               <div class="token-title">Authentik Token</div>
-              <span class="token-badge" style="background:rgba(59,130,246,0.12);color:var(--accent);">External</span>
+              <span class="token-badge" style="background:rgba(0,180,216,0.12);color:var(--accent);">External</span>
             </div>
           </div>
           <div class="token-rows">
