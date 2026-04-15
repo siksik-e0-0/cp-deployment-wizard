@@ -810,6 +810,93 @@
             margin-top: 1rem;
         }
         .import-summary.hidden { display: none; }
+
+        /* 방화벽/아키텍처 섹션 */
+        .info-section {
+            margin-top: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .info-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: var(--surface);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text);
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .info-section-header:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .info-arrow {
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        .info-arrow.open {
+            transform: rotate(90deg);
+        }
+        .info-section-body {
+            padding: 0.75rem;
+            background: var(--bg);
+        }
+
+        /* 포트 표 */
+        .fw-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .fw-table th {
+            background: var(--surface);
+            color: var(--text-secondary);
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+        .fw-table td {
+            padding: 5px 8px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            vertical-align: middle;
+        }
+        .fw-table tr:last-child td {
+            border-bottom: none;
+        }
+        .fw-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+        .port-badge {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 12px;
+            background: rgba(99,179,237,0.15);
+            color: var(--accent);
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+        }
+        .comp-chip {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        /* 아키텍처 SVG */
+        #archDiagram svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -838,6 +925,24 @@
                 <div class="yaml-controls">
                     <button class="yaml-btn" id="copyYamlBtn">복사</button>
                     <button class="yaml-btn" id="downloadYamlBtn">다운로드</button>
+                </div>
+
+                <!-- 방화벽 포트 표 -->
+                <div class="info-section" id="firewallSection">
+                    <div class="info-section-header" onclick="toggleSection('firewallTable','firewallArrow')">
+                        <span>🔥 방화벽 포트 표</span>
+                        <span class="info-arrow" id="firewallArrow">▶</span>
+                    </div>
+                    <div id="firewallTable" class="info-section-body" style="display:none;"></div>
+                </div>
+
+                <!-- 아키텍처 다이어그램 -->
+                <div class="info-section" id="archSection">
+                    <div class="info-section-header" onclick="toggleSection('archDiagram','archArrow')">
+                        <span>🏗️ 아키텍처 다이어그램</span>
+                        <span class="info-arrow" id="archArrow">▶</span>
+                    </div>
+                    <div id="archDiagram" class="info-section-body" style="display:none;"></div>
                 </div>
             </div>
         </div>
@@ -4470,11 +4575,19 @@
                 }
                 // Prometheus 서비스 환경 오버라이드
                 if (state.data.prometheus_host || state.data.prometheus_tsdb_path || state.data.prometheus_log_path) {
-                    const common_user = state.data.common_user || '';
+                    // User/Group 결정: 임포트된 _prometheus_user 우선 → c3 component user → common_user
+                    const cu = state.data.component_users || {};
+                    const promUser = cu._prometheus_user
+                        || cu.control_center_next_gen_user
+                        || (state.data.common_user_group ? state.data.common_user : '');
+                    const promGroup = cu._prometheus_group
+                        || cu.control_center_next_gen_group
+                        || state.data.common_group
+                        || promUser;
                     lines.push('    control_center_next_gen_dependency_prometheus_service_environment_overrides:');
-                    if (common_user) {
-                        lines.push(`      User: ${common_user}`);
-                        lines.push(`      Group: ${state.data.common_group || common_user}`);
+                    if (promUser) {
+                        lines.push(`      User: ${promUser}`);
+                        lines.push(`      Group: ${promGroup}`);
                     }
                     if (state.data.prometheus_exec_start) lines.push(`      ExecStart: ${state.data.prometheus_exec_start}`);
                     if (state.data.prometheus_host) lines.push(`      PROMETHEUS_HOST: ${state.data.prometheus_host}`);
@@ -4485,11 +4598,19 @@
                 }
                 // Alertmanager 서비스 환경 오버라이드
                 if (state.data.alertmanager_host || state.data.alertmanager_storage_path || state.data.alertmanager_log_path) {
-                    const common_user = state.data.common_user || '';
+                    // User/Group 결정: 임포트된 _alertmanager_user 우선 → c3 component user → common_user
+                    const cu = state.data.component_users || {};
+                    const amUser = cu._alertmanager_user
+                        || cu.control_center_next_gen_user
+                        || (state.data.common_user_group ? state.data.common_user : '');
+                    const amGroup = cu._alertmanager_group
+                        || cu.control_center_next_gen_group
+                        || state.data.common_group
+                        || amUser;
                     lines.push('    control_center_next_gen_dependency_alertmanager_service_environment_overrides:');
-                    if (common_user) {
-                        lines.push(`      User: ${common_user}`);
-                        lines.push(`      Group: ${state.data.common_group || common_user}`);
+                    if (amUser) {
+                        lines.push(`      User: ${amUser}`);
+                        lines.push(`      Group: ${amGroup}`);
                     }
                     if (state.data.alertmanager_exec_start) lines.push(`      ExecStart: ${state.data.alertmanager_exec_start}`);
                     if (state.data.alertmanager_host) lines.push(`      ALERTMANAGER_HOST: ${state.data.alertmanager_host}`);
@@ -5151,13 +5272,35 @@
                 state.data.common_user = String(userValues[0]);
                 importedCount++;
             } else {
-                if (allVars.kafka_controller_user !== undefined) { state.data.component_users = state.data.component_users || {}; state.data.component_users.kafka_controller = allVars.kafka_controller_user; }
-                if (allVars.kafka_broker_user !== undefined) { state.data.component_users = state.data.component_users || {}; state.data.component_users.kafka_broker = allVars.kafka_broker_user; }
+                // 모든 컴포넌트 user 개별 저장 (round-trip 보장)
+                state.data.component_users = state.data.component_users || {};
+                const allComponentUserKeys = [
+                    'kafka_controller_user','kafka_broker_user','schema_registry_user',
+                    'kafka_connect_user','ksql_user','kafka_rest_user','control_center_next_gen_user'
+                ];
+                allComponentUserKeys.forEach(k => {
+                    if (allVars[k] !== undefined) {
+                        state.data.component_users[k] = String(allVars[k]);
+                        importedCount++;
+                    }
+                });
             }
-            const knownGroups = ['kafka_controller_group','kafka_broker_group','schema_registry_group'];
+            const knownGroups = ['kafka_controller_group','kafka_broker_group','schema_registry_group','control_center_next_gen_group'];
             const groupValues = knownGroups.map(k => allVars[k]).filter(v => v !== undefined);
             if (groupValues.length > 0 && groupValues.every(v => v === groupValues[0])) {
                 state.data.common_group = String(groupValues[0]);
+            } else if (groupValues.length > 0) {
+                // 그룹도 컴포넌트별로 저장
+                state.data.component_users = state.data.component_users || {};
+                const allComponentGroupKeys = [
+                    'kafka_controller_group','kafka_broker_group','schema_registry_group',
+                    'kafka_connect_group','ksql_group','kafka_rest_group','control_center_next_gen_group'
+                ];
+                allComponentGroupKeys.forEach(k => {
+                    if (allVars[k] !== undefined) {
+                        state.data.component_users[k] = String(allVars[k]);
+                    }
+                });
             }
 
             // kafka_broker_service_user/group: systemd User=/Group= for broker process
@@ -5504,7 +5647,18 @@
             {
                 const promSvcEnv = allVars.control_center_next_gen_dependency_prometheus_service_environment_overrides;
                 if (promSvcEnv && typeof promSvcEnv === 'object') {
+                    // User/Group: c3 user가 공통 user가 아닐 때도 round-trip 보장
+                    if (promSvcEnv.User) {
+                        state.data.component_users = state.data.component_users || {};
+                        state.data.component_users._prometheus_user = String(promSvcEnv.User);
+                        importedCount++;
+                    }
+                    if (promSvcEnv.Group) {
+                        state.data.component_users = state.data.component_users || {};
+                        state.data.component_users._prometheus_group = String(promSvcEnv.Group);
+                    }
                     if (promSvcEnv.PROMETHEUS_HOST) set('prometheus_host', String(promSvcEnv.PROMETHEUS_HOST));
+                    if (promSvcEnv.PROMETHEUS_PORT) set('prometheus_port', String(promSvcEnv.PROMETHEUS_PORT));
                     if (promSvcEnv.TSDB_PATH) set('prometheus_tsdb_path', String(promSvcEnv.TSDB_PATH));
                     if (promSvcEnv.LOG_PATH) set('prometheus_log_path', String(promSvcEnv.LOG_PATH));
                     if (promSvcEnv.METRICS_RETENTION_DAYS) set('metrics_retention_days', String(promSvcEnv.METRICS_RETENTION_DAYS));
@@ -5514,8 +5668,19 @@
             {
                 const amSvcEnv = allVars.control_center_next_gen_dependency_alertmanager_service_environment_overrides;
                 if (amSvcEnv && typeof amSvcEnv === 'object') {
+                    // User/Group: c3 user가 공통 user가 아닐 때도 round-trip 보장
+                    if (amSvcEnv.User) {
+                        state.data.component_users = state.data.component_users || {};
+                        state.data.component_users._alertmanager_user = String(amSvcEnv.User);
+                        importedCount++;
+                    }
+                    if (amSvcEnv.Group) {
+                        state.data.component_users = state.data.component_users || {};
+                        state.data.component_users._alertmanager_group = String(amSvcEnv.Group);
+                    }
                     if (amSvcEnv.ExecStart) set('alertmanager_exec_start', String(amSvcEnv.ExecStart));
                     if (amSvcEnv.ALERTMANAGER_HOST) set('alertmanager_host', String(amSvcEnv.ALERTMANAGER_HOST));
+                    if (amSvcEnv.ALERTMANAGER_PORT) set('alertmanager_port', String(amSvcEnv.ALERTMANAGER_PORT));
                     if (amSvcEnv.STORAGE_PATH) set('alertmanager_storage_path', String(amSvcEnv.STORAGE_PATH));
                     if (amSvcEnv.LOG_PATH) set('alertmanager_log_path', String(amSvcEnv.LOG_PATH));
                     if (amSvcEnv.WEB_LISTEN_ADDRESS) set('alertmanager_web_listen_address', String(amSvcEnv.WEB_LISTEN_ADDRESS));
@@ -5753,6 +5918,242 @@
                 .join('\n');
 
             preview.innerHTML = highlighted;
+            updateFirewallTable();
+            updateArchDiagram();
+        }
+
+        function toggleSection(bodyId, arrowId) {
+            const body = document.getElementById(bodyId);
+            const arrow = document.getElementById(arrowId);
+            if (!body) return;
+            const isOpen = body.style.display !== 'none';
+            body.style.display = isOpen ? 'none' : 'block';
+            if (arrow) arrow.classList.toggle('open', !isOpen);
+        }
+
+        function updateFirewallTable() {
+            const el = document.getElementById('firewallTable');
+            if (!el) return;
+            const d = state.data;
+
+            // 컴포넌트별 색상 맵
+            const colorMap = {
+                'Kafka Controller': '#4fc3f7',
+                'Kafka Broker':     '#81c784',
+                'Schema Registry':  '#ffb74d',
+                'Kafka Connect':    '#ce93d8',
+                'ksqlDB':           '#f48fb1',
+                'REST Proxy':       '#80deea',
+                'Control Center':   '#fff176',
+            };
+
+            const rows = [];
+
+            // Kafka Controller
+            if ((d.hosts.kafka_controller || []).length > 0) {
+                rows.push({ comp: 'Kafka Controller', port: d.kafka_controller_port || 9093, proto: 'TCP', direction: '브로커 ↔ 컨트롤러', desc: 'KRaft Quorum' });
+                rows.push({ comp: 'Kafka Controller', port: d.mds_port || 8090, proto: 'TCP', direction: '내부', desc: 'MDS / Admin REST' });
+            }
+            // Kafka Broker
+            if ((d.hosts.kafka_broker || []).length > 0) {
+                rows.push({ comp: 'Kafka Broker', port: d.kafka_broker_port || 9092, proto: 'TCP', direction: '클라이언트 → 브로커', desc: '클라이언트 연결' });
+                rows.push({ comp: 'Kafka Broker', port: d.kafka_broker_internal_port || 9091, proto: 'TCP', direction: '브로커 ↔ 브로커', desc: '내부 통신' });
+                rows.push({ comp: 'Kafka Broker', port: 9101, proto: 'TCP', direction: '모니터링', desc: 'JMX' });
+            }
+            // Schema Registry
+            if ((d.hosts.schema_registry || []).length > 0) {
+                rows.push({ comp: 'Schema Registry', port: d.schema_registry_listener_port || 9081, proto: 'TCP', direction: '클라이언트 → SR', desc: 'REST API' });
+            }
+            // Kafka Connect
+            if ((d.hosts.kafka_connect || []).length > 0) {
+                rows.push({ comp: 'Kafka Connect', port: d.kafka_connect_rest_port || 8083, proto: 'TCP', direction: '관리', desc: 'REST API' });
+            }
+            // ksqlDB
+            if ((d.hosts.ksql || []).length > 0) {
+                rows.push({ comp: 'ksqlDB', port: d.ksql_listener_port || 8088, proto: 'TCP', direction: '클라이언트 → ksql', desc: 'REST API' });
+            }
+            // REST Proxy
+            if ((d.hosts.kafka_rest || []).length > 0) {
+                rows.push({ comp: 'REST Proxy', port: d.kafka_rest_port || 8082, proto: 'TCP', direction: '클라이언트 → REST', desc: 'REST Proxy API' });
+            }
+            // Control Center
+            if ((d.hosts.control_center_next_gen || []).length > 0) {
+                rows.push({ comp: 'Control Center', port: d.control_center_next_gen_port || 9022, proto: 'TCP', direction: '관리자 → C3', desc: 'Web UI' });
+            }
+
+            if (rows.length === 0) {
+                el.innerHTML = '<div style="color:var(--text-secondary);font-size:0.85rem;padding:0.5rem;">Step 3에서 컴포넌트 호스트를 입력하면 포트 표가 생성됩니다.</div>';
+                return;
+            }
+
+            const tbody = rows.map(r => {
+                const color = colorMap[r.comp] || '#aaa';
+                return `<tr>
+                    <td><span class="comp-chip" style="background:${color}22;color:${color};border:1px solid ${color}44;">${r.comp}</span></td>
+                    <td><span class="port-badge">${r.port}</span></td>
+                    <td style="color:var(--text-secondary)">${r.proto}</td>
+                    <td style="color:var(--text-secondary)">${r.direction}</td>
+                    <td style="color:var(--text-secondary)">${r.desc}</td>
+                </tr>`;
+            }).join('');
+
+            el.innerHTML = `
+                <table class="fw-table">
+                    <thead>
+                        <tr>
+                            <th>컴포넌트</th>
+                            <th>포트</th>
+                            <th>프로토콜</th>
+                            <th>방향</th>
+                            <th>설명</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tbody}</tbody>
+                </table>
+            `;
+        }
+
+        function updateArchDiagram() {
+            const el = document.getElementById('archDiagram');
+            if (!el) return;
+            const d = state.data;
+
+            const hasBroker     = (d.hosts.kafka_broker || []).length > 0;
+            const hasController = (d.hosts.kafka_controller || []).length > 0;
+            const hasSR         = (d.hosts.schema_registry || []).length > 0;
+            const hasConnect    = (d.hosts.kafka_connect || []).length > 0;
+            const hasKsql       = (d.hosts.ksql || []).length > 0;
+            const hasRest       = (d.hosts.kafka_rest || []).length > 0;
+            const hasC3         = (d.hosts.control_center_next_gen || []).length > 0;
+
+            if (!hasBroker && !hasController) {
+                el.innerHTML = '<div style="color:var(--text-secondary);font-size:0.85rem;padding:0.5rem;">Step 3에서 호스트를 입력하면 다이어그램이 생성됩니다.</div>';
+                return;
+            }
+
+            // 컬러 팔레트
+            const C = {
+                broker:     { fill:'#1a3a2a', stroke:'#81c784', text:'#81c784' },
+                controller: { fill:'#1a2a3a', stroke:'#4fc3f7', text:'#4fc3f7' },
+                sr:         { fill:'#3a2a1a', stroke:'#ffb74d', text:'#ffb74d' },
+                connect:    { fill:'#2a1a3a', stroke:'#ce93d8', text:'#ce93d8' },
+                ksql:       { fill:'#3a1a2a', stroke:'#f48fb1', text:'#f48fb1' },
+                rest:       { fill:'#1a3a3a', stroke:'#80deea', text:'#80deea' },
+                c3:         { fill:'#3a3a1a', stroke:'#fff176', text:'#fff176' },
+                client:     { fill:'#2a2a2a', stroke:'#aaaaaa', text:'#cccccc' },
+                external:   { fill:'#2a2a2a', stroke:'#888888', text:'#aaaaaa' },
+            };
+
+            // SVG 헬퍼: 박스
+            function box(x, y, w, h, style, label, sublabel='') {
+                const { fill, stroke, text } = style;
+                const rx = 8;
+                const subY = sublabel ? y + h/2 + 7 : y + h/2 + 5;
+                return `
+                    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}"
+                          fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+                    <text x="${x+w/2}" y="${y + h/2 - (sublabel?6:0)}" text-anchor="middle"
+                          fill="${text}" font-size="11" font-weight="600" font-family="monospace">${label}</text>
+                    ${sublabel ? `<text x="${x+w/2}" y="${subY}" text-anchor="middle" fill="${text}88" font-size="9">${sublabel}</text>` : ''}
+                `;
+            }
+
+            // SVG 헬퍼: 화살표
+            function arrow(x1, y1, x2, y2, color='#555', label='') {
+                const mx = (x1+x2)/2, my = (y1+y2)/2;
+                const markerId = 'arr_' + Math.random().toString(36).substr(2, 9);
+                const labelHtml = label ? `<text x="${mx}" y="${my-4}" text-anchor="middle" fill="${color}" font-size="9">${label}</text>` : '';
+                return `
+                    <defs><marker id="${markerId}" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L0,6 L8,3 z" fill="${color}"/>
+                    </marker></defs>
+                    <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="1.2"
+                          marker-end="url(#${markerId})" stroke-dasharray="4,2"/>
+                    ${labelHtml}
+                `;
+            }
+
+            // 레이아웃 계산
+            const svgW = 460;
+            const BOX_W = 120, BOX_H = 44;
+
+            // 중앙: Kafka Broker 클러스터
+            const brokerX = (svgW - BOX_W) / 2;
+            let brokerY = 120;
+
+            // 상단: Kafka Controller
+            const ctrlX = (svgW - BOX_W) / 2;
+            const ctrlY = 20;
+
+            // 우측 컴포넌트들
+            const rightX = svgW - BOX_W - 10;
+            let rightComponents = [];
+            if (hasSR)      rightComponents.push({ key: 'sr',      label: 'Schema Registry', port: d.schema_registry_listener_port || 9081 });
+            if (hasConnect) rightComponents.push({ key: 'connect', label: 'Kafka Connect',   port: d.kafka_connect_rest_port || 8083 });
+            if (hasKsql)    rightComponents.push({ key: 'ksql',    label: 'ksqlDB',          port: d.ksql_listener_port || 8088 });
+            if (hasRest)    rightComponents.push({ key: 'rest',    label: 'REST Proxy',      port: d.kafka_rest_port || 8082 });
+
+            // 높이 조정
+            const rightStartY = 90;
+            const rightSpacing = 60;
+            const rightTotalH = rightComponents.length * rightSpacing;
+            brokerY = Math.max(120, rightStartY + rightTotalH / 2 - BOX_H / 2);
+
+            // C3 위치 (하단 중앙)
+            const c3Y = brokerY + BOX_H + 60;
+
+            // Client (좌측)
+            const clientX = 10;
+            const clientY = brokerY + (BOX_H - 36) / 2;
+
+            // External (Connect 우측)
+            const extX = rightX + BOX_W + 10;
+
+            // SVG 전체 높이
+            const svgH = Math.max(
+                c3Y + BOX_H + 20,
+                rightStartY + rightComponents.length * rightSpacing + 20,
+                brokerY + BOX_H + 80
+            );
+
+            let shapes = '';
+
+            // Controller
+            if (hasController) {
+                shapes += box(ctrlX, ctrlY, BOX_W, BOX_H, C.controller, 'Kafka Controller', `×${d.hosts.kafka_controller.length} | :${d.kafka_controller_port||9093}`);
+                shapes += arrow(ctrlX + BOX_W/2, ctrlY + BOX_H, ctrlX + BOX_W/2, brokerY, '#4fc3f780', 'KRaft');
+            }
+
+            // Client
+            shapes += box(clientX, clientY, 80, 36, C.client, 'Clients', '');
+            shapes += arrow(clientX + 80, clientY + 18, brokerX, brokerY + BOX_H/2, '#aaa', `:${d.kafka_broker_port||9092}`);
+
+            // Broker
+            shapes += box(brokerX, brokerY, BOX_W, BOX_H, C.broker, 'Kafka Broker', `×${d.hosts.kafka_broker.length} | :${d.kafka_broker_port||9092}`);
+
+            // 우측 컴포넌트들
+            rightComponents.forEach((comp, i) => {
+                const rx = rightX;
+                const ry = rightStartY + i * rightSpacing;
+                shapes += box(rx, ry, BOX_W, BOX_H, C[comp.key], comp.label, `:${comp.port}`);
+                shapes += arrow(brokerX + BOX_W, brokerY + BOX_H/2, rx, ry + BOX_H/2, '#55555580');
+            });
+
+            // Control Center
+            if (hasC3) {
+                shapes += box((svgW - BOX_W) / 2, c3Y, BOX_W, BOX_H, C.c3, 'Control Center', `:${d.control_center_next_gen_port||9022}`);
+                shapes += arrow((svgW - BOX_W/2), c3Y, (svgW - BOX_W/2), brokerY + BOX_H, '#fff17640', 'monitoring');
+            }
+
+            el.innerHTML = `
+                <svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg"
+                     style="background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+                    ${shapes}
+                </svg>
+                <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.5rem;text-align:center;">
+                    Step 3 호스트 입력 기반으로 자동 생성됩니다
+                </div>
+            `;
         }
 
         function escapeHtml(text) {
