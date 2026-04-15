@@ -3570,6 +3570,30 @@
             return s;
         }
 
+        // custom_properties 전용 스칼라: YAML boolean 키워드를 따옴표 없이 출력
+        // (Kafka/cp-ansible custom_properties 값은 문자열로 전달되므로 따옴표 불필요)
+        function yamlCustomPropScalar(value) {
+            if (value === null || value === undefined) return '';
+            const s = String(value);
+            if (s === '') return '""';
+            // Already double-quoted by the user/code — 그대로 출력
+            if (s.startsWith('"') && s.endsWith('"')) return s;
+            // custom_properties에서는 true/false/null 등을 따옴표 없이 출력
+            // (Kafka 설정 파서가 문자열로 처리하므로 YAML boolean 구분 불필요)
+            const needsQuotes =
+                s.includes('{{') ||            // Jinja2 template
+                s.includes('}}') ||
+                s.includes('://') ||           // URL
+                s.includes('(?') ||            // Regex
+                s.includes(': ') ||            // mapping key 오인 방지
+                s.endsWith(';') ||             // JAAS config
+                /^[#\[\]{},>|*&!%@`]/.test(s); // YAML 특수 문자 시작
+            if (needsQuotes) {
+                return `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+            }
+            return s;
+        }
+
         // ============================================================
         // YAML GENERATION
         // ============================================================
@@ -3953,7 +3977,7 @@
                 lines.push('    # === Step 10: Kafka Controller Custom Properties ===');
                 lines.push('    kafka_controller_custom_properties:');
                 Object.entries(controllerCustomProps).forEach(([key, value]) => {
-                    if (key) lines.push(`      ${key}: ${yamlScalar(value)}`);
+                    if (key) lines.push(`      ${key}: ${yamlCustomPropScalar(value)}`);
                 });
                 lines.push('');
             }
@@ -4107,7 +4131,7 @@
                             if (state.data.c3_session_expiration_ms) lines.push(`      confluent.controlcenter.auth.session.expiration.ms: ${state.data.c3_session_expiration_ms}`);
                         }
                         Object.entries(state.data.c3_custom_properties || {}).forEach(([key, value]) => {
-                            if (key) lines.push(`      ${key}: ${yamlScalar(String(value))}`);
+                            if (key) lines.push(`      ${key}: ${yamlCustomPropScalar(String(value))}`);
                         });
                     }
                 }
