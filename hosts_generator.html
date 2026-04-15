@@ -4470,11 +4470,19 @@
                 }
                 // Prometheus 서비스 환경 오버라이드
                 if (state.data.prometheus_host || state.data.prometheus_tsdb_path || state.data.prometheus_log_path) {
-                    const common_user = state.data.common_user || '';
+                    // User/Group 결정: 임포트된 _prometheus_user 우선 → c3 component user → common_user
+                    const cu = state.data.component_users || {};
+                    const promUser = cu._prometheus_user
+                        || cu.control_center_next_gen_user
+                        || (state.data.common_user_group ? state.data.common_user : '');
+                    const promGroup = cu._prometheus_group
+                        || cu.control_center_next_gen_group
+                        || state.data.common_group
+                        || promUser;
                     lines.push('    control_center_next_gen_dependency_prometheus_service_environment_overrides:');
-                    if (common_user) {
-                        lines.push(`      User: ${common_user}`);
-                        lines.push(`      Group: ${state.data.common_group || common_user}`);
+                    if (promUser) {
+                        lines.push(`      User: ${promUser}`);
+                        lines.push(`      Group: ${promGroup}`);
                     }
                     if (state.data.prometheus_exec_start) lines.push(`      ExecStart: ${state.data.prometheus_exec_start}`);
                     if (state.data.prometheus_host) lines.push(`      PROMETHEUS_HOST: ${state.data.prometheus_host}`);
@@ -4485,11 +4493,19 @@
                 }
                 // Alertmanager 서비스 환경 오버라이드
                 if (state.data.alertmanager_host || state.data.alertmanager_storage_path || state.data.alertmanager_log_path) {
-                    const common_user = state.data.common_user || '';
+                    // User/Group 결정: 임포트된 _alertmanager_user 우선 → c3 component user → common_user
+                    const cu = state.data.component_users || {};
+                    const amUser = cu._alertmanager_user
+                        || cu.control_center_next_gen_user
+                        || (state.data.common_user_group ? state.data.common_user : '');
+                    const amGroup = cu._alertmanager_group
+                        || cu.control_center_next_gen_group
+                        || state.data.common_group
+                        || amUser;
                     lines.push('    control_center_next_gen_dependency_alertmanager_service_environment_overrides:');
-                    if (common_user) {
-                        lines.push(`      User: ${common_user}`);
-                        lines.push(`      Group: ${state.data.common_group || common_user}`);
+                    if (amUser) {
+                        lines.push(`      User: ${amUser}`);
+                        lines.push(`      Group: ${amGroup}`);
                     }
                     if (state.data.alertmanager_exec_start) lines.push(`      ExecStart: ${state.data.alertmanager_exec_start}`);
                     if (state.data.alertmanager_host) lines.push(`      ALERTMANAGER_HOST: ${state.data.alertmanager_host}`);
@@ -5151,13 +5167,35 @@
                 state.data.common_user = String(userValues[0]);
                 importedCount++;
             } else {
-                if (allVars.kafka_controller_user !== undefined) { state.data.component_users = state.data.component_users || {}; state.data.component_users.kafka_controller = allVars.kafka_controller_user; }
-                if (allVars.kafka_broker_user !== undefined) { state.data.component_users = state.data.component_users || {}; state.data.component_users.kafka_broker = allVars.kafka_broker_user; }
+                // 모든 컴포넌트 user 개별 저장 (round-trip 보장)
+                state.data.component_users = state.data.component_users || {};
+                const allComponentUserKeys = [
+                    'kafka_controller_user','kafka_broker_user','schema_registry_user',
+                    'kafka_connect_user','ksql_user','kafka_rest_user','control_center_next_gen_user'
+                ];
+                allComponentUserKeys.forEach(k => {
+                    if (allVars[k] !== undefined) {
+                        state.data.component_users[k] = String(allVars[k]);
+                        importedCount++;
+                    }
+                });
             }
-            const knownGroups = ['kafka_controller_group','kafka_broker_group','schema_registry_group'];
+            const knownGroups = ['kafka_controller_group','kafka_broker_group','schema_registry_group','control_center_next_gen_group'];
             const groupValues = knownGroups.map(k => allVars[k]).filter(v => v !== undefined);
             if (groupValues.length > 0 && groupValues.every(v => v === groupValues[0])) {
                 state.data.common_group = String(groupValues[0]);
+            } else if (groupValues.length > 0) {
+                // 그룹도 컴포넌트별로 저장
+                state.data.component_users = state.data.component_users || {};
+                const allComponentGroupKeys = [
+                    'kafka_controller_group','kafka_broker_group','schema_registry_group',
+                    'kafka_connect_group','ksql_group','kafka_rest_group','control_center_next_gen_group'
+                ];
+                allComponentGroupKeys.forEach(k => {
+                    if (allVars[k] !== undefined) {
+                        state.data.component_users[k] = String(allVars[k]);
+                    }
+                });
             }
 
             // kafka_broker_service_user/group: systemd User=/Group= for broker process
@@ -5504,7 +5542,18 @@
             {
                 const promSvcEnv = allVars.control_center_next_gen_dependency_prometheus_service_environment_overrides;
                 if (promSvcEnv && typeof promSvcEnv === 'object') {
+                    // User/Group: c3 user가 공통 user가 아닐 때도 round-trip 보장
+                    if (promSvcEnv.User) {
+                        state.data.component_users = state.data.component_users || {};
+                        state.data.component_users._prometheus_user = String(promSvcEnv.User);
+                        importedCount++;
+                    }
+                    if (promSvcEnv.Group) {
+                        state.data.component_users = state.data.component_users || {};
+                        state.data.component_users._prometheus_group = String(promSvcEnv.Group);
+                    }
                     if (promSvcEnv.PROMETHEUS_HOST) set('prometheus_host', String(promSvcEnv.PROMETHEUS_HOST));
+                    if (promSvcEnv.PROMETHEUS_PORT) set('prometheus_port', String(promSvcEnv.PROMETHEUS_PORT));
                     if (promSvcEnv.TSDB_PATH) set('prometheus_tsdb_path', String(promSvcEnv.TSDB_PATH));
                     if (promSvcEnv.LOG_PATH) set('prometheus_log_path', String(promSvcEnv.LOG_PATH));
                     if (promSvcEnv.METRICS_RETENTION_DAYS) set('metrics_retention_days', String(promSvcEnv.METRICS_RETENTION_DAYS));
@@ -5514,8 +5563,19 @@
             {
                 const amSvcEnv = allVars.control_center_next_gen_dependency_alertmanager_service_environment_overrides;
                 if (amSvcEnv && typeof amSvcEnv === 'object') {
+                    // User/Group: c3 user가 공통 user가 아닐 때도 round-trip 보장
+                    if (amSvcEnv.User) {
+                        state.data.component_users = state.data.component_users || {};
+                        state.data.component_users._alertmanager_user = String(amSvcEnv.User);
+                        importedCount++;
+                    }
+                    if (amSvcEnv.Group) {
+                        state.data.component_users = state.data.component_users || {};
+                        state.data.component_users._alertmanager_group = String(amSvcEnv.Group);
+                    }
                     if (amSvcEnv.ExecStart) set('alertmanager_exec_start', String(amSvcEnv.ExecStart));
                     if (amSvcEnv.ALERTMANAGER_HOST) set('alertmanager_host', String(amSvcEnv.ALERTMANAGER_HOST));
+                    if (amSvcEnv.ALERTMANAGER_PORT) set('alertmanager_port', String(amSvcEnv.ALERTMANAGER_PORT));
                     if (amSvcEnv.STORAGE_PATH) set('alertmanager_storage_path', String(amSvcEnv.STORAGE_PATH));
                     if (amSvcEnv.LOG_PATH) set('alertmanager_log_path', String(amSvcEnv.LOG_PATH));
                     if (amSvcEnv.WEB_LISTEN_ADDRESS) set('alertmanager_web_listen_address', String(amSvcEnv.WEB_LISTEN_ADDRESS));
