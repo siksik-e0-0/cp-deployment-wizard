@@ -1459,8 +1459,9 @@
                 label.appendChild(desc);
 
                 label.addEventListener('click', (e) => {
+                    e.preventDefault();   // label 기본 동작(자동 토글) 차단
                     e.stopPropagation();
-                    checkbox.checked = !checkbox.checked;
+                    checkbox.checked = !checkbox.checked;  // 수동으로만 토글
                     const val = checkbox.value;
                     if (checkbox.checked) {
                         if (!state.data.deployment_environments.includes(val)) {
