@@ -809,18 +809,18 @@
             <div class="listener-fields">
               <div class="field-col">
                 <label>포트</label>
-                <input type="number" class="text-input" value="9091" id="listener-internal-port">
+                <input type="number" class="text-input" value="9091" id="listener-internal-port" oninput="updateListenerFlowDiagram()">
               </div>
               <div class="field-col">
                 <label>SSL</label>
-                <select class="select-input" id="listener-internal-ssl">
+                <select class="select-input" id="listener-internal-ssl" onchange="updateListenerFlowDiagram()">
                   <option value="true" selected>활성화</option>
                   <option value="false">비활성화</option>
                 </select>
               </div>
               <div class="field-col">
                 <label>SASL</label>
-                <select class="select-input" id="listener-internal-sasl">
+                <select class="select-input" id="listener-internal-sasl" onchange="updateListenerFlowDiagram()">
                   <option value="plain" selected>PLAIN (권장)</option>
                   <option value="oauth">OAUTHBEARER</option>
                   <option value="scram-256">SCRAM-SHA-256</option>
@@ -843,18 +843,18 @@
             <div class="listener-fields">
               <div class="field-col">
                 <label>포트</label>
-                <input type="number" class="text-input" value="9092" id="listener-external-port">
+                <input type="number" class="text-input" value="9092" id="listener-external-port" oninput="updateListenerFlowDiagram()">
               </div>
               <div class="field-col">
                 <label>SSL</label>
-                <select class="select-input" id="listener-external-ssl">
+                <select class="select-input" id="listener-external-ssl" onchange="updateListenerFlowDiagram()">
                   <option value="true" selected>활성화</option>
                   <option value="false">비활성화</option>
                 </select>
               </div>
               <div class="field-col">
                 <label>SASL</label>
-                <select class="select-input" id="listener-external-sasl">
+                <select class="select-input" id="listener-external-sasl" onchange="updateListenerFlowDiagram()">
                   <option value="plain">PLAIN</option>
                   <option value="oauth" selected>OAUTHBEARER (RBAC 필수)</option>
                   <option value="scram-256">SCRAM-SHA-256</option>
@@ -877,18 +877,18 @@
             <div class="listener-fields">
               <div class="field-col">
                 <label>포트</label>
-                <input type="number" class="text-input" value="9094" id="listener-token-port">
+                <input type="number" class="text-input" value="9094" id="listener-token-port" oninput="updateListenerFlowDiagram()">
               </div>
               <div class="field-col">
                 <label>SSL</label>
-                <select class="select-input" id="listener-token-ssl">
+                <select class="select-input" id="listener-token-ssl" onchange="updateListenerFlowDiagram()">
                   <option value="true" selected>활성화</option>
                   <option value="false">비활성화</option>
                 </select>
               </div>
               <div class="field-col">
                 <label>SASL</label>
-                <select class="select-input" id="listener-token-sasl">
+                <select class="select-input" id="listener-token-sasl" onchange="updateListenerFlowDiagram()">
                   <option value="plain">PLAIN</option>
                   <option value="oauth" selected>OAUTHBEARER (RBAC 필수)</option>
                   <option value="scram-256">SCRAM-SHA-256</option>
@@ -898,29 +898,10 @@
             </div>
           </div>
 
-          <!-- Listener dependency diagram -->
+          <!-- Listener dependency diagram (동적 업데이트) -->
           <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:8px;">
             <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;">Listener 통신 흐름</div>
-            <div style="font-size:13px;color:var(--text);line-height:2;font-family:'Inter',monospace;">
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span style="background:var(--accent-glow);color:var(--accent);padding:2px 10px;border-radius:6px;font-weight:500;">Broker</span>
-                <span style="color:var(--text-secondary);">&#8596;</span>
-                <span style="background:var(--accent-glow);color:var(--accent);padding:2px 10px;border-radius:6px;font-weight:500;">Broker</span>
-                <span style="color:var(--text-secondary);font-size:11px;margin-left:8px;">Internal :9091 (PLAIN)</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span style="background:rgba(245,158,11,0.15);color:var(--warning);padding:2px 10px;border-radius:6px;font-weight:500;">Client</span>
-                <span style="color:var(--text-secondary);">&#8594;</span>
-                <span style="background:var(--accent-glow);color:var(--accent);padding:2px 10px;border-radius:6px;font-weight:500;">Broker</span>
-                <span style="color:var(--text-secondary);font-size:11px;margin-left:8px;">External :9092 (OAUTH)</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span style="background:rgba(16,185,129,0.15);color:var(--positive);padding:2px 10px;border-radius:6px;font-weight:500;">SR / C3</span>
-                <span style="color:var(--text-secondary);">&#8594;</span>
-                <span style="background:var(--accent-glow);color:var(--accent);padding:2px 10px;border-radius:6px;font-weight:500;">Broker</span>
-                <span style="color:var(--text-secondary);font-size:11px;margin-left:8px;">Token :9094 (OAUTH)</span>
-              </div>
-            </div>
+            <div id="listenerFlowDiagram" style="font-size:13px;color:var(--text);line-height:2;font-family:'Inter',monospace;"></div>
           </div>
         </div>
       </section>
@@ -1361,6 +1342,7 @@
         '다음 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px;"><path d="M9 18l6-6-6-6"/></svg>';
       document.getElementById('navProgress').textContent = step + ' / ' + totalSteps;
       // Build firewall on step 6, summary on step 7
+      if (step === 3) updateListenerFlowDiagram();
       if (step === 6) buildFirewall();
       if (step === 7) buildSummary();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1489,6 +1471,48 @@
         if (tokenBadge) tokenBadge.style.display = 'none';
         if (notice) notice.style.display = 'none';
       }
+      updateListenerFlowDiagram();
+    }
+
+    // Listener 통신 흐름 다이어그램 동적 업데이트
+    function updateListenerFlowDiagram() {
+      var diagram = document.getElementById('listenerFlowDiagram');
+      if (!diagram) return;
+
+      var saslMap = { plain: 'PLAIN', scram: 'SCRAM-SHA-512', 'scram-256': 'SCRAM-SHA-256', 'scram-512': 'SCRAM-SHA-512', gssapi: 'GSSAPI', oauth: 'OAUTHBEARER', none: 'NONE' };
+
+      var intPort  = (document.getElementById('listener-internal-port') || {}).value || config.listeners.internal.port || '9091';
+      var extPort  = (document.getElementById('listener-external-port') || {}).value || config.listeners.external.port || '9092';
+      var tokPort  = (document.getElementById('listener-token-port') || {}).value  || config.listeners.token.port    || '9094';
+      var intSsl   = (document.getElementById('listener-internal-ssl')  || {}).value || config.listeners.internal.ssl || 'false';
+      var extSsl   = (document.getElementById('listener-external-ssl')  || {}).value || config.listeners.external.ssl || 'false';
+      var tokSsl   = (document.getElementById('listener-token-ssl')     || {}).value || config.listeners.token.ssl    || 'true';
+      var intSasl  = (document.getElementById('listener-internal-sasl') || {}).value || config.listeners.internal.sasl || 'plain';
+      var extSasl  = (document.getElementById('listener-external-sasl') || {}).value || config.listeners.external.sasl || 'oauth';
+      var tokSasl  = (document.getElementById('listener-token-sasl')    || {}).value || config.listeners.token.sasl    || 'oauth';
+
+      function sslTag(v) { return v === 'true' || v === 'mtls' ? (v === 'mtls' ? 'mTLS' : 'SSL') : 'PLAIN'; }
+      function row(srcBg, srcColor, srcLabel, arrow, dstBg, dstColor, dstLabel, port, ssl, sasl) {
+        var proto = sslTag(ssl) + ' / ' + (saslMap[sasl] || sasl.toUpperCase());
+        return '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">' +
+          '<span style="background:' + srcBg + ';color:' + srcColor + ';padding:2px 10px;border-radius:6px;font-weight:500;">' + srcLabel + '</span>' +
+          '<span style="color:var(--text-secondary);">' + arrow + '</span>' +
+          '<span style="background:' + dstBg + ';color:' + dstColor + ';padding:2px 10px;border-radius:6px;font-weight:500;">' + dstLabel + '</span>' +
+          '<span style="color:var(--text-secondary);font-size:11px;margin-left:8px;">:' + port + ' &nbsp;(' + proto + ')</span>' +
+          '</div>';
+      }
+
+      var html = '';
+      // Internal: Broker ↔ Broker
+      html += row('var(--accent-glow)', 'var(--accent)', 'Broker', '&#8596;', 'var(--accent-glow)', 'var(--accent)', 'Broker', intPort, intSsl, intSasl);
+      // External: Client → Broker
+      html += row('rgba(245,158,11,0.15)', 'var(--warning)', 'Client', '&#8594;', 'var(--accent-glow)', 'var(--accent)', 'Broker', extPort, extSsl, extSasl);
+      // Token: SR/C3 → Broker (RBAC 활성화 시만 표시)
+      if (config.rbac) {
+        html += row('rgba(16,185,129,0.15)', 'var(--positive)', 'SR / C3', '&#8594;', 'var(--accent-glow)', 'var(--accent)', 'Broker (MDS)', tokPort, tokSsl, tokSasl);
+      }
+
+      diagram.innerHTML = html;
     }
 
     function updateToggleUI(key, val) {
@@ -1697,7 +1721,7 @@
       '</div>';
 
       // ── SVG 네트워크 구성도 ──
-      var svg = buildFirewallSVG(intPort, extPort, tokPort, srPort, c3Port, ldapPort, ldapHost, oidcProviderName);
+      var svg = buildFirewallSVG(intPort, extPort, tokPort, srPort, c3Port, ldapPort, ldapHost, oidcProviderName, ldapProto);
 
       // ── 다운로드 버튼 ──
       var actions = '<div class="action-buttons animate delay-3" style="margin-top:2rem">' +
@@ -1729,7 +1753,7 @@
     }
 
     // ── SVG 네트워크 구성도 생성 ──
-    function buildFirewallSVG(intPort, extPort, tokPort, srPort, c3Port, ldapPort, ldapHost, oidcProviderName) {
+    function buildFirewallSVG(intPort, extPort, tokPort, srPort, c3Port, ldapPort, ldapHost, oidcProviderName, ldapProto) {
       var W = 860, H = 640;
       var accent = '#7c3aed';
       var accentLight = '#8b5cf6';
