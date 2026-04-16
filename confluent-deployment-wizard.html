@@ -663,10 +663,33 @@
         <div class="form-group" id="c3Section">
           <div class="toggle-row" onclick="toggleSwitch('c3')">
             <div class="toggle-info">
-              <span class="toggle-title">Control Center Next Gen</span>
+              <span class="toggle-title">Control Center</span>
               <span class="toggle-desc">클러스터 모니터링 및 관리 UI</span>
             </div>
             <button class="toggle-switch on" id="toggle-c3" aria-label="Control Center toggle"></button>
+          </div>
+          <!-- C3 유형 선택 (c3Enabled ON 시 표시) -->
+          <div id="c3TypeRow" style="padding:12px 16px 4px 16px;margin-top:4px;">
+            <div class="form-label" style="margin-bottom:8px;">Control Center 유형</div>
+            <div style="display:flex;gap:10px;">
+              <label style="flex:1;display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color 0.2s;" id="c3type-classic-label">
+                <input type="radio" name="c3Type" value="classic" onchange="onC3TypeChange('classic')" style="margin-top:2px;accent-color:var(--accent);">
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:2px;">Classic C3</div>
+                  <div style="font-size:11px;color:var(--text-secondary);">전통적인 Control Center<br>Prometheus 별도 선택 가능</div>
+                </div>
+              </label>
+              <label style="flex:1;display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:1.5px solid var(--accent);border-radius:8px;cursor:pointer;transition:border-color 0.2s;background:rgba(99,102,241,0.05);" id="c3type-nextgen-label">
+                <input type="radio" name="c3Type" value="nextgen" checked onchange="onC3TypeChange('nextgen')" style="margin-top:2px;accent-color:var(--accent);">
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:2px;">Next Gen ✦</div>
+                  <div style="font-size:11px;color:var(--text-secondary);">차세대 UI<br>Prometheus + Alertmanager 내장</div>
+                </div>
+              </label>
+            </div>
+            <div id="c3NextGenBadge" style="margin-top:8px;padding:7px 12px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:6px;font-size:12px;color:var(--accent);">
+              ✓ Prometheus (9090) + Alertmanager (9093) 자동 포함
+            </div>
           </div>
         </div>
 
@@ -1341,6 +1364,8 @@
       srEnabled: true,
       srNodes: 2,
       c3Enabled: true,
+      c3Type: 'nextgen',
+      alertmanager: true,
       hosts: [],
       ssl: true,
       mtls: true,
@@ -1416,6 +1441,23 @@
         '다음 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px;"><path d="M9 18l6-6-6-6"/></svg>';
       document.getElementById('navProgress').textContent = step + ' / ' + totalSteps;
       // Build firewall on step 6, summary on step 7
+      if (step === 1) {
+        updateC3TypeRowVisibility();
+      }
+      if (step === 4) {
+        // Next Gen 시 Prometheus 토글 강제 ON + 비활성화
+        var promToggle = document.getElementById('toggle-prometheus');
+        if (promToggle) {
+          if (config.c3Type === 'nextgen' && config.c3Enabled) {
+            promToggle.classList.add('on');
+            promToggle.disabled = true;
+            promToggle.style.opacity = '0.6';
+          } else {
+            promToggle.disabled = false;
+            promToggle.style.opacity = '1';
+          }
+        }
+      }
       if (step === 5) {
         applySslListenerDependency();
         updateListenerFlowDiagram();
@@ -1737,6 +1779,55 @@
       if (key === 'controller' || key === 'srNodes') generateHostInputs();
     }
 
+    function onC3TypeChange(type) {
+      config.c3Type = type;
+      var badge = document.getElementById('c3NextGenBadge');
+      var classicLabel = document.getElementById('c3type-classic-label');
+      var nextgenLabel = document.getElementById('c3type-nextgen-label');
+      if (type === 'nextgen') {
+        config.prometheus = true;
+        config.alertmanager = true;
+        if (badge) badge.style.display = 'block';
+        if (classicLabel) classicLabel.style.borderColor = 'var(--border)';
+        if (nextgenLabel) { nextgenLabel.style.borderColor = 'var(--accent)'; nextgenLabel.style.background = 'rgba(99,102,241,0.05)'; }
+        // Prometheus 토글 강제 ON + 비활성화
+        var promToggle = document.getElementById('toggle-prometheus');
+        if (promToggle) { promToggle.classList.add('on'); promToggle.disabled = true; promToggle.style.opacity = '0.6'; }
+      } else {
+        config.alertmanager = false;
+        if (badge) badge.style.display = 'none';
+        if (classicLabel) { classicLabel.style.borderColor = 'var(--accent)'; classicLabel.style.background = 'rgba(99,102,241,0.05)'; }
+        if (nextgenLabel) { nextgenLabel.style.borderColor = 'var(--border)'; nextgenLabel.style.background = ''; }
+        // Prometheus 토글 다시 활성화
+        var promToggle = document.getElementById('toggle-prometheus');
+        if (promToggle) { promToggle.disabled = false; promToggle.style.opacity = '1'; }
+      }
+    }
+
+    function updateC3TypeRowVisibility() {
+      var row = document.getElementById('c3TypeRow');
+      if (!row) return;
+      row.style.display = config.c3Enabled ? 'block' : 'none';
+      if (config.c3Enabled) {
+        // 라디오 버튼 현재 config 값으로 복원
+        var radios = document.querySelectorAll('input[name="c3Type"]');
+        radios.forEach(function(r) { r.checked = (r.value === config.c3Type); });
+        // 배지 표시 갱신
+        var badge = document.getElementById('c3NextGenBadge');
+        if (badge) badge.style.display = (config.c3Type === 'nextgen') ? 'block' : 'none';
+        // 라벨 스타일 복원
+        var classicLabel = document.getElementById('c3type-classic-label');
+        var nextgenLabel = document.getElementById('c3type-nextgen-label');
+        if (config.c3Type === 'nextgen') {
+          if (classicLabel) { classicLabel.style.borderColor = 'var(--border)'; classicLabel.style.background = ''; }
+          if (nextgenLabel) { nextgenLabel.style.borderColor = 'var(--accent)'; nextgenLabel.style.background = 'rgba(99,102,241,0.05)'; }
+        } else {
+          if (classicLabel) { classicLabel.style.borderColor = 'var(--accent)'; classicLabel.style.background = 'rgba(99,102,241,0.05)'; }
+          if (nextgenLabel) { nextgenLabel.style.borderColor = 'var(--border)'; nextgenLabel.style.background = ''; }
+        }
+      }
+    }
+
     function toggleSwitch(key) {
       // Map toggle keys to actual config keys
       var keyMap = { sr: 'srEnabled', c3: 'c3Enabled', autocreate: 'autoCreate' };
@@ -1760,6 +1851,9 @@
       }
       if (key === 'sr') {
         document.getElementById('sr-options').style.display = config.srEnabled ? 'block' : 'none';
+      }
+      if (key === 'c3') {
+        updateC3TypeRowVisibility();
       }
       // RBAC ↔ Listener SASL 자동 연동
       if (key === 'rbac') {
@@ -2084,6 +2178,7 @@
       if (config.rbac && config.oidc) badges.push('<span class="fw-badge fw-badge-sec">OIDC (' + oidcProviderName + ')</span>');
       if (config.jmx)       badges.push('<span class="fw-badge fw-badge-mon">JMX</span>');
       if (config.prometheus) badges.push('<span class="fw-badge fw-badge-mon">Prometheus</span>');
+      if (config.alertmanager) badges.push('<span class="fw-badge fw-badge-mon">Alertmanager</span>');
 
       // ── 방화벽 규칙 정의 (22개, 조건부 포함) ──
       // [번호, 출발지, 목적지, 포트, 프로토콜, 용도, 조건함수]
@@ -2110,7 +2205,9 @@
         { no: 19, src: 'Prometheus',                   dst: 'Schema Registry',            port: '9999',           proto: 'TCP',       desc: 'JMX Exporter 스크레이프',             show: config.jmx && config.prometheus && p.srEnabled },
         { no: 20, src: 'Prometheus',                   dst: 'Control Center',             port: '9999',           proto: 'TCP',       desc: 'JMX Exporter 스크레이프',             show: config.jmx && config.prometheus && p.c3Enabled },
         { no: 21, src: '운영자 / C3',                  dst: 'Prometheus',                 port: '9090',           proto: 'TCP',       desc: '메트릭 조회 (PromQL)',                 show: config.prometheus },
-        { no: 22, src: '운영자 (Admin)',               dst: 'Controller/Broker/SR/C3',    port: '7203',           proto: 'TCP',       desc: 'JMX 직접 접속 (운영)',                 show: config.jmx }
+        { no: 22, src: '운영자 (Admin)',               dst: 'Controller/Broker/SR/C3',    port: '7203',           proto: 'TCP',       desc: 'JMX 직접 접속 (운영)',                 show: config.jmx },
+        { no: 23, src: 'Prometheus',                   dst: 'Alertmanager',               port: '9093',           proto: 'TCP',       desc: 'Prometheus → Alertmanager 알림 전송',  show: config.alertmanager && config.prometheus },
+        { no: 24, src: '운영자 / 브라우저',             dst: 'Alertmanager',               port: '9093',           proto: 'TCP',       desc: 'Alertmanager Web UI 접근',             show: config.alertmanager }
       ];
 
       // ── 테이블 HTML 생성 ──
@@ -2432,7 +2529,7 @@
           html += '<tr><td>Replication Factor</td><td>' + envProf.rf + '</td></tr>';
           html += '<tr><td>Min ISR</td><td>' + envProf.isr + '</td></tr>';
           html += '<tr><td>Schema Registry</td><td>' + (envProf.srEnabled ? (envProf.srNodes || 2) + '대' : '비활성화') + '</td></tr>';
-          html += '<tr><td>Control Center</td><td>' + (envProf.c3Enabled ? '활성화' : '비활성화') + '</td></tr>';
+          html += '<tr><td>Control Center</td><td>' + (envProf.c3Enabled ? (config.c3Type === 'nextgen' ? 'Next Gen' : 'Classic') : '비활성화') + '</td></tr>';
           html += '</table>';
           html += '</div>';
         });
@@ -2442,7 +2539,7 @@
         html += '<tr><td>Controller 노드</td><td>' + p.controllerNodes + '대</td></tr>';
         html += '<tr><td>Broker 노드</td><td>' + p.brokerNodes + '대</td></tr>';
         html += '<tr><td>Schema Registry</td><td>' + (p.srEnabled ? p.srNodes + '대' : '비활성화') + '</td></tr>';
-        html += '<tr><td>Control Center</td><td>' + (p.c3Enabled ? '활성화' : '비활성화') + '</td></tr>';
+        html += '<tr><td>Control Center</td><td>' + (p.c3Enabled ? (config.c3Type === 'nextgen' ? 'Next Gen (Prometheus + Alertmanager 포함)' : 'Classic') : '비활성화') + '</td></tr>';
         html += '</table>';
       }
       // Host list
@@ -2549,7 +2646,7 @@
       lines.push('  Controller: ' + p.controllerNodes + '대');
       lines.push('  Broker: ' + p.brokerNodes + '대');
       lines.push('  Schema Registry: ' + (p.srEnabled ? p.srNodes + '대' : '비활성화'));
-      lines.push('  Control Center: ' + (p.c3Enabled ? '활성화' : '비활성화'));
+      lines.push('  Control Center: ' + (p.c3Enabled ? (config.c3Type === 'nextgen' ? 'Next Gen (Prometheus + Alertmanager 포함)' : 'Classic') : '비활성화'));
       if (config.hosts.length > 0) {
         lines.push('  호스트 목록:');
         config.hosts.forEach(function(h, i) {
@@ -2593,6 +2690,7 @@
       lines.push('  JMX Exporter: ' + (config.jmx ? 'Y' : 'N'));
       lines.push('  Prometheus: ' + (config.prometheus ? 'Y' : 'N'));
       if (config.prometheus) lines.push('  메트릭 보존: ' + config.metricsRetention);
+      lines.push('  Alertmanager: ' + (config.alertmanager ? 'Y (Next Gen 내장)' : 'N'));
       lines.push('');
       lines.push('========================================');
       return lines.join('\n');
