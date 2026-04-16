@@ -1389,7 +1389,7 @@
         '다음 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px;"><path d="M9 18l6-6-6-6"/></svg>';
       document.getElementById('navProgress').textContent = step + ' / ' + totalSteps;
       // Build firewall on step 6, summary on step 7
-      if (step === 3) updateListenerFlowDiagram();
+      if (step === 3) { applySslListenerDependency(); updateListenerFlowDiagram(); }
       if (step === 6) buildFirewall();
       if (step === 7) buildSummary();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1724,6 +1724,10 @@
       if (key === 'rbac') {
         applyRbacListenerDependency();
       }
+      // SSL ↔ Listener SSL 자동 연동 (마스터 스위치)
+      if (key === 'ssl') {
+        applySslListenerDependency();
+      }
       generateHostInputs();
     }
 
@@ -1755,6 +1759,33 @@
         if (tokenBadge) tokenBadge.style.display = 'none';
         if (notice) notice.style.display = 'none';
       }
+      updateListenerFlowDiagram();
+    }
+
+    // SSL 전역 토글 ↔ Listener SSL 셀렉트 마스터 스위치 연동
+    function applySslListenerDependency() {
+      var listeners = [
+        { id: 'listener-internal-ssl', key: 'internal' },
+        { id: 'listener-external-ssl', key: 'external' },
+        { id: 'listener-token-ssl',    key: 'token' }
+      ];
+      listeners.forEach(function(l) {
+        var el = document.getElementById(l.id);
+        if (!el) return;
+        if (!config.ssl) {
+          // SSL 전역 OFF → 모든 Listener SSL 강제 비활성화 + 잠금
+          el.value = 'false';
+          config.listeners[l.key].ssl = 'false';
+          el.disabled = true;
+          el.style.opacity = '0.5';
+        } else {
+          // SSL 전역 ON → 모든 Listener SSL 활성화 + 잠금 해제
+          el.value = 'true';
+          config.listeners[l.key].ssl = 'true';
+          el.disabled = false;
+          el.style.opacity = '1';
+        }
+      });
       updateListenerFlowDiagram();
     }
 
@@ -2537,6 +2568,8 @@
     generateHostInputs();
     // RBAC 기본 ON → Listener SASL 잠금 초기 적용
     applyRbacListenerDependency();
+    // SSL 기본값에 따른 Listener SSL 초기 적용
+    applySslListenerDependency();
   </script>
 </body>
 </html>
