@@ -1697,7 +1697,7 @@
       '</div>';
 
       // ── SVG 네트워크 구성도 ──
-      var svg = buildFirewallSVG(intPort, extPort, tokPort, srPort, c3Port, ldapPort, ldapHost, oidcProviderName);
+      var svg = buildFirewallSVG(intPort, extPort, tokPort, srPort, c3Port, ldapPort, ldapHost, oidcProviderName, ldapProto);
 
       // ── 다운로드 버튼 ──
       var actions = '<div class="action-buttons animate delay-3" style="margin-top:2rem">' +
@@ -1729,7 +1729,7 @@
     }
 
     // ── SVG 네트워크 구성도 생성 ──
-    function buildFirewallSVG(intPort, extPort, tokPort, srPort, c3Port, ldapPort, ldapHost, oidcProviderName) {
+    function buildFirewallSVG(intPort, extPort, tokPort, srPort, c3Port, ldapPort, ldapHost, oidcProviderName, ldapProto) {
       var W = 860, H = 640;
       var accent = '#7c3aed';
       var accentLight = '#8b5cf6';
