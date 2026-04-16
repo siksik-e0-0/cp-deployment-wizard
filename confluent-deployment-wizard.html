@@ -533,17 +533,17 @@
     <div class="step-connector"></div>
     <div class="step-item" data-step="3" onclick="goToStep(3)">
       <div class="step-num">3</div>
-      <span class="step-label">보안 설정</span>
+      <span class="step-label">데이터 & 성능</span>
     </div>
     <div class="step-connector"></div>
     <div class="step-item" data-step="4" onclick="goToStep(4)">
       <div class="step-num">4</div>
-      <span class="step-label">데이터 & 성능</span>
+      <span class="step-label">리소스 & 모니터링</span>
     </div>
     <div class="step-connector"></div>
     <div class="step-item" data-step="5" onclick="goToStep(5)">
       <div class="step-num">5</div>
-      <span class="step-label">리소스 & 모니터링</span>
+      <span class="step-label">보안 설정</span>
     </div>
     <div class="step-connector"></div>
     <div class="step-item" data-step="6" onclick="goToStep(6)">
@@ -803,8 +803,8 @@
         </div>
       </section>
 
-      <!-- ====== STEP 3: 보안 설정 ====== -->
-      <section class="wizard-step" id="step3">
+      <!-- ====== STEP 5: 보안 설정 ====== -->
+      <section class="wizard-step" id="step5">
         <div class="step-header animate">
           <h2>보안 설정</h2>
           <p>SSL/TLS 암호화 및 Listener별 인증 프로토콜을 설정합니다. RBAC 활성화 시 External/Token Listener는 OAUTHBEARER가 필수입니다.</p>
@@ -943,6 +943,28 @@
             </div>
           </div>
 
+          <!-- 컴포넌트 서비스 포트 설정 -->
+          <div class="form-group animate delay-3" style="margin-top:16px;">
+            <div class="form-label">
+              컴포넌트 서비스 포트
+              <span class="tooltip-icon" data-tip="각 컴포넌트의 REST API / 관리 포트입니다. 방화벽 정책에 자동 반영됩니다.">?</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+              <div id="comp-port-sr" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:14px;">
+                <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Schema Registry REST API</div>
+                <input type="number" class="text-input" id="port-sr" value="8081" min="1" max="65535" style="width:100%;" placeholder="8081 (SSL: 8085)">
+              </div>
+              <div id="comp-port-c3" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:14px;">
+                <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">Control Center UI</div>
+                <input type="number" class="text-input" id="port-c3" value="9021" min="1" max="65535" style="width:100%;" placeholder="9021 (SSL: 9022)">
+              </div>
+              <div id="comp-port-mds" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:14px;">
+                <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">MDS REST API</div>
+                <input type="number" class="text-input" id="port-mds" value="8090" min="1" max="65535" style="width:100%;" placeholder="8090">
+              </div>
+            </div>
+          </div>
+
           <!-- Listener dependency diagram (동적 업데이트) -->
           <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:8px;">
             <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;">Listener 통신 흐름</div>
@@ -951,8 +973,8 @@
         </div>
       </section>
 
-      <!-- ====== STEP 4: Data & Performance ====== -->
-      <section class="wizard-step" id="step4">
+      <!-- ====== STEP 3: Data & Performance ====== -->
+      <section class="wizard-step" id="step3">
         <div class="step-header animate">
           <h2>데이터 & 성능</h2>
           <p>데이터 보존 정책, 복제 전략 및 성능 관련 설정을 구성합니다.</p>
@@ -1093,8 +1115,8 @@
         </div>
       </section>
 
-      <!-- ====== STEP 5: Resources & Monitoring ====== -->
-      <section class="wizard-step" id="step5">
+      <!-- ====== STEP 4: Resources & Monitoring ====== -->
+      <section class="wizard-step" id="step4">
         <div class="step-header animate">
           <h2>리소스 & 모니터링</h2>
           <p>JVM 힙 크기, JMX Exporter 및 모니터링 설정을 구성합니다.</p>
@@ -1356,7 +1378,12 @@
       heapC3: '2g',
       jmx: true,
       prometheus: true,
-      metricsRetention: '15d'
+      metricsRetention: '15d',
+      compPorts: {
+        sr:  8081,
+        c3:  9021,
+        mds: 8090
+      }
     };
 
     // =============================================
@@ -1389,7 +1416,21 @@
         '다음 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px;"><path d="M9 18l6-6-6-6"/></svg>';
       document.getElementById('navProgress').textContent = step + ' / ' + totalSteps;
       // Build firewall on step 6, summary on step 7
-      if (step === 3) { applySslListenerDependency(); updateListenerFlowDiagram(); }
+      if (step === 5) {
+        applySslListenerDependency();
+        updateListenerFlowDiagram();
+        // 컴포넌트 포트 카드 표시 여부 (SR/C3/MDS)
+        var srCard  = document.getElementById('comp-port-sr');
+        var c3Card  = document.getElementById('comp-port-c3');
+        var mdsCard = document.getElementById('comp-port-mds');
+        if (srCard)  srCard.style.display  = config.srEnabled  ? '' : 'none';
+        if (c3Card)  c3Card.style.display  = config.c3Enabled  ? '' : 'none';
+        if (mdsCard) mdsCard.style.display = config.rbac       ? '' : 'none';
+        // 저장된 값 복원
+        if (srCard  && document.getElementById('port-sr'))  document.getElementById('port-sr').value  = config.compPorts.sr;
+        if (c3Card  && document.getElementById('port-c3'))  document.getElementById('port-c3').value  = config.compPorts.c3;
+        if (mdsCard && document.getElementById('port-mds')) document.getElementById('port-mds').value = config.compPorts.mds;
+      }
       if (step === 6) buildFirewall();
       if (step === 7) buildSummary();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1976,7 +2017,7 @@
           config.oidcJwks = document.getElementById('oidc-jwks').value;
         }
       }
-      if (step === 3) {
+      if (step === 5) {
         config.listeners.internal.port = document.getElementById('listener-internal-port').value;
         config.listeners.internal.ssl = document.getElementById('listener-internal-ssl').value;
         config.listeners.internal.sasl = document.getElementById('listener-internal-sasl').value;
@@ -1986,6 +2027,10 @@
         config.listeners.token.port = document.getElementById('listener-token-port').value;
         config.listeners.token.ssl = document.getElementById('listener-token-ssl').value;
         config.listeners.token.sasl = document.getElementById('listener-token-sasl').value;
+        // 컴포넌트 포트 저장
+        if (document.getElementById('port-sr'))  config.compPorts.sr  = parseInt(document.getElementById('port-sr').value)  || 8081;
+        if (document.getElementById('port-c3'))  config.compPorts.c3  = parseInt(document.getElementById('port-c3').value)  || 9021;
+        if (document.getElementById('port-mds')) config.compPorts.mds = parseInt(document.getElementById('port-mds').value) || 8090;
       }
       if (step === 4) {
         config.dirController = document.getElementById('dir-controller').value;
@@ -2008,8 +2053,9 @@
       var intPort  = config.listeners.internal.port || 9091;
       var extPort  = config.listeners.external.port || 9092;
       var tokPort  = config.listeners.token.port    || 9094;
-      var srPort   = config.ssl ? 8085 : 8081;
-      var c3Port   = config.ssl ? 9022 : 9021;
+      var srPort   = (config.compPorts && config.compPorts.sr)  ? config.compPorts.sr  : (config.ssl ? 8085 : 8081);
+      var c3Port   = (config.compPorts && config.compPorts.c3)  ? config.compPorts.c3  : (config.ssl ? 9022 : 9021);
+      var mdsPort  = (config.compPorts && config.compPorts.mds) ? config.compPorts.mds : 8090;
       var ldapPort = (config.ldapUrl && config.ldapUrl.indexOf('ldaps') === 0) ? 636 : 389;
       var ldapProto = ldapPort === 636 ? 'LDAPS' : 'LDAP';
       var ldapHost  = '';
@@ -2048,14 +2094,14 @@
         { no:  4, src: '외부 클라이언트',               dst: 'Broker',                     port: extPort,          proto: 'TCP',       desc: 'External Listener',                   show: true },
         { no:  5, src: 'CP 컴포넌트 (SR·C3·Connect)', dst: 'Broker',                     port: tokPort,          proto: 'TCP',       desc: 'Token Listener — OAUTHBEARER (RBAC)', show: config.rbac },
         { no: '5b', src: 'CP 컴포넌트 (SR·C3·Connect)', dst: 'Broker',                   port: intPort,          proto: 'TCP',       desc: 'Internal Listener — PLAIN (RBAC 미사용)', show: !config.rbac && (p.srEnabled || p.c3Enabled) },
-        { no:  6, src: 'CP 컴포넌트 / 클라이언트',      dst: 'Broker (MDS)',               port: '8090',           proto: 'TCP',       desc: 'MDS REST API',                        show: config.rbac },
+        { no:  6, src: 'CP 컴포넌트 / 클라이언트',      dst: 'Broker (MDS)',               port: mdsPort,          proto: 'TCP',       desc: 'MDS REST API',                        show: config.rbac },
         { no:  7, src: 'Broker (MDS)',                 dst: ldapHost,                     port: ldapPort,         proto: 'TCP',       desc: 'LDAP 디렉토리 조회 (' + ldapProto + ')', show: config.rbac && config.ldap },
         { no:  8, src: 'Broker (MDS)',                 dst: oidcProviderName,             port: '443',            proto: 'TCP/HTTPS', desc: 'JWKS / 토큰 검증',                    show: config.rbac && config.oidc },
         { no:  9, src: 'Schema Registry',              dst: 'Broker',                     port: config.rbac ? tokPort : intPort, proto: 'TCP', desc: 'Kafka 메타데이터 / 토픽 연결',         show: p.srEnabled },
         { no: 10, src: '클라이언트 / CP 컴포넌트',      dst: 'Schema Registry',            port: srPort,           proto: 'TCP',       desc: 'Schema 조회·등록 API',                show: p.srEnabled },
         { no: 11, src: 'Control Center',               dst: 'Broker',                     port: config.rbac ? tokPort : intPort, proto: 'TCP', desc: '클러스터 관리·모니터링',               show: p.c3Enabled },
         { no: 12, src: 'Control Center',               dst: 'Schema Registry',            port: srPort,           proto: 'TCP',       desc: 'Schema 연동',                         show: p.srEnabled && p.c3Enabled },
-        { no: 13, src: 'Control Center',               dst: 'Broker (MDS)',               port: '8090',           proto: 'TCP',       desc: 'RBAC 권한 조회',                      show: config.rbac && p.c3Enabled },
+        { no: 13, src: 'Control Center',               dst: 'Broker (MDS)',               port: mdsPort,          proto: 'TCP',       desc: 'RBAC 권한 조회',                      show: config.rbac && p.c3Enabled },
         { no: 14, src: 'Control Center',               dst: 'Prometheus',                 port: '9090',           proto: 'TCP',       desc: '메트릭 대시보드 조회',                 show: config.prometheus && p.c3Enabled },
         { no: 15, src: 'Control Center',               dst: oidcProviderName,             port: '443',            proto: 'TCP/HTTPS', desc: 'SSO 인증 (C3 로그인)',                 show: config.oidc && p.c3Enabled },
         { no: 16, src: '운영자 / 브라우저',             dst: 'Control Center',             port: c3Port,           proto: 'TCP',       desc: 'C3 Web UI 접근',                      show: p.c3Enabled },
