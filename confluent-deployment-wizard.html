@@ -1930,16 +1930,26 @@
       var wrap = document.getElementById('firewallContent');
       if (!wrap) return;
       if (typeof htmlToImage !== 'undefined') {
-        // 전체 콘텐츠 높이를 기준으로 캡처 (스크롤 영역 포함)
+        var w = wrap.scrollWidth;
+        var h = wrap.scrollHeight;
+        // iOS Safari: devicePixelRatio가 크면 캔버스 한계 초과 → pixelRatio 1 고정
         htmlToImage.toPng(wrap, {
-          width: wrap.scrollWidth,
-          height: wrap.scrollHeight,
-          style: { overflow: 'visible' }
+          width: w,
+          height: h,
+          canvasWidth: w,
+          canvasHeight: h,
+          pixelRatio: 1,
+          style: { overflow: 'visible', maxHeight: 'none', maxWidth: 'none' }
         }).then(function(dataUrl) {
           var a = document.createElement('a');
           a.href = dataUrl;
           a.download = 'confluent-firewall-policy.png';
-          a.click();
+          // iOS Safari: anchor click 다운로드 미지원 → 새 탭으로 열기
+          if (/iP(hone|ad|od)/.test(navigator.userAgent)) {
+            window.open(dataUrl, '_blank');
+          } else {
+            a.click();
+          }
         });
       } else {
         alert('PNG 저장을 위해 html-to-image 라이브러리가 필요합니다. 인쇄(PDF) 기능을 사용해주세요.');
