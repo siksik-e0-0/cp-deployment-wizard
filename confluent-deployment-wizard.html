@@ -1927,10 +1927,15 @@
 
     // ── 방화벽 PNG 저장 ──
     function exportFirewallPNG() {
-      var wrap = document.getElementById('firewallSVGWrap');
+      var wrap = document.getElementById('firewallContent');
       if (!wrap) return;
       if (typeof htmlToImage !== 'undefined') {
-        htmlToImage.toPng(wrap).then(function(dataUrl) {
+        // 전체 콘텐츠 높이를 기준으로 캡처 (스크롤 영역 포함)
+        htmlToImage.toPng(wrap, {
+          width: wrap.scrollWidth,
+          height: wrap.scrollHeight,
+          style: { overflow: 'visible' }
+        }).then(function(dataUrl) {
           var a = document.createElement('a');
           a.href = dataUrl;
           a.download = 'confluent-firewall-policy.png';
