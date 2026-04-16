@@ -397,6 +397,47 @@
     }
     .action-btn.outline:hover { background: var(--accent-glow); }
 
+    /* ── Firewall Policy Step 6 ── */
+    .fw-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+    .fw-badge {
+      display: inline-block; padding: 4px 12px; border-radius: 20px;
+      background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.4);
+      color: var(--accent); font-size: 12px; font-weight: 600;
+    }
+    .fw-badge-sec { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.35); color: #f87171; }
+    .fw-badge-mon { background: rgba(6,182,212,0.1); border-color: rgba(6,182,212,0.35); color: #22d3ee; }
+    .fw-section-title {
+      font-size: 1rem; font-weight: 700; color: var(--text);
+      margin: 0 0 1rem 0; padding-left: 10px;
+      border-left: 3px solid var(--accent);
+    }
+    .fw-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+    .fw-table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    .fw-table thead tr { background: rgba(124,58,237,0.12); }
+    .fw-table th {
+      padding: 10px 14px; text-align: left; font-size: 11px;
+      font-weight: 700; color: var(--accent); letter-spacing: 0.05em; text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .fw-table td {
+      padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text-muted); font-size: 13px; vertical-align: middle;
+    }
+    .fw-table tbody tr:hover td { background: rgba(124,58,237,0.05); }
+    .fw-table tbody tr:last-child td { border-bottom: none; }
+    .fw-proto {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.3);
+      color: #22d3ee; font-size: 11px; font-weight: 700; font-family: ui-monospace, monospace;
+    }
+    .fw-svg-wrap {
+      border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+      max-width: 100%; line-height: 0;
+    }
+    .fw-svg-wrap svg { max-width: 100%; height: auto; display: block; }
+
     /* Responsive */
     @media (max-width: 768px) {
       .wizard-container { padding: 20px 16px 120px; }
@@ -471,6 +512,11 @@
     <div class="step-connector"></div>
     <div class="step-item" data-step="6" onclick="goToStep(6)">
       <div class="step-num">6</div>
+      <span class="step-label">방화벽 정책</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="7" onclick="goToStep(7)">
+      <div class="step-num">7</div>
       <span class="step-label">최종 확인</span>
     </div>
   </nav>
@@ -1133,8 +1179,17 @@
         </div>
       </section>
 
-      <!-- ====== STEP 6: Summary ====== -->
+      <!-- ====== STEP 6: Firewall Policy ====== -->
       <section class="wizard-step" id="step6">
+        <div class="step-header animate">
+          <h2>방화벽 정책</h2>
+          <p>1~5단계 설정을 기반으로 인프라 담당자에게 전달할 방화벽 허용 규칙과 네트워크 구성도를 자동 생성합니다.</p>
+        </div>
+        <div id="firewallContent" class="animate delay-1"></div>
+      </section>
+
+      <!-- ====== STEP 7: Summary ====== -->
+      <section class="wizard-step" id="step7">
         <div class="step-header animate">
           <h2>최종 확인</h2>
           <p>모든 설정을 검토하고 엔지니어에게 전달하세요.</p>
@@ -1169,7 +1224,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M15 18l-6-6 6-6"/></svg>
       이전
     </button>
-    <span class="nav-progress" id="navProgress">1 / 6</span>
+    <span class="nav-progress" id="navProgress">1 / 7</span>
     <button class="nav-btn primary" id="nextBtn" onclick="nextStep()">
       다음
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px;"><path d="M9 18l6-6-6-6"/></svg>
@@ -1227,7 +1282,7 @@
     // WIZARD STATE
     // =============================================
     var currentStep = 1;
-    var totalSteps = 6;
+    var totalSteps = 7;
 
     var config = {
       env: '',
@@ -1305,8 +1360,9 @@
         '완료 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px;"><path d="M20 6L9 17l-5-5"/></svg>' :
         '다음 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px;"><path d="M9 18l6-6-6-6"/></svg>';
       document.getElementById('navProgress').textContent = step + ' / ' + totalSteps;
-      // Build summary on step 6
-      if (step === 6) buildSummary();
+      // Build firewall on step 6, summary on step 7
+      if (step === 6) buildFirewall();
+      if (step === 7) buildSummary();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1542,6 +1598,322 @@
         if (config.retention === 'custom') {
           config.customRetention = document.getElementById('custom-retention-val').value;
         }
+      }
+    }
+
+    // =============================================
+    // =============================================
+    // BUILD FIREWALL POLICY (Step 6)
+    // =============================================
+    function buildFirewall() {
+      saveStepData(currentStep - 1);
+
+      // ── 포트 결정 헬퍼 ──
+      var intPort  = config.listeners.internal.port || 9091;
+      var extPort  = config.listeners.external.port || 9092;
+      var tokPort  = config.listeners.token.port    || 9094;
+      var srPort   = config.ssl ? 8085 : 8081;
+      var c3Port   = config.ssl ? 9022 : 9021;
+      var ldapPort = (config.ldapUrl && config.ldapUrl.indexOf('ldaps') === 0) ? 636 : 389;
+      var ldapProto = ldapPort === 636 ? 'LDAPS' : 'LDAP';
+      var ldapHost  = '';
+      if (config.ldapUrl) {
+        var lm = config.ldapUrl.match(/^ldaps?:\/\/([^/:]+)/);
+        ldapHost = lm ? lm[1] : config.ldapUrl;
+      } else {
+        ldapHost = 'LDAP 서버';
+      }
+      var oidcProviderName = {
+        'authentik': 'Authentik',
+        'keycloak':  'Keycloak',
+        'okta':      'Okta',
+        'azuread':   'Azure AD'
+      }[config.oidcProvider] || 'OIDC Provider';
+
+      // ── 활성 컴포넌트 뱃지 ──
+      var badges = [
+        '<span class="fw-badge">Controller ×' + config.controllerNodes + '</span>',
+        '<span class="fw-badge">Broker ×' + config.brokerNodes + '</span>'
+      ];
+      if (config.srEnabled) badges.push('<span class="fw-badge">Schema Registry</span>');
+      if (config.c3Enabled) badges.push('<span class="fw-badge">Control Center</span>');
+      if (config.rbac)      badges.push('<span class="fw-badge fw-badge-sec">RBAC</span>');
+      if (config.rbac && config.ldap) badges.push('<span class="fw-badge fw-badge-sec">LDAP (' + ldapProto + ')</span>');
+      if (config.rbac && config.oidc) badges.push('<span class="fw-badge fw-badge-sec">OIDC (' + oidcProviderName + ')</span>');
+      if (config.jmx)       badges.push('<span class="fw-badge fw-badge-mon">JMX</span>');
+      if (config.prometheus) badges.push('<span class="fw-badge fw-badge-mon">Prometheus</span>');
+
+      // ── 방화벽 규칙 정의 (22개, 조건부 포함) ──
+      // [번호, 출발지, 목적지, 포트, 프로토콜, 용도, 조건함수]
+      var rules = [
+        { no:  1, src: 'Controller (타 노드)',         dst: 'Controller',                  port: '9093',           proto: 'TCP',       desc: 'KRaft Quorum 복제',                   show: true },
+        { no:  2, src: 'Broker',                       dst: 'Controller',                  port: '9093',           proto: 'TCP',       desc: 'KRaft 메타데이터 동기화',              show: true },
+        { no:  3, src: '내부 CP 컴포넌트',              dst: 'Broker',                     port: intPort,          proto: 'TCP',       desc: 'Internal Listener',                   show: true },
+        { no:  4, src: '외부 클라이언트',               dst: 'Broker',                     port: extPort,          proto: 'TCP',       desc: 'External Listener',                   show: true },
+        { no:  5, src: 'CP 컴포넌트',                  dst: 'Broker',                     port: tokPort,          proto: 'TCP',       desc: 'Token Listener (MDS 인증)',            show: config.rbac },
+        { no:  6, src: 'CP 컴포넌트 / 클라이언트',      dst: 'Broker (MDS)',               port: '8090',           proto: 'TCP',       desc: 'MDS REST API',                        show: config.rbac },
+        { no:  7, src: 'Broker (MDS)',                 dst: ldapHost,                     port: ldapPort,         proto: 'TCP',       desc: 'LDAP 디렉토리 조회 (' + ldapProto + ')', show: config.rbac && config.ldap },
+        { no:  8, src: 'Broker (MDS)',                 dst: oidcProviderName,             port: '443',            proto: 'TCP/HTTPS', desc: 'JWKS / 토큰 검증',                    show: config.rbac && config.oidc },
+        { no:  9, src: 'Schema Registry',              dst: 'Broker',                     port: intPort,          proto: 'TCP',       desc: 'Kafka 메타데이터 / 토픽 연결',         show: config.srEnabled },
+        { no: 10, src: '클라이언트 / CP 컴포넌트',      dst: 'Schema Registry',            port: srPort,           proto: 'TCP',       desc: 'Schema 조회·등록 API',                show: config.srEnabled },
+        { no: 11, src: 'Control Center',               dst: 'Broker',                     port: intPort,          proto: 'TCP',       desc: '클러스터 관리·모니터링',               show: config.c3Enabled },
+        { no: 12, src: 'Control Center',               dst: 'Schema Registry',            port: srPort,           proto: 'TCP',       desc: 'Schema 연동',                         show: config.srEnabled && config.c3Enabled },
+        { no: 13, src: 'Control Center',               dst: 'Broker (MDS)',               port: '8090',           proto: 'TCP',       desc: 'RBAC 권한 조회',                      show: config.rbac && config.c3Enabled },
+        { no: 14, src: 'Control Center',               dst: 'Prometheus',                 port: '9090',           proto: 'TCP',       desc: '메트릭 대시보드 조회',                 show: config.prometheus && config.c3Enabled },
+        { no: 15, src: 'Control Center',               dst: oidcProviderName,             port: '443',            proto: 'TCP/HTTPS', desc: 'SSO 인증 (C3 로그인)',                 show: config.oidc && config.c3Enabled },
+        { no: 16, src: '운영자 / 브라우저',             dst: 'Control Center',             port: c3Port,           proto: 'TCP',       desc: 'C3 Web UI 접근',                      show: config.c3Enabled },
+        { no: 17, src: 'Prometheus',                   dst: 'Controller',                 port: '9999',           proto: 'TCP',       desc: 'JMX Exporter 스크레이프',             show: config.jmx && config.prometheus },
+        { no: 18, src: 'Prometheus',                   dst: 'Broker',                     port: '9999',           proto: 'TCP',       desc: 'JMX Exporter 스크레이프',             show: config.jmx && config.prometheus },
+        { no: 19, src: 'Prometheus',                   dst: 'Schema Registry',            port: '9999',           proto: 'TCP',       desc: 'JMX Exporter 스크레이프',             show: config.jmx && config.prometheus && config.srEnabled },
+        { no: 20, src: 'Prometheus',                   dst: 'Control Center',             port: '9999',           proto: 'TCP',       desc: 'JMX Exporter 스크레이프',             show: config.jmx && config.prometheus && config.c3Enabled },
+        { no: 21, src: '운영자 / C3',                  dst: 'Prometheus',                 port: '9090',           proto: 'TCP',       desc: '메트릭 조회 (PromQL)',                 show: config.prometheus },
+        { no: 22, src: '운영자 (Admin)',               dst: 'Controller/Broker/SR/C3',    port: '7203',           proto: 'TCP',       desc: 'JMX 직접 접속 (운영)',                 show: config.jmx }
+      ];
+
+      // ── 테이블 HTML 생성 ──
+      var rows = rules.filter(function(r) { return r.show; }).map(function(r) {
+        return '<tr>' +
+          '<td style="text-align:center;font-weight:600;color:var(--accent)">' + r.no + '</td>' +
+          '<td>' + r.src + '</td>' +
+          '<td>' + r.dst + '</td>' +
+          '<td style="font-family:monospace;font-weight:600">' + r.port + '</td>' +
+          '<td><span class="fw-proto">' + r.proto + '</span></td>' +
+          '<td>' + r.desc + '</td>' +
+          '</tr>';
+      }).join('');
+
+      var table = '<div class="fw-table-wrap">' +
+        '<table class="fw-table">' +
+          '<thead><tr>' +
+            '<th style="width:40px">#</th>' +
+            '<th>출발지 (Source)</th>' +
+            '<th>목적지 (Destination)</th>' +
+            '<th>포트</th>' +
+            '<th>프로토콜</th>' +
+            '<th>용도</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table>' +
+      '</div>';
+
+      // ── SVG 네트워크 구성도 ──
+      var svg = buildFirewallSVG(intPort, extPort, tokPort, srPort, c3Port, ldapPort, ldapHost, oidcProviderName);
+
+      // ── 다운로드 버튼 ──
+      var actions = '<div class="action-buttons animate delay-3" style="margin-top:2rem">' +
+        '<button class="action-btn primary" onclick="exportFirewallPNG()">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12l4 4 4-4M12 8v8"/></svg>' +
+          'PNG 저장' +
+        '</button>' +
+        '<button class="action-btn outline" onclick="window.print()">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>' +
+          'PDF 인쇄' +
+        '</button>' +
+        '<button class="action-btn outline" onclick="copyFirewallText()">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
+          '텍스트 복사' +
+        '</button>' +
+      '</div>';
+
+      var html = '<div class="fw-badges">' + badges.join('') + '</div>' +
+        '<h3 class="fw-section-title">방화벽 허용 규칙</h3>' +
+        table +
+        '<h3 class="fw-section-title" style="margin-top:2.5rem">네트워크 구성도</h3>' +
+        '<div id="firewallSVGWrap" class="fw-svg-wrap">' + svg + '</div>' +
+        actions;
+
+      document.getElementById('firewallContent').innerHTML = html;
+
+      // 방화벽 규칙 텍스트 복사 헬퍼 — 전역 접근을 위해 window에 등록
+      window._firewallRules = rules.filter(function(r) { return r.show; });
+    }
+
+    // ── SVG 네트워크 구성도 생성 ──
+    function buildFirewallSVG(intPort, extPort, tokPort, srPort, c3Port, ldapPort, ldapHost, oidcProviderName) {
+      var W = 860, H = 640;
+      var accent = '#7c3aed';
+      var accentLight = '#8b5cf6';
+      var dimFill = '#2a2a3e';
+      var dimText = '#555';
+      var zoneFill = '#16161e';
+      var zoneBorder = '#2a2a3e';
+      var textColor = '#e2e8f0';
+      var subTextColor = '#94a3b8';
+      var portColor = '#06b6d4';
+      var rbac = config.rbac;
+      var ldapActive = config.rbac && config.ldap;
+      var oidcActive = config.rbac && config.oidc;
+      var srActive = config.srEnabled;
+      var c3Active = config.c3Enabled;
+      var promActive = config.prometheus;
+      var jmxActive = config.jmx;
+
+      function rect(x, y, w, h, fill, rx, stroke, sw) {
+        return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + (rx||8) + '" fill="' + fill + '" stroke="' + (stroke||'none') + '" stroke-width="' + (sw||0) + '"/>';
+      }
+      function text(x, y, txt, color, size, anchor, weight) {
+        return '<text x="' + x + '" y="' + y + '" fill="' + (color||textColor) + '" font-size="' + (size||13) + '" text-anchor="' + (anchor||'middle') + '" font-weight="' + (weight||'normal') + '" font-family="ui-monospace,monospace">' + txt + '</text>';
+      }
+      function badge(x, y, portStr, color) {
+        return '<rect x="' + (x-28) + '" y="' + (y-11) + '" width="56" height="18" rx="4" fill="' + (color||'#1e1b4b') + '"/>' +
+               '<text x="' + x + '" y="' + (y+3) + '" fill="' + portColor + '" font-size="10" text-anchor="middle" font-family="ui-monospace,monospace" font-weight="700">:' + portStr + '</text>';
+      }
+      function arrow(x1, y1, x2, y2, color, dashed) {
+        var dash = dashed ? 'stroke-dasharray="6,4"' : '';
+        return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + (color||accent) + '" stroke-width="1.5" ' + dash + ' marker-end="url(#arrowHead)"/>';
+      }
+      function compBox(x, y, w, h, label, ports, active, sublabel) {
+        var f = active ? '#1e1b4b' : dimFill;
+        var tc = active ? textColor : dimText;
+        var sc = active ? '#7c3aed' : '#333';
+        var sw = active ? 1.5 : 0.5;
+        var html = rect(x, y, w, h, f, 8, sc, sw);
+        html += text(x + w/2, y + (sublabel ? 18 : 22), label, tc, 12, 'middle', '600');
+        if (sublabel) html += text(x + w/2, y + 32, sublabel, subTextColor, 10, 'middle', 'normal');
+        if (ports && active) {
+          var bx = x + 8;
+          ports.forEach(function(p, i) {
+            html += badge(bx + 34, y + h - 14, p, '#1a1033');
+            bx += 60;
+          });
+        }
+        return html;
+      }
+
+      var out = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" style="background:#0f0f17;border-radius:12px;font-family:ui-monospace,monospace">';
+
+      // 화살표 마커 정의
+      out += '<defs><marker id="arrowHead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">' +
+             '<path d="M0,0 L0,6 L8,3 z" fill="' + accentLight + '"/></marker></defs>';
+
+      // ── 존 레이아웃 ──
+      // 존 1: 외부 존 (top)
+      out += rect(20, 10, 820, 80, zoneFill, 10, zoneBorder, 1);
+      out += text(40, 35, '🌐  외부 존 (External Zone)', subTextColor, 11, 'start');
+      out += compBox(340, 22, 180, 54, '외부 클라이언트', [extPort], true);
+
+      // 존 2: CP 코어 (middle left)
+      out += rect(20, 110, 520, 200, zoneFill, 10, zoneBorder, 1);
+      out += text(40, 132, '⚙️  Confluent Platform 코어', subTextColor, 11, 'start');
+      // Controller
+      out += compBox(40, 145, 190, 70, 'Controller ×' + config.controllerNodes, ['9093'], true, 'KRaft Quorum');
+      // Broker
+      out += compBox(290, 145, 230, 70, 'Broker ×' + config.brokerNodes,
+        rbac ? [intPort, extPort, tokPort] : [intPort, extPort], true, 'MDS:8090');
+
+      // 존 3: CP 서비스 (middle)
+      var srBoxActive = srActive;
+      var c3BoxActive = c3Active;
+      out += rect(20, 330, 520, 130, zoneFill, 10, zoneBorder, 1);
+      out += text(40, 352, '📦  CP 서비스 레이어', subTextColor, 11, 'start');
+      out += compBox(40, 362, 210, 80, 'Schema Registry', srActive ? [srPort] : [], srActive, srActive ? '×' + config.srNodes + ' 노드' : '비활성');
+      out += compBox(290, 362, 230, 80, 'Control Center', c3Active ? [c3Port] : [], c3Active, c3Active ? 'Next Gen' : '비활성');
+
+      // 존 4: 인증 서비스 (right)
+      var authZoneActive = ldapActive || oidcActive;
+      out += rect(560, 110, 280, 220, zoneFill, 10, authZoneActive ? zoneBorder : '#1a1a1a', authZoneActive ? 1 : 0.5);
+      out += text(580, 132, '🛡️  인증 서비스', authZoneActive ? subTextColor : dimText, 11, 'start');
+      out += compBox(580, 145, 240, 70, ldapHost, [ldapPort], ldapActive, ldapProto);
+      out += compBox(580, 235, 240, 70, oidcProviderName, ['443'], oidcActive, 'OIDC / JWKS');
+
+      // 존 5: 모니터링 (bottom)
+      out += rect(20, 480, 520, 110, zoneFill, 10, promActive ? zoneBorder : '#1a1a1a', promActive ? 1 : 0.5);
+      out += text(40, 502, '📊  모니터링 존', promActive ? subTextColor : dimText, 11, 'start');
+      out += compBox(40, 512, 210, 60, 'Prometheus', ['9090'], promActive);
+      if (jmxActive && promActive) {
+        out += compBox(290, 512, 230, 60, 'JMX Exporter', ['9999'], true);
+      }
+
+      // ── 연결선 ──
+      // 외부 클라이언트 → Broker (extPort)
+      out += arrow(430, 77, 405, 145, accentLight);
+      out += badge(430, 111, extPort);
+
+      // Controller ↔ Controller (9093)
+      out += arrow(135, 215, 290, 165, accentLight);
+      out += badge(212, 190, '9093');
+
+      // Broker → Controller (9093)
+      out += arrow(290, 195, 232, 195, accentLight);
+
+      // CP 서비스 → Broker (intPort)
+      if (srActive) { out += arrow(145, 362, 350, 215, accentLight); out += badge(230, 288, intPort); }
+      if (c3Active) { out += arrow(405, 362, 405, 215, accentLight); }
+
+      // SR ← 클라이언트 (srPort)
+      if (srActive) { out += badge(145, 446, srPort); }
+
+      // RBAC: Broker → LDAP
+      if (ldapActive) {
+        out += arrow(520, 175, 580, 175, accentLight, true);
+        out += badge(550, 160, ldapPort);
+      }
+      // RBAC: Broker → OIDC
+      if (oidcActive) {
+        out += arrow(520, 200, 580, 260, accentLight, true);
+        out += badge(550, 230, '443');
+      }
+      // C3 → OIDC SSO
+      if (oidcActive && c3Active) {
+        out += arrow(520, 400, 700, 305, accentLight, true);
+      }
+
+      // Prometheus → JMX Exporter → 컴포넌트 (9999)
+      if (promActive && jmxActive) {
+        out += arrow(500, 540, 290, 540, accentLight);
+        out += badge(395, 525, '9999');
+        // JMX Exporter → Controller/Broker
+        out += arrow(350, 512, 185, 215, accentLight, true);
+        out += arrow(405, 512, 405, 215, accentLight, true);
+      }
+
+      // MDS REST API 라벨
+      if (rbac) {
+        out += badge(405, 330, '8090');
+      }
+
+      out += '</svg>';
+      return out;
+    }
+
+    // ── 방화벽 텍스트 복사 ──
+    function copyFirewallText() {
+      if (!window._firewallRules) return;
+      var lines = ['방화벽 허용 규칙', '=' .repeat(80), ''];
+      var header = ['#', '출발지', '목적지', '포트', '프로토콜', '용도'];
+      lines.push(header.join('\t'));
+      window._firewallRules.forEach(function(r) {
+        lines.push([r.no, r.src, r.dst, r.port, r.proto, r.desc].join('\t'));
+      });
+      var txt = lines.join('\n');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(txt).then(function() {
+          alert('방화벽 규칙이 클립보드에 복사되었습니다.');
+        });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert('방화벽 규칙이 클립보드에 복사되었습니다.');
+      }
+    }
+
+    // ── 방화벽 PNG 저장 ──
+    function exportFirewallPNG() {
+      var wrap = document.getElementById('firewallSVGWrap');
+      if (!wrap) return;
+      if (typeof htmlToImage !== 'undefined') {
+        htmlToImage.toPng(wrap).then(function(dataUrl) {
+          var a = document.createElement('a');
+          a.href = dataUrl;
+          a.download = 'confluent-firewall-policy.png';
+          a.click();
+        });
+      } else {
+        alert('PNG 저장을 위해 html-to-image 라이브러리가 필요합니다. 인쇄(PDF) 기능을 사용해주세요.');
       }
     }
 
