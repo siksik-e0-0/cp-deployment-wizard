@@ -133,3 +133,31 @@ YAML을 생성하지 않습니다. 출력 방식은 다음 세 가지입니다:
 - `main` — GitHub Pages 배포 브랜치
 - `feat/*` — 기능 개발 브랜치
 - PR은 `feat/*` → `main` 방향
+
+---
+
+## 11. 환경 변수 (세션 재시작 / 컨텍스트 컴팩션 후 필수 확인)
+
+| 변수 | 용도 |
+|---|---|
+| `GH_TOKEN` | GitHub push 인증 (PAT) |
+| `GH_OWNER` | GitHub 저장소 소유자 |
+| `GH_BRANCH` | 기본 배포 브랜치 |
+
+### push 실패 시 디버깅 순서
+
+```bash
+# 1. 환경변수 확인 (컴팩션 후에도 셸에 살아있음)
+env | grep -i "github\|GH_"
+
+# 2. credential 파일 확인
+cat ~/.netrc 2>/dev/null
+cat ~/.git-credentials 2>/dev/null
+
+# 3. 토큰으로 remote URL 재설정 후 push
+git remote set-url origin https://${GH_TOKEN}@github.com/${GH_OWNER}/cp-deployment-wizard.git
+git push origin <branch>
+```
+
+> ⚠️ 컨텍스트 컴팩션으로 이전 세션 기억이 사라져도 **환경변수는 셸에 유지**된다.
+> push 인증 실패 시 사용자에게 묻기 전에 반드시 위 순서로 먼저 확인할 것.
