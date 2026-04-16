@@ -222,6 +222,18 @@
       position: absolute; top: 8px; right: 10px; font-size: 14px;
       color: var(--positive); font-weight: 700;
     }
+    .small-card {
+      padding: 12px 24px !important;
+      min-width: 70px !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      text-align: center !important;
+    }
+    .env-slider {
+      width: 100%;
+      max-width: 300px;
+      accent-color: var(--accent);
+    }
     .option-card {
       background: var(--surface); border: 2px solid var(--border);
       border-radius: 12px; padding: 16px; cursor: pointer;
@@ -589,7 +601,7 @@
           <div id="envProfilePanels"></div>
         </div>
 
-        <div class="form-group animate delay-2">
+        <div class="form-group animate delay-2" id="ctrlSection">
           <div class="form-label">
             Controller 노드 수
             <span class="tooltip-icon" data-tip="KRaft 모드의 컨트롤러. 프로덕션 환경에서는 3개 이상 권장 (홀수)">?</span>
@@ -611,7 +623,7 @@
           </div>
         </div>
 
-        <div class="form-group animate delay-3">
+        <div class="form-group animate delay-3" id="brokerSection">
           <div class="form-label">
             Broker 노드 수
             <span class="tooltip-icon" data-tip="데이터를 처리하는 브로커 노드 수. Replication Factor 이상이어야 합니다.">?</span>
@@ -622,7 +634,7 @@
           </div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="srSection">
           <div class="toggle-row" onclick="toggleSwitch('sr')">
             <div class="toggle-info">
               <span class="toggle-title">Schema Registry</span>
@@ -648,7 +660,7 @@
           </div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="c3Section">
           <div class="toggle-row" onclick="toggleSwitch('c3')">
             <div class="toggle-info">
               <span class="toggle-title">Control Center Next Gen</span>
@@ -1437,6 +1449,12 @@
         if (checkEl2) checkEl2.style.display = 'none';
       }
       config.env = config.envs[0] || '';
+      // 환경 선택 시 레거시 섹션 숨김/표시 전환
+      var hasEnv = config.envs.length > 0;
+      ['ctrlSection','brokerSection','srSection','c3Section','hostSection'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = hasEnv ? 'none' : '';
+      });
       renderEnvProfileTabs();
     }
 
@@ -1458,40 +1476,79 @@
 
       var ctrlOptions = [1, 3, 5].map(function(n) {
         var sel = (p.controllerNodes === n) ? ' selected' : '';
-        return '<div class="option-card small-card' + sel + '" onclick="setEnvCtrl(\'' + env + '\',' + n + ')" style="padding:8px 16px;min-width:60px;text-align:center">' + n + '대</div>';
+        var desc = n === 1 ? '개발 전용' : n === 3 ? '표준 구성' : '대규모';
+        return '<div class="option-card small-card' + sel + '" onclick="setEnvCtrl(\'' + env + '\',' + n + ')">' +
+          '<div style="font-size:20px;font-weight:700;line-height:1;">' + n + '대</div>' +
+          '<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">' + desc + '</div>' +
+          '</div>';
       }).join('');
 
       var rfOptions = ['1','2','3'].map(function(v) {
         var sel = (p.rf === v) ? ' selected' : '';
-        return '<div class="option-card small-card' + sel + '" onclick="setEnvRF(\'' + env + '\',\'' + v + '\')" style="padding:8px 16px;min-width:60px;text-align:center">RF ' + v + '</div>';
+        return '<div class="option-card small-card' + sel + '" onclick="setEnvRF(\'' + env + '\',\'' + v + '\')">' +
+          '<div style="font-size:16px;font-weight:700;">RF ' + v + '</div>' +
+          '</div>';
       }).join('');
 
       var isrOptions = ['1','2','3'].map(function(v) {
         var sel = (p.isr === v) ? ' selected' : '';
-        return '<div class="option-card small-card' + sel + '" onclick="setEnvISR(\'' + env + '\',\'' + v + '\')" style="padding:8px 16px;min-width:60px;text-align:center">ISR ' + v + '</div>';
+        return '<div class="option-card small-card' + sel + '" onclick="setEnvISR(\'' + env + '\',\'' + v + '\')">' +
+          '<div style="font-size:16px;font-weight:700;">ISR ' + v + '</div>' +
+          '</div>';
       }).join('');
 
-      return '<div style="padding:16px;background:var(--bg-card);border-radius:12px;border:1px solid var(--border);">' +
-        '<h4 style="margin:0 0 16px;color:var(--accent);">' + (envLabels[env]||env) + ' 환경 구성</h4>' +
-        '<div style="margin-bottom:16px;">' +
-          '<label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:8px;">Controller 노드 수</label>' +
-          '<div style="display:flex;gap:8px;">' + ctrlOptions + '</div>' +
+      var srNodeOptions = [1,2,3].map(function(n) {
+        var sel = ((p.srNodes || 2) === n) ? ' selected' : '';
+        return '<div class="option-card small-card' + sel + '" onclick="setEnvSRNodes(\'' + env + '\',' + n + ')">' +
+          '<div style="font-size:16px;font-weight:700;">' + n + '대</div>' +
+          '</div>';
+      }).join('');
+
+      return '<div style="padding:24px;background:var(--bg-card);border-radius:12px;border:1px solid var(--border);">' +
+        // Controller
+        '<div style="margin-bottom:20px;">' +
+          '<div class="form-label" style="margin-bottom:12px;">Controller 노드 수</div>' +
+          '<div style="display:flex;gap:12px;flex-wrap:wrap;">' + ctrlOptions + '</div>' +
         '</div>' +
-        '<div style="margin-bottom:16px;">' +
-          '<label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:8px;">Broker 노드 수: <span id="env-broker-val-' + env + '">' + brokerVal + '</span>대</label>' +
-          '<input type="range" min="1" max="10" value="' + brokerVal + '" id="env-broker-slider-' + env + '" oninput="setEnvBroker(\'' + env + '\',this.value)" style="width:200px;">' +
+        // Broker slider
+        '<div style="margin-bottom:20px;">' +
+          '<div class="form-label" style="margin-bottom:12px;">Broker 노드 수: <strong id="env-broker-val-' + env + '" style="color:var(--accent)">' + brokerVal + '대</strong></div>' +
+          '<input type="range" min="1" max="10" value="' + brokerVal + '" id="env-broker-slider-' + env + '" class="env-slider" oninput="setEnvBroker(\'' + env + '\',this.value)">' +
+          '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);max-width:300px;margin-top:4px;"><span>1</span><span>5</span><span>10</span></div>' +
         '</div>' +
-        '<div style="margin-bottom:16px;display:flex;gap:16px;align-items:center;">' +
-          '<label style="font-size:13px;color:var(--text-secondary);">Schema Registry <input type="checkbox" ' + srChecked + ' onchange="setEnvSR(\'' + env + '\',this.checked)"></label>' +
-          '<label style="font-size:13px;color:var(--text-secondary);">Control Center <input type="checkbox" ' + c3Checked + ' onchange="setEnvC3(\'' + env + '\',this.checked)"></label>' +
+        // RF / ISR
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">' +
+          '<div>' +
+            '<div class="form-label" style="margin-bottom:12px;">Replication Factor</div>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + rfOptions + '</div>' +
+          '</div>' +
+          '<div>' +
+            '<div class="form-label" style="margin-bottom:12px;">Min ISR</div>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + isrOptions + '</div>' +
+          '</div>' +
         '</div>' +
-        '<div style="margin-bottom:16px;">' +
-          '<label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:8px;">Replication Factor</label>' +
-          '<div style="display:flex;gap:8px;">' + rfOptions + '</div>' +
+        // SR / C3 toggles
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">' +
+          '<div>' +
+            '<div class="form-label" style="margin-bottom:12px;">Schema Registry</div>' +
+            '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;">' +
+              '<input type="checkbox" ' + srChecked + ' onchange="setEnvSR(\'' + env + '\',this.checked)" style="width:18px;height:18px;accent-color:var(--accent);">' +
+              '<span style="font-size:13px;">활성화</span>' +
+            '</label>' +
+            '<div id="env-sr-nodes-' + env + '" style="margin-top:10px;display:' + (p.srEnabled ? 'flex' : 'none') + ';gap:8px;flex-wrap:wrap;">' + srNodeOptions + '</div>' +
+          '</div>' +
+          '<div>' +
+            '<div class="form-label" style="margin-bottom:12px;">Control Center</div>' +
+            '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;">' +
+              '<input type="checkbox" ' + c3Checked + ' onchange="setEnvC3(\'' + env + '\',this.checked)" style="width:18px;height:18px;accent-color:var(--accent);">' +
+              '<span style="font-size:13px;">활성화</span>' +
+            '</label>' +
+          '</div>' +
         '</div>' +
-        '<div style="margin-bottom:0;">' +
-          '<label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:8px;">Min ISR</label>' +
-          '<div style="display:flex;gap:8px;">' + isrOptions + '</div>' +
+        // Host input section
+        '<div style="margin-top:8px;padding-top:20px;border-top:1px solid var(--border);">' +
+          '<div class="form-label" style="margin-bottom:12px;">호스트 정보 입력</div>' +
+          '<div id="hostInputs-' + env + '"></div>' +
         '</div>' +
       '</div>';
     }
@@ -1526,37 +1583,60 @@
         panel.innerHTML = renderEnvPanelHTML(env);
         panelsEl.appendChild(panel);
       });
+
+      // 모든 패널 DOM 삽입 후 호스트 입력 생성
+      config.envs.forEach(function(e) {
+        generateHostInputsForEnv(e);
+      });
     }
 
     // Environment setter functions
     function setEnvCtrl(env, n) {
       if (!config.envProfiles[env]) config.envProfiles[env] = getEnvPreset(env);
       config.envProfiles[env].controllerNodes = n;
-      renderEnvProfileTabs(); switchEnvTab(env);
+      refreshEnvPanel(env);
     }
     function setEnvBroker(env, val) {
       if (!config.envProfiles[env]) config.envProfiles[env] = getEnvPreset(env);
       config.envProfiles[env].brokerNodes = parseInt(val);
       var el = document.getElementById('env-broker-val-' + env);
       if (el) el.textContent = val;
+      generateHostInputsForEnv(env);
     }
     function setEnvRF(env, val) {
       if (!config.envProfiles[env]) config.envProfiles[env] = getEnvPreset(env);
       config.envProfiles[env].rf = val;
-      renderEnvProfileTabs(); switchEnvTab(env);
+      refreshEnvPanel(env);
     }
     function setEnvISR(env, val) {
       if (!config.envProfiles[env]) config.envProfiles[env] = getEnvPreset(env);
       config.envProfiles[env].isr = val;
-      renderEnvProfileTabs(); switchEnvTab(env);
+      refreshEnvPanel(env);
     }
     function setEnvSR(env, checked) {
       if (!config.envProfiles[env]) config.envProfiles[env] = getEnvPreset(env);
       config.envProfiles[env].srEnabled = checked;
+      var srNodesEl = document.getElementById('env-sr-nodes-' + env);
+      if (srNodesEl) srNodesEl.style.display = checked ? 'flex' : 'none';
+      generateHostInputsForEnv(env);
     }
     function setEnvC3(env, checked) {
       if (!config.envProfiles[env]) config.envProfiles[env] = getEnvPreset(env);
       config.envProfiles[env].c3Enabled = checked;
+      generateHostInputsForEnv(env);
+    }
+
+    function setEnvSRNodes(env, n) {
+      if (!config.envProfiles[env]) config.envProfiles[env] = getEnvPreset(env);
+      config.envProfiles[env].srNodes = n;
+      refreshEnvPanel(env);
+    }
+
+    function refreshEnvPanel(env) {
+      var panel = document.getElementById('env-panel-' + env);
+      if (!panel) return;
+      panel.innerHTML = renderEnvPanelHTML(env);
+      generateHostInputsForEnv(env);
     }
 
     // =============================================
@@ -1788,6 +1868,61 @@
           var field = this.dataset.field;
           if (!config.hosts[idx]) config.hosts[idx] = {};
           config.hosts[idx][field] = this.value;
+        });
+      });
+    }
+
+    // 환경별 호스트 입력 생성
+    function generateHostInputsForEnv(env) {
+      var container = document.getElementById('hostInputs-' + env);
+      if (!container) return;
+      var p = config.envProfiles[env] || getEnvPreset(env);
+      var roles = [];
+      for (var i = 0; i < (p.controllerNodes || 1); i++) {
+        roles.push({ role: 'Controller', idx: i + 1 });
+      }
+      for (var j = 0; j < (p.brokerNodes || 1); j++) {
+        roles.push({ role: 'Broker', idx: j + 1 });
+      }
+      if (p.srEnabled) {
+        for (var k = 0; k < (p.srNodes || 1); k++) {
+          roles.push({ role: 'Schema Registry', idx: k + 1 });
+        }
+      }
+      if (p.c3Enabled) {
+        roles.push({ role: 'Control Center', idx: 1 });
+      }
+
+      var prevHosts = p.hosts || [];
+      var html = '<div style="display:grid;grid-template-columns:40px 140px 1fr 1fr;gap:8px;margin-bottom:8px;padding:0 4px;">';
+      html += '<span style="font-size:11px;color:var(--text-secondary);">#</span>';
+      html += '<span style="font-size:11px;color:var(--text-secondary);">역할</span>';
+      html += '<span style="font-size:11px;color:var(--text-secondary);">호스트명 (FQDN)</span>';
+      html += '<span style="font-size:11px;color:var(--text-secondary);">IP 주소</span>';
+      html += '</div>';
+
+      roles.forEach(function(r, idx) {
+        var prevHost = (prevHosts[idx] && prevHosts[idx].hostname) || '';
+        var prevIP   = (prevHosts[idx] && prevHosts[idx].ip) || '';
+        html += '<div style="display:grid;grid-template-columns:40px 140px 1fr 1fr;gap:8px;align-items:center;margin-bottom:6px;">';
+        html += '<div class="host-idx">' + (idx + 1) + '</div>';
+        html += '<span style="font-size:13px;color:var(--accent);font-weight:500;">' + r.role + ' ' + r.idx + '</span>';
+        html += '<input type="text" class="text-input env-host-input" data-env="' + env + '" data-idx="' + idx + '" data-field="hostname" placeholder="host-' + (idx+1) + '.example.com" value="' + prevHost + '">';
+        html += '<input type="text" class="text-input env-host-input" data-env="' + env + '" data-idx="' + idx + '" data-field="ip" placeholder="192.168.1.' + (idx+1) + '" value="' + prevIP + '">';
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+
+      container.querySelectorAll('.env-host-input').forEach(function(inp) {
+        inp.addEventListener('input', function() {
+          var e = this.dataset.env;
+          var i = parseInt(this.dataset.idx);
+          var f = this.dataset.field;
+          if (!config.envProfiles[e]) config.envProfiles[e] = getEnvPreset(e);
+          if (!config.envProfiles[e].hosts) config.envProfiles[e].hosts = [];
+          if (!config.envProfiles[e].hosts[i]) config.envProfiles[e].hosts[i] = {};
+          config.envProfiles[e].hosts[i][f] = this.value;
         });
       });
     }
