@@ -534,7 +534,7 @@
   </style>
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Skip to content</a>
+  <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
 
   <!-- TOP BAR -->
   <div class="top-bar">
@@ -556,9 +556,9 @@
       </svg>
     </button>
     <div class="viz-menu-dropdown" id="vizMenuDropdown">
-      <button onclick="cycleTheme()"><span id="themeIcon"></span><span id="themeLabel">Dark</span></button>
-      <button onclick="downloadImage()"><span>PNG</span><span>Download</span></button>
-      <button onclick="window.print()"><span>PDF</span><span>Print</span></button>
+      <button onclick="cycleTheme()"><span id="themeIcon"></span><span id="themeLabel">다크</span></button>
+      <button onclick="downloadImage()"><span>PNG</span><span>다운로드</span></button>
+      <button onclick="window.print()"><span>PDF</span><span>인쇄</span></button>
     </div>
   </div>
 
@@ -570,7 +570,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           Confluent Platform + Authentik
         </div>
-        <h1 class="animate delay-1">Confluent Platform<br>Auth Architecture</h1>
+        <h1 class="animate delay-1">Confluent Platform<br>인증 아키텍처</h1>
         <p class="hero-subtitle animate delay-2">Authentik + MDS/RBAC 기반 3-Listener 아키텍처 정의서. 외부 Client, CP 컴포넌트, Inter-broker 통신을 각각 분리된 인증 채널로 보호합니다.</p>
 
         <div class="principles-grid animate delay-3">
@@ -579,7 +579,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
             <div>
-              <div class="principle-label">External Client</div>
+              <div class="principle-label">외부 클라이언트</div>
               <div class="principle-value">SASL_SSL + OAUTHBEARER<br><span class="text-secondary" style="font-size:0.8125rem;">Authentik OAuth2 Token</span></div>
             </div>
           </div>
@@ -588,7 +588,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             </div>
             <div>
-              <div class="principle-label">CP Component</div>
+              <div class="principle-label">CP 컴포넌트</div>
               <div class="principle-value">SASL_SSL + OAUTHBEARER<br><span class="text-secondary" style="font-size:0.8125rem;">MDS Token</span></div>
             </div>
           </div>
@@ -597,7 +597,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
             </div>
             <div>
-              <div class="principle-label">Inter-Broker</div>
+              <div class="principle-label">브로커 간 통신</div>
               <div class="principle-value">SASL_SSL + SCRAM-SHA-512<br><span class="text-secondary" style="font-size:0.8125rem;">ACL + super.users</span></div>
             </div>
           </div>
@@ -617,14 +617,14 @@
     <!-- ARCHITECTURE DIAGRAM -->
     <section class="container" data-reveal>
       <div class="section-header">
-        <div class="section-number">01 / Architecture</div>
-        <h2>3-Listener Architecture</h2>
+        <div class="section-number">01 / 아키텍처</div>
+        <h2>3-Listener 아키텍처</h2>
       </div>
       <div class="arch-diagram">
         <div class="arch-layer">
           <!-- Authentik Layer -->
           <div style="text-align:center;margin-bottom:8px;">
-            <span style="font-size:0.6875rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;">Identity Provider</span>
+            <span style="font-size:0.6875rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;">인증 공급자 (IdP)</span>
           </div>
           <div class="node-group">
             <div class="node" onclick="showDetail('oauth2')" id="node-oauth2">
@@ -632,7 +632,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
               </div>
               <div class="node-title">OAuth2 Provider</div>
-              <div class="node-sub">Client Credentials</div>
+              <div class="node-sub">클라이언트 자격증명</div>
               <div class="node-ports"><span class="port-badge port-https">443</span></div>
             </div>
             <div class="node" onclick="showDetail('oidc')" id="node-oidc">
@@ -640,7 +640,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--positive)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               </div>
               <div class="node-title">OIDC Provider</div>
-              <div class="node-sub">SSO Login</div>
+              <div class="node-sub">SSO 로그인</div>
               <div class="node-ports"><span class="port-badge port-https">443</span></div>
             </div>
             <div class="node" onclick="showDetail('ldap')" id="node-ldap">
@@ -648,7 +648,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--negative)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
               </div>
               <div class="node-title">LDAP Outpost</div>
-              <div class="node-sub">User/Group</div>
+              <div class="node-sub">사용자/그룹</div>
               <div class="node-ports"><span class="port-badge port-ldap">636</span></div>
             </div>
           </div>
@@ -664,7 +664,7 @@
 
           <!-- Broker Cluster Layer -->
           <div style="text-align:center;margin-bottom:8px;">
-            <span style="font-size:0.6875rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;">Kafka Broker Cluster</span>
+            <span style="font-size:0.6875rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;">Kafka 브로커 클러스터</span>
           </div>
           <div class="node-group">
             <div class="node" onclick="showDetail('broker')" id="node-broker" style="min-width:180px;">
@@ -691,7 +691,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
               </div>
               <div class="node-title">Broker 2</div>
-              <div class="node-sub">Replica</div>
+              <div class="node-sub">복제본</div>
               <div class="node-ports">
                 <span class="port-badge port-internal">:9091</span>
                 <span class="port-badge port-external">:9093</span>
@@ -722,7 +722,7 @@
 
           <!-- Client/Component Layer -->
           <div style="text-align:center;margin-bottom:8px;">
-            <span style="font-size:0.6875rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;">Clients & Components</span>
+            <span style="font-size:0.6875rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;">클라이언트 & 컴포넌트</span>
           </div>
           <div class="node-group">
             <div class="node" onclick="showDetail('client')" id="node-client">
@@ -780,8 +780,8 @@
     <!-- OAUTHBEARER TOKEN COMPARISON -->
     <section class="container" data-reveal>
       <div class="section-header">
-        <div class="section-number">02 / Token Types</div>
-        <h2>OAUTHBEARER 2 Types</h2>
+        <div class="section-number">02 / 토큰 유형</div>
+        <h2>OAUTHBEARER 2가지 유형</h2>
       </div>
       <div class="token-grid">
         <div class="token-card">
@@ -795,12 +795,12 @@
             </div>
           </div>
           <div class="token-rows">
-            <div class="token-row"><span class="token-row-label">Issuer</span><span class="token-row-value">MDS (Broker embedded)</span></div>
-            <div class="token-row"><span class="token-row-label">Signing Key</span><span class="token-row-value">tokenKeypair.pem</span></div>
-            <div class="token-row"><span class="token-row-label">Consumer</span><span class="token-row-value">SR, C3, CP Components</span></div>
-            <div class="token-row"><span class="token-row-label">Auth Flow</span><span class="token-row-value">LDAP creds -> MDS -> Token</span></div>
-            <div class="token-row"><span class="token-row-label">Listener</span><span class="token-row-value"><span class="port-badge port-token">TOKEN :9094</span></span></div>
-            <div class="token-row"><span class="token-row-label">Purpose</span><span class="token-row-value">RBAC impersonation</span></div>
+            <div class="token-row"><span class="token-row-label">발급자</span><span class="token-row-value">MDS (브로커 내장)</span></div>
+            <div class="token-row"><span class="token-row-label">서명 키</span><span class="token-row-value">tokenKeypair.pem</span></div>
+            <div class="token-row"><span class="token-row-label">사용 주체</span><span class="token-row-value">SR, C3, CP 컴포넌트</span></div>
+            <div class="token-row"><span class="token-row-label">인증 흐름</span><span class="token-row-value">LDAP 인증정보 → MDS → 토큰</span></div>
+            <div class="token-row"><span class="token-row-label">리스너</span><span class="token-row-value"><span class="port-badge port-token">TOKEN :9094</span></span></div>
+            <div class="token-row"><span class="token-row-label">용도</span><span class="token-row-value">RBAC 대리 인증</span></div>
           </div>
         </div>
         <div class="token-card">
@@ -814,12 +814,12 @@
             </div>
           </div>
           <div class="token-rows">
-            <div class="token-row"><span class="token-row-label">Issuer</span><span class="token-row-value">Authentik OAuth2 Provider</span></div>
-            <div class="token-row"><span class="token-row-label">Signing Key</span><span class="token-row-value">RS256 (JWKS)</span></div>
-            <div class="token-row"><span class="token-row-label">Consumer</span><span class="token-row-value">External Applications</span></div>
-            <div class="token-row"><span class="token-row-label">Auth Flow</span><span class="token-row-value">client_id/secret -> JWT</span></div>
-            <div class="token-row"><span class="token-row-label">Listener</span><span class="token-row-value"><span class="port-badge port-external">EXTERNAL :9093</span></span></div>
-            <div class="token-row"><span class="token-row-label">Purpose</span><span class="token-row-value">External system auth</span></div>
+            <div class="token-row"><span class="token-row-label">발급자</span><span class="token-row-value">Authentik OAuth2 Provider</span></div>
+            <div class="token-row"><span class="token-row-label">서명 키</span><span class="token-row-value">RS256 (JWKS)</span></div>
+            <div class="token-row"><span class="token-row-label">사용 주체</span><span class="token-row-value">외부 애플리케이션</span></div>
+            <div class="token-row"><span class="token-row-label">인증 흐름</span><span class="token-row-value">client_id/secret → JWT</span></div>
+            <div class="token-row"><span class="token-row-label">리스너</span><span class="token-row-value"><span class="port-badge port-external">EXTERNAL :9093</span></span></div>
+            <div class="token-row"><span class="token-row-label">용도</span><span class="token-row-value">외부 시스템 인증</span></div>
           </div>
         </div>
       </div>
@@ -828,14 +828,14 @@
     <!-- AUTH FLOWS -->
     <section class="container" data-reveal>
       <div class="section-header">
-        <div class="section-number">03 / Auth Flows</div>
-        <h2>Authentication Flows</h2>
+        <div class="section-number">03 / 인증 흐름</div>
+        <h2>인증 흐름</h2>
       </div>
 
       <div class="flow-tabs" role="tablist">
-        <button class="flow-tab active" onclick="switchFlow('flow1')" role="tab" aria-selected="true">External Client</button>
-        <button class="flow-tab" onclick="switchFlow('flow2')" role="tab">CP Component</button>
-        <button class="flow-tab" onclick="switchFlow('flow3')" role="tab">User SSO (C3)</button>
+        <button class="flow-tab active" onclick="switchFlow('flow1')" role="tab" aria-selected="true">외부 클라이언트</button>
+        <button class="flow-tab" onclick="switchFlow('flow2')" role="tab">CP 컴포넌트</button>
+        <button class="flow-tab" onclick="switchFlow('flow3')" role="tab">사용자 SSO (C3)</button>
       </div>
 
       <!-- Flow 1: External Client -->
@@ -846,8 +846,8 @@
               <div class="flow-step-node" style="background:var(--glow-accent);border:2px solid var(--accent);border-radius:16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
               </div>
-              <div class="flow-step-name">Client</div>
-              <div class="flow-step-detail">External App</div>
+              <div class="flow-step-name">클라이언트</div>
+              <div class="flow-step-detail">외부 앱</div>
             </div>
             <div class="flow-arrow">
               <div class="flow-arrow-line"><div class="line" style="background:var(--accent);"></div><div class="arrow" style="border-left:8px solid var(--accent);"></div></div>
@@ -879,8 +879,8 @@
               <div class="flow-step-node" style="background:var(--glow-orange);border:2px solid var(--warning);border-radius:16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
               </div>
-              <div class="flow-step-name">Broker</div>
-              <div class="flow-step-detail">JWKS verify + RBAC</div>
+              <div class="flow-step-name">브로커</div>
+              <div class="flow-step-detail">JWKS 검증 + RBAC</div>
             </div>
           </div>
         </div>
@@ -895,7 +895,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               </div>
               <div class="flow-step-name">Schema Registry</div>
-              <div class="flow-step-detail">CP Component</div>
+              <div class="flow-step-detail">CP 컴포넌트</div>
             </div>
             <div class="flow-arrow">
               <div class="flow-arrow-line"><div class="line" style="background:var(--accent-secondary);"></div><div class="arrow" style="border-left:8px solid var(--accent-secondary);"></div></div>
@@ -906,7 +906,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--negative)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
               <div class="flow-step-name">MDS :8090</div>
-              <div class="flow-step-detail">LDAP Outpost verify</div>
+              <div class="flow-step-detail">LDAP Outpost 검증</div>
             </div>
             <div class="flow-arrow">
               <div class="flow-arrow-line"><div class="line" style="background:var(--accent-secondary);"></div><div class="arrow" style="border-left:8px solid var(--accent-secondary);"></div></div>
@@ -927,8 +927,8 @@
               <div class="flow-step-node" style="background:var(--glow-orange);border:2px solid var(--warning);border-radius:16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
               </div>
-              <div class="flow-step-name">Broker :9094</div>
-              <div class="flow-step-detail">public.pem verify + RBAC</div>
+              <div class="flow-step-name">브로커 :9094</div>
+              <div class="flow-step-detail">public.pem 검증 + RBAC</div>
             </div>
           </div>
         </div>
@@ -942,8 +942,8 @@
               <div class="flow-step-node" style="background:var(--glow-green);border:2px solid var(--positive);border-radius:16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--positive)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               </div>
-              <div class="flow-step-name">Browser</div>
-              <div class="flow-step-detail">User Login</div>
+              <div class="flow-step-name">브라우저</div>
+              <div class="flow-step-detail">사용자 로그인</div>
             </div>
             <div class="flow-arrow">
               <div class="flow-arrow-line"><div class="line" style="background:var(--positive);"></div><div class="arrow" style="border-left:8px solid var(--positive);"></div></div>
@@ -954,7 +954,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--positive)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
               </div>
               <div class="flow-step-name">Authentik</div>
-              <div class="flow-step-detail">OIDC Auth</div>
+              <div class="flow-step-detail">OIDC 인증</div>
             </div>
             <div class="flow-arrow">
               <div class="flow-arrow-line"><div class="line" style="background:var(--positive);"></div><div class="arrow" style="border-left:8px solid var(--positive);"></div></div>
@@ -975,8 +975,8 @@
               <div class="flow-step-node" style="background:var(--glow-orange);border:2px solid var(--warning);border-radius:16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
               </div>
-              <div class="flow-step-name">Broker :9094</div>
-              <div class="flow-step-detail">RBAC Data</div>
+              <div class="flow-step-name">브로커 :9094</div>
+              <div class="flow-step-detail">RBAC 데이터</div>
             </div>
           </div>
         </div>
@@ -986,26 +986,26 @@
     <!-- SUMMARY MATRIX -->
     <section class="container" data-reveal>
       <div class="section-header">
-        <div class="section-number">04 / Matrix</div>
-        <h2>Authentication Matrix</h2>
+        <div class="section-number">04 / 매트릭스</div>
+        <h2>인증 매트릭스</h2>
       </div>
 
       <div class="listener-filters">
-        <button class="listener-filter active" onclick="filterMatrix('all', event)">All</button>
-        <button class="listener-filter" onclick="filterMatrix('external', event)">External</button>
-        <button class="listener-filter" onclick="filterMatrix('internal', event)">Internal</button>
-        <button class="listener-filter" onclick="filterMatrix('authentik', event)">Authentik Dep.</button>
+        <button class="listener-filter active" onclick="filterMatrix('all', event)">전체</button>
+        <button class="listener-filter" onclick="filterMatrix('external', event)">외부</button>
+        <button class="listener-filter" onclick="filterMatrix('internal', event)">내부</button>
+        <button class="listener-filter" onclick="filterMatrix('authentik', event)">Authentik 의존</button>
       </div>
 
       <div class="matrix-wrapper" style="overflow-x:auto;">
         <table class="matrix-table" id="matrixTable">
           <thead>
             <tr>
-              <th>Connection</th>
-              <th>Listener</th>
-              <th>Auth Mechanism</th>
-              <th>Token Issuer</th>
-              <th>Authentik</th>
+              <th>연결</th>
+              <th>리스너</th>
+              <th>인증 메커니즘</th>
+              <th>토큰 발급자</th>
+              <th>Authentik 의존성</th>
             </tr>
           </thead>
           <tbody>
@@ -1014,63 +1014,63 @@
               <td><span class="port-badge port-external">EXTERNAL :9093</span></td>
               <td><span class="mech-badge mech-oauth">OAUTHBEARER</span></td>
               <td>Authentik</td>
-              <td><span class="dep-yes">Required</span></td>
+              <td><span class="dep-yes">필수</span></td>
             </tr>
             <tr data-type="external" data-authentik="yes">
               <td><strong>Client -> SR REST API</strong></td>
               <td>-</td>
               <td><span class="mech-badge mech-oauth">OAUTHBEARER</span> / <span class="mech-badge mech-basic">BASIC</span></td>
               <td>Authentik</td>
-              <td><span class="dep-yes">Required</span></td>
+              <td><span class="dep-yes">필수</span></td>
             </tr>
             <tr data-type="external" data-authentik="yes">
               <td><strong>User -> C3 (Web)</strong></td>
               <td>-</td>
               <td><span class="mech-badge mech-sso">SSO (OIDC)</span></td>
               <td>Authentik</td>
-              <td><span class="dep-yes">Required</span></td>
+              <td><span class="dep-yes">필수</span></td>
             </tr>
             <tr data-type="internal" data-authentik="partial">
               <td><strong>SR -> Broker</strong></td>
               <td><span class="port-badge port-token">TOKEN :9094</span></td>
               <td><span class="mech-badge mech-oauth">OAUTHBEARER</span></td>
               <td>MDS</td>
-              <td><span class="dep-partial">LDAP Only</span></td>
+              <td><span class="dep-partial">LDAP만 의존</span></td>
             </tr>
             <tr data-type="internal" data-authentik="partial">
               <td><strong>C3 -> Broker</strong></td>
               <td><span class="port-badge port-token">TOKEN :9094</span></td>
               <td><span class="mech-badge mech-oauth">OAUTHBEARER</span></td>
               <td>MDS</td>
-              <td><span class="dep-partial">LDAP Only</span></td>
+              <td><span class="dep-partial">LDAP만 의존</span></td>
             </tr>
             <tr data-type="internal" data-authentik="no">
               <td><strong>Broker <-> Broker</strong></td>
               <td><span class="port-badge port-internal">INTERNAL :9091</span></td>
               <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
               <td>-</td>
-              <td><span class="dep-no">Independent</span></td>
+              <td><span class="dep-no">독립적</span></td>
             </tr>
             <tr data-type="internal" data-authentik="no">
               <td><strong>Controller <-> Controller</strong></td>
               <td><span class="port-badge port-internal">INTERNAL :9091</span></td>
               <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
               <td>-</td>
-              <td><span class="dep-no">Independent</span></td>
+              <td><span class="dep-no">독립적</span></td>
             </tr>
             <tr data-type="internal" data-authentik="yes">
               <td><strong>Component -> MDS</strong></td>
               <td><span class="port-badge port-https">HTTPS :8090</span></td>
               <td><span class="mech-badge mech-basic">BASIC</span></td>
               <td>-</td>
-              <td><span class="dep-yes">LDAP Outpost</span></td>
+              <td><span class="dep-yes">LDAP Outpost 필수</span></td>
             </tr>
             <tr data-type="internal" data-authentik="yes">
               <td><strong>MDS -> LDAP</strong></td>
               <td><span class="port-badge port-ldap">LDAPS :636</span></td>
               <td><span class="mech-badge mech-ldap">LDAP Bind</span></td>
               <td>-</td>
-              <td><span class="dep-yes">Required</span></td>
+              <td><span class="dep-yes">필수</span></td>
             </tr>
           </tbody>
         </table>
@@ -1080,8 +1080,8 @@
     <!-- NETWORK PORTS -->
     <section class="container" data-reveal>
       <div class="section-header">
-        <div class="section-number">05 / Network</div>
-        <h2>Port Overview</h2>
+        <div class="section-number">05 / 네트워크</div>
+        <h2>포트 개요</h2>
       </div>
       <div class="port-grid">
         <div class="port-card">
@@ -1126,8 +1126,8 @@
     <!-- FAILURE IMPACT -->
     <section class="container" data-reveal>
       <div class="section-header">
-        <div class="section-number">06 / Failure Analysis</div>
-        <h2>Authentik Failure Impact</h2>
+        <div class="section-number">06 / 장애 분석</div>
+        <h2>Authentik 장애 영향 분석</h2>
       </div>
       <div class="impact-grid">
         <div class="impact-card">
@@ -1135,15 +1135,15 @@
             <div class="impact-icon" style="background:rgba(244,63,94,0.12);">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--negative)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
             </div>
-            <div class="impact-title">Authentik Full Outage</div>
+            <div class="impact-title">Authentik 전체 장애</div>
           </div>
           <div class="impact-section">
-            <div class="impact-label affected">Affected</div>
-            <div class="impact-text">New client connections, C3 new logins, MDS new principal lookups</div>
+            <div class="impact-label affected">영향 받는 영역</div>
+            <div class="impact-text">신규 클라이언트 연결, C3 신규 로그인, MDS 신규 Principal 조회</div>
           </div>
           <div class="impact-section">
-            <div class="impact-label safe">Unaffected</div>
-            <div class="impact-text">Broker cluster (SCRAM), existing MDS tokens valid for SR/C3</div>
+            <div class="impact-label safe">영향 없는 영역</div>
+            <div class="impact-text">브로커 클러스터 (SCRAM 기반), 기존 MDS 토큰으로 SR/C3 정상 동작</div>
           </div>
         </div>
         <div class="impact-card">
@@ -1151,15 +1151,15 @@
             <div class="impact-icon" style="background:rgba(245,158,11,0.12);">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </div>
-            <div class="impact-title">OAuth2 Provider Only</div>
+            <div class="impact-title">OAuth2 Provider 단독 장애</div>
           </div>
           <div class="impact-section">
-            <div class="impact-label affected">Affected</div>
-            <div class="impact-text">New external client token issuance blocked</div>
+            <div class="impact-label affected">영향 받는 영역</div>
+            <div class="impact-text">신규 외부 클라이언트 토큰 발급 차단</div>
           </div>
           <div class="impact-section">
-            <div class="impact-label safe">Unaffected</div>
-            <div class="impact-text">All internal communication (MDS tokens are LDAP-based)</div>
+            <div class="impact-label safe">영향 없는 영역</div>
+            <div class="impact-text">모든 내부 통신 정상 (MDS 토큰은 LDAP 기반)</div>
           </div>
         </div>
         <div class="impact-card">
@@ -1167,15 +1167,15 @@
             <div class="impact-icon" style="background:rgba(245,158,11,0.12);">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
             </div>
-            <div class="impact-title">LDAP Outpost Only</div>
+            <div class="impact-title">LDAP Outpost 단독 장애</div>
           </div>
           <div class="impact-section">
-            <div class="impact-label affected">Affected</div>
-            <div class="impact-text">MDS new token issuance, component re-authentication</div>
+            <div class="impact-label affected">영향 받는 영역</div>
+            <div class="impact-text">MDS 신규 토큰 발급, 컴포넌트 재인증</div>
           </div>
           <div class="impact-section">
-            <div class="impact-label safe">Unaffected</div>
-            <div class="impact-text">Existing MDS token cache operational, Broker cluster normal</div>
+            <div class="impact-label safe">영향 없는 영역</div>
+            <div class="impact-text">기존 MDS 토큰 캐시 정상 동작, 브로커 클러스터 정상</div>
           </div>
         </div>
         <div class="impact-card">
@@ -1183,27 +1183,27 @@
             <div class="impact-icon" style="background:var(--glow-accent);">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
-            <div class="impact-title">OIDC Provider Only</div>
+            <div class="impact-title">OIDC Provider 단독 장애</div>
           </div>
           <div class="impact-section">
-            <div class="impact-label affected">Affected</div>
-            <div class="impact-text">C3 new SSO login blocked</div>
+            <div class="impact-label affected">영향 받는 영역</div>
+            <div class="impact-text">C3 신규 SSO 로그인 차단</div>
           </div>
           <div class="impact-section">
-            <div class="impact-label safe">Unaffected</div>
-            <div class="impact-text">C3 -> Broker communication (existing MDS tokens), existing sessions</div>
+            <div class="impact-label safe">영향 없는 영역</div>
+            <div class="impact-text">C3 → 브로커 통신 (기존 MDS 토큰), 기존 세션 유지</div>
           </div>
         </div>
       </div>
       <div class="card" style="margin-top:16px;padding:16px 20px;background:var(--glass);border:1px solid var(--border);">
         <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.7;">
-          <strong style="color:var(--text);">Key Insight:</strong> Inter-broker communication uses SCRAM-SHA-512 and is fully independent of Authentik. MDS tokens are signed with their own keypair, so CP component communication continues until token expiry even during Authentik outages.
+          <strong style="color:var(--text);">핵심 요약:</strong> 브로커 간 통신은 SCRAM-SHA-512를 사용하며 Authentik과 완전히 독립적입니다. MDS 토큰은 자체 키페어로 서명되므로, Authentik 장애 시에도 토큰 만료 전까지 CP 컴포넌트 통신은 정상 유지됩니다.
         </p>
       </div>
     </section>
 
     <footer style="padding:32px 0 48px;text-align:center;">
-      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform Auth Architecture Definition v2 &middot; Updated 2026-04-08 &middot; Based on Confluent Official Documentation</p>
+      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증 아키텍처 정의서 v2 &middot; 업데이트 2026-04-08 &middot; Confluent 공식 문서 기반</p>
     </footer>
   </main>
 
@@ -1233,7 +1233,7 @@
     function applyTheme(t) {
       document.documentElement.className = 'theme-' + t;
       document.getElementById('themeIcon').textContent = t === 'dark' ? '🌙' : '☀️';
-      document.getElementById('themeLabel').textContent = t === 'dark' ? 'Dark' : 'Light';
+      document.getElementById('themeLabel').textContent = t === 'dark' ? '다크' : '라이트';
       localStorage.setItem('viz-theme', t);
       currentTheme = t;
       if (typeof onThemeChange === 'function') onThemeChange();
@@ -1287,39 +1287,39 @@
     var detailData = {
       oauth2: {
         title: 'OAuth2 Provider',
-        body: '<table class="detail-table"><tr><th>Setting</th><th>Value</th></tr><tr><td>Grant Type</td><td>Client Credentials</td></tr><tr><td>Signing Key</td><td>RS256 (JWKS endpoint)</td></tr><tr><td>Scopes</td><td>openid, kafka (custom)</td></tr><tr><td>Token Lifetime</td><td>300~3600s</td></tr><tr><td>Property Mapping</td><td>sub -> Kafka principal claim</td></tr><tr><td>Confluent Setting</td><td><code>sasl.oauthbearer.token.endpoint.url</code></td></tr></table>'
+        body: '<table class="detail-table"><tr><th>설정</th><th>값</th></tr><tr><td>인증 유형</td><td>Client Credentials</td></tr><tr><td>서명 키</td><td>RS256 (JWKS endpoint)</td></tr><tr><td>스코프</td><td>openid, kafka (custom)</td></tr><tr><td>토큰 수명</td><td>300~3600s</td></tr><tr><td>속성 매핑</td><td>sub -> Kafka principal claim</td></tr><tr><td>Confluent 설정</td><td><code>sasl.oauthbearer.token.endpoint.url</code></td></tr></table>'
       },
       oidc: {
         title: 'OIDC Provider',
-        body: '<table class="detail-table"><tr><th>Setting</th><th>Value</th></tr><tr><td>Grant Type</td><td>Authorization Code</td></tr><tr><td>Redirect URI</td><td>https://c3-host:9021/login/callback</td></tr><tr><td>Scopes</td><td>openid, profile, email</td></tr><tr><td>Usage</td><td>C3 SSO Login</td></tr></table>'
+        body: '<table class="detail-table"><tr><th>설정</th><th>값</th></tr><tr><td>인증 유형</td><td>Authorization Code</td></tr><tr><td>리다이렉트 URI</td><td>https://c3-host:9021/login/callback</td></tr><tr><td>스코프</td><td>openid, profile, email</td></tr><tr><td>용도</td><td>C3 SSO 로그인</td></tr></table>'
       },
       ldap: {
         title: 'LDAP Outpost',
-        body: '<table class="detail-table"><tr><th>Setting</th><th>Value</th></tr><tr><td>Base DN</td><td>dc=example,dc=com</td></tr><tr><td>Bind DN</td><td>cn=mds-service,ou=services,dc=example,dc=com</td></tr><tr><td>Protocol</td><td>LDAPS (636)</td></tr><tr><td>Group Mapping</td><td>Authentik Group -> RBAC Role binding</td></tr><tr><td>Confluent Setting</td><td><code>ldap.java.naming.provider.url</code></td></tr></table>'
+        body: '<table class="detail-table"><tr><th>설정</th><th>값</th></tr><tr><td>Base DN</td><td>dc=example,dc=com</td></tr><tr><td>Bind DN</td><td>cn=mds-service,ou=services,dc=example,dc=com</td></tr><tr><td>프로토콜</td><td>LDAPS (636)</td></tr><tr><td>그룹 매핑</td><td>Authentik Group -> RBAC Role binding</td></tr><tr><td>Confluent 설정</td><td><code>ldap.java.naming.provider.url</code></td></tr></table>'
       },
       broker: {
         title: 'Kafka Broker',
-        body: '<table class="detail-table"><tr><th>Connection</th><th>Listener</th><th>Auth</th></tr><tr><td>Client -> Broker</td><td>EXTERNAL :9093</td><td>OAUTHBEARER (Authentik)</td></tr><tr><td>CP Component -> Broker</td><td>TOKEN :9094</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>Broker <-> Broker</td><td>INTERNAL :9091</td><td>SCRAM-SHA-512</td></tr><tr><td>MDS -> Authentik LDAP</td><td>LDAPS</td><td>LDAP Bind</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">EXTERNAL listener validates Authentik JWT via JWKS endpoint. TOKEN listener validates MDS tokens via public.pem. Each listener accepts only its designated token type.</p>'
+        body: '<table class="detail-table"><tr><th>연결</th><th>리스너</th><th>인증</th></tr><tr><td>Client -> Broker</td><td>EXTERNAL :9093</td><td>OAUTHBEARER (Authentik)</td></tr><tr><td>CP Component -> Broker</td><td>TOKEN :9094</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>Broker <-> Broker</td><td>INTERNAL :9091</td><td>SCRAM-SHA-512</td></tr><tr><td>MDS -> Authentik LDAP</td><td>LDAPS</td><td>LDAP Bind</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">EXTERNAL 리스너는 JWKS 엔드포인트를 통해 Authentik JWT를 검증합니다. TOKEN 리스너는 public.pem으로 MDS 토큰을 검증합니다. 각 리스너는 지정된 토큰 유형만 수락합니다.</p>'
       },
       controller: {
         title: 'KRaft Controller',
-        body: '<table class="detail-table"><tr><th>Connection</th><th>Protocol</th><th>Auth</th></tr><tr><td>Controller <-> Controller</td><td>SASL_SSL</td><td>SCRAM-SHA-512</td></tr><tr><td>Controller <-> Broker</td><td>SASL_SSL</td><td>SCRAM-SHA-512</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">Inter-broker listener must operate before RBAC metadata initialization, so it cannot depend on RBAC/OAUTHBEARER.</p>'
+        body: '<table class="detail-table"><tr><th>연결</th><th>프로토콜</th><th>인증</th></tr><tr><td>Controller <-> Controller</td><td>SASL_SSL</td><td>SCRAM-SHA-512</td></tr><tr><td>Controller <-> Broker</td><td>SASL_SSL</td><td>SCRAM-SHA-512</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">브로커 간 리스너는 RBAC 메타데이터 초기화 전에 동작해야 하므로, RBAC/OAUTHBEARER에 의존할 수 없습니다.</p>'
       },
       client: {
         title: 'External Client',
-        body: '<table class="detail-table"><tr><th>Setting</th><th>Value</th></tr><tr><td>bootstrap.servers</td><td>broker1:9093,broker2:9093</td></tr><tr><td>security.protocol</td><td>SASL_SSL</td></tr><tr><td>sasl.mechanism</td><td>OAUTHBEARER</td></tr><tr><td>token.endpoint.url</td><td>https://authentik/application/o/token/</td></tr><tr><td>SSL</td><td>truststore.jks or ca.crt</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--warning);">External clients must use EXTERNAL listener (:9093). TOKEN listener (:9094) is for CP components only.</p>'
+        body: '<table class="detail-table"><tr><th>설정</th><th>값</th></tr><tr><td>bootstrap.servers</td><td>broker1:9093,broker2:9093</td></tr><tr><td>security.protocol</td><td>SASL_SSL</td></tr><tr><td>sasl.mechanism</td><td>OAUTHBEARER</td></tr><tr><td>token.endpoint.url</td><td>https://authentik/application/o/token/</td></tr><tr><td>SSL</td><td>truststore.jks or ca.crt</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--warning);">외부 클라이언트는 반드시 EXTERNAL 리스너(:9093)를 사용해야 합니다. TOKEN 리스너(:9094)는 CP 컴포넌트 전용입니다.</p>'
       },
       sr: {
         title: 'Schema Registry',
-        body: '<table class="detail-table"><tr><th>Connection</th><th>Protocol</th><th>Auth</th></tr><tr><td>Client -> SR</td><td>HTTPS</td><td>OAUTHBEARER or BASIC</td></tr><tr><td>SR -> Broker</td><td>SASL_SSL (TOKEN :9094)</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>SR -> MDS</td><td>HTTPS</td><td>BASIC (LDAP account)</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">LDAP account: <code>schema-registry</code>. Accesses _schemas topic via TOKEN listener.</p>'
+        body: '<table class="detail-table"><tr><th>연결</th><th>프로토콜</th><th>인증</th></tr><tr><td>Client -> SR</td><td>HTTPS</td><td>OAUTHBEARER or BASIC</td></tr><tr><td>SR -> Broker</td><td>SASL_SSL (TOKEN :9094)</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>SR -> MDS</td><td>HTTPS</td><td>BASIC (LDAP account)</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">LDAP 계정: <code>schema-registry</code>. TOKEN 리스너를 통해 _schemas 토픽에 접근합니다.</p>'
       },
       c3: {
         title: 'Control Center',
-        body: '<table class="detail-table"><tr><th>Connection</th><th>Protocol</th><th>Auth</th></tr><tr><td>User -> C3</td><td>HTTPS</td><td>SSO (OIDC)</td></tr><tr><td>C3 -> Broker</td><td>SASL_SSL (TOKEN :9094)</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>C3 -> SR</td><td>HTTPS</td><td>BASIC or Bearer</td></tr><tr><td>C3 -> MDS</td><td>HTTPS</td><td>BASIC (LDAP)</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">LDAP account: <code>control-center</code>. User\'s RBAC role limits visible information.</p>'
+        body: '<table class="detail-table"><tr><th>연결</th><th>프로토콜</th><th>인증</th></tr><tr><td>User -> C3</td><td>HTTPS</td><td>SSO (OIDC)</td></tr><tr><td>C3 -> Broker</td><td>SASL_SSL (TOKEN :9094)</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>C3 -> SR</td><td>HTTPS</td><td>BASIC or Bearer</td></tr><tr><td>C3 -> MDS</td><td>HTTPS</td><td>BASIC (LDAP)</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">LDAP 계정: <code>control-center</code>. 사용자의 RBAC 역할에 따라 표시 정보가 제한됩니다.</p>'
       },
       mds: {
         title: 'Metadata Service (MDS)',
-        body: '<table class="detail-table"><tr><th>Connection</th><th>Protocol</th><th>Auth</th></tr><tr><td>All Components -> MDS</td><td>HTTPS</td><td>BASIC (LDAP) or OAUTHBEARER</td></tr><tr><td>MDS -> Authentik LDAP</td><td>LDAPS</td><td>LDAP Bind</td></tr><tr><td>MDS <-> Broker</td><td>-</td><td>Embedded in Broker process</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">Token signing: tokenKeypair.pem (private), public.pem (verification on TOKEN listener).</p>'
+        body: '<table class="detail-table"><tr><th>연결</th><th>프로토콜</th><th>인증</th></tr><tr><td>All Components -> MDS</td><td>HTTPS</td><td>BASIC (LDAP) or OAUTHBEARER</td></tr><tr><td>MDS -> Authentik LDAP</td><td>LDAPS</td><td>LDAP Bind</td></tr><tr><td>MDS <-> Broker</td><td>-</td><td>Embedded in Broker process</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">토큰 서명: tokenKeypair.pem (개인키), public.pem (TOKEN 리스너 검증용).</p>'
       }
     };
 
