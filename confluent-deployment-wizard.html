@@ -200,23 +200,14 @@
     }
 
     /* Environment Multi-Select */
-    .env-tab-bar {
-      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
-    }
-    .env-tab-btn {
-      padding: 8px 20px; border-radius: 8px; cursor: pointer;
-      border: 1px solid var(--border); background: var(--bg-card);
-      color: var(--text-secondary); font-size: 13px; transition: all 0.2s;
-      font-family: inherit;
-    }
-    .env-tab-btn.active {
-      background: var(--accent); color: #fff; border-color: var(--accent);
-    }
     .env-panel {
-      display: none;
+      display: block; margin-bottom: 20px;
     }
-    .env-panel.active {
-      display: block;
+    .env-panel-header {
+      font-size: 15px; font-weight: 700; color: var(--accent);
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent);
+      display: flex; align-items: center; gap: 8px;
     }
     .env-check {
       position: absolute; top: 8px; right: 10px; font-size: 14px;
@@ -595,9 +586,8 @@
           </div>
         </div>
 
-        <!-- Environment Profile Tabs -->
+        <!-- Environment Profiles -->
         <div id="envProfileSection" style="display:none; margin-top:24px;">
-          <div id="envProfileTabs" class="env-tab-bar"></div>
           <div id="envProfilePanels"></div>
         </div>
 
@@ -1541,15 +1531,6 @@
       renderEnvProfileTabs();
     }
 
-    function switchEnvTab(env) {
-      config.envs.forEach(function(e) {
-        var btn = document.getElementById('env-tab-btn-' + e);
-        var panel = document.getElementById('env-panel-' + e);
-        if (btn) btn.classList.toggle('active', e === env);
-        if (panel) panel.classList.toggle('active', e === env);
-      });
-    }
-
     function renderEnvPanelHTML(env) {
       var p = config.envProfiles[env] || getEnvPreset(env);
       var envLabels = { dev: '개발', staging: '스테이징', prod: '운영' };
@@ -1638,9 +1619,8 @@
 
     function renderEnvProfileTabs() {
       var section = document.getElementById('envProfileSection');
-      var tabsEl = document.getElementById('envProfileTabs');
       var panelsEl = document.getElementById('envProfilePanels');
-      if (!section || !tabsEl || !panelsEl) return;
+      if (!section || !panelsEl) return;
 
       if (config.envs.length === 0) {
         section.style.display = 'none';
@@ -1649,21 +1629,19 @@
       section.style.display = 'block';
 
       var envLabels = { dev: '개발', staging: '스테이징', prod: '운영' };
-      tabsEl.innerHTML = '';
+      var envIcons = { dev: '🔧', staging: '🔄', prod: '🛡️' };
       panelsEl.innerHTML = '';
 
-      config.envs.forEach(function(env, idx) {
-        var btn = document.createElement('button');
-        btn.className = 'env-tab-btn' + (idx === 0 ? ' active' : '');
-        btn.id = 'env-tab-btn-' + env;
-        btn.textContent = envLabels[env] || env;
-        btn.onclick = function() { switchEnvTab(env); };
-        tabsEl.appendChild(btn);
-
+      config.envs.forEach(function(env) {
         var panel = document.createElement('div');
-        panel.className = 'env-panel' + (idx === 0 ? ' active' : '');
+        panel.className = 'env-panel';
         panel.id = 'env-panel-' + env;
-        panel.innerHTML = renderEnvPanelHTML(env);
+        panel.innerHTML =
+          '<div class="env-panel-header">' +
+            '<span>' + (envIcons[env] || '') + '</span>' +
+            '<span>' + (envLabels[env] || env) + ' 환경 설정</span>' +
+          '</div>' +
+          renderEnvPanelHTML(env);
         panelsEl.appendChild(panel);
       });
 
