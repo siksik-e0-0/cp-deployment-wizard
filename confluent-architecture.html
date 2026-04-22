@@ -675,7 +675,7 @@
               <div class="node-sub">+ MDS :8090</div>
               <div class="node-ports">
                 <span class="port-badge port-internal">:9091</span>
-                <span class="port-badge port-external">:9093</span>
+                <span class="port-badge port-external">:9092</span>
                 <span class="port-badge port-token">:9094</span>
               </div>
             </div>
@@ -694,7 +694,7 @@
               <div class="node-sub">복제본</div>
               <div class="node-ports">
                 <span class="port-badge port-internal">:9091</span>
-                <span class="port-badge port-external">:9093</span>
+                <span class="port-badge port-external">:9092</span>
                 <span class="port-badge port-token">:9094</span>
               </div>
             </div>
@@ -704,7 +704,7 @@
               </div>
               <div class="node-title">KRaft Controller</div>
               <div class="node-sub">SCRAM-512</div>
-              <div class="node-ports"><span class="port-badge port-internal">:9091</span></div>
+              <div class="node-ports"><span class="port-badge port-internal">:9093</span></div>
             </div>
           </div>
 
@@ -712,7 +712,7 @@
           <div class="conn-label-row">
             <div class="conn-label">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M1 8h14M11 4l4 4-4 4"/></svg>
-              :9093 Authentik JWT
+              :9092 Authentik JWT
             </div>
             <div class="conn-label">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><path d="M1 8h14M11 4l4 4-4 4"/></svg>
@@ -731,7 +731,7 @@
               </div>
               <div class="node-title">External Client</div>
               <div class="node-sub">Authentik JWT</div>
-              <div class="node-ports"><span class="port-badge port-external">:9093</span></div>
+              <div class="node-ports"><span class="port-badge port-external">:9092</span></div>
             </div>
             <div class="node" onclick="showDetail('sr')" id="node-sr">
               <div class="node-icon" style="background:var(--glow-purple);">
@@ -818,7 +818,7 @@
             <div class="token-row"><span class="token-row-label">서명 키</span><span class="token-row-value">RS256 (JWKS)</span></div>
             <div class="token-row"><span class="token-row-label">사용 주체</span><span class="token-row-value">외부 애플리케이션</span></div>
             <div class="token-row"><span class="token-row-label">인증 흐름</span><span class="token-row-value">client_id/secret → JWT</span></div>
-            <div class="token-row"><span class="token-row-label">리스너</span><span class="token-row-value"><span class="port-badge port-external">EXTERNAL :9093</span></span></div>
+            <div class="token-row"><span class="token-row-label">리스너</span><span class="token-row-value"><span class="port-badge port-external">EXTERNAL :9092</span></span></div>
             <div class="token-row"><span class="token-row-label">용도</span><span class="token-row-value">외부 시스템 인증</span></div>
           </div>
         </div>
@@ -873,7 +873,7 @@
             </div>
             <div class="flow-arrow">
               <div class="flow-arrow-line"><div class="line" style="background:var(--warning);"></div><div class="arrow" style="border-left:8px solid var(--warning);"></div></div>
-              <div class="flow-arrow-label">SASL_SSL + JWT :9093</div>
+              <div class="flow-arrow-label">SASL_SSL + JWT :9092</div>
             </div>
             <div class="flow-step">
               <div class="flow-step-node" style="background:var(--glow-orange);border:2px solid var(--warning);border-radius:16px;">
@@ -1011,7 +1011,7 @@
           <tbody>
             <tr data-type="external" data-authentik="yes">
               <td><strong>Client -> Broker</strong></td>
-              <td><span class="port-badge port-external">EXTERNAL :9093</span></td>
+              <td><span class="port-badge port-external">EXTERNAL :9092</span></td>
               <td><span class="mech-badge mech-oauth">OAUTHBEARER</span></td>
               <td>Authentik</td>
               <td><span class="dep-yes">필수</span></td>
@@ -1053,7 +1053,7 @@
             </tr>
             <tr data-type="internal" data-authentik="no">
               <td><strong>Controller <-> Controller</strong></td>
-              <td><span class="port-badge port-internal">INTERNAL :9091</span></td>
+              <td><span class="port-badge port-internal">CONTROLLER :9093</span></td>
               <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
               <td>-</td>
               <td><span class="dep-no">독립적</span></td>
@@ -1089,7 +1089,7 @@
           <div class="port-info"><div class="port-comp">Broker INTERNAL</div><div class="port-proto">SASL_SSL / SCRAM</div></div>
         </div>
         <div class="port-card">
-          <div class="port-num" style="color:var(--accent);">9093</div>
+          <div class="port-num" style="color:var(--accent);">9092</div>
           <div class="port-info"><div class="port-comp">Broker EXTERNAL</div><div class="port-proto">SASL_SSL / OAUTHBEARER</div></div>
         </div>
         <div class="port-card">
@@ -1097,7 +1097,7 @@
           <div class="port-info"><div class="port-comp">Broker TOKEN</div><div class="port-proto">SASL_SSL / MDS Token</div></div>
         </div>
         <div class="port-card">
-          <div class="port-num" style="color:var(--warning);">9091</div>
+          <div class="port-num" style="color:var(--warning);">9093</div>
           <div class="port-info"><div class="port-comp">KRaft Controller</div><div class="port-proto">SASL_SSL / SCRAM</div></div>
         </div>
         <div class="port-card">
@@ -1299,7 +1299,7 @@
       },
       broker: {
         title: 'Kafka Broker',
-        body: '<table class="detail-table"><tr><th>연결</th><th>리스너</th><th>인증</th></tr><tr><td>Client -> Broker</td><td>EXTERNAL :9093</td><td>OAUTHBEARER (Authentik)</td></tr><tr><td>CP Component -> Broker</td><td>TOKEN :9094</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>Broker <-> Broker</td><td>INTERNAL :9091</td><td>SCRAM-SHA-512</td></tr><tr><td>MDS -> Authentik LDAP</td><td>LDAPS</td><td>LDAP Bind</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">EXTERNAL 리스너는 JWKS 엔드포인트를 통해 Authentik JWT를 검증합니다. TOKEN 리스너는 public.pem으로 MDS 토큰을 검증합니다. 각 리스너는 지정된 토큰 유형만 수락합니다.</p>'
+        body: '<table class="detail-table"><tr><th>연결</th><th>리스너</th><th>인증</th></tr><tr><td>Client -> Broker</td><td>EXTERNAL :9092</td><td>OAUTHBEARER (Authentik)</td></tr><tr><td>CP Component -> Broker</td><td>TOKEN :9094</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>Broker <-> Broker</td><td>INTERNAL :9091</td><td>SCRAM-SHA-512</td></tr><tr><td>MDS -> Authentik LDAP</td><td>LDAPS</td><td>LDAP Bind</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">EXTERNAL 리스너(:9092)는 JWKS 엔드포인트를 통해 Authentik JWT를 검증합니다. TOKEN 리스너는 public.pem으로 MDS 토큰을 검증합니다. 각 리스너는 지정된 토큰 유형만 수락합니다.</p>'
       },
       controller: {
         title: 'KRaft Controller',
@@ -1307,7 +1307,7 @@
       },
       client: {
         title: 'External Client',
-        body: '<table class="detail-table"><tr><th>설정</th><th>값</th></tr><tr><td>bootstrap.servers</td><td>broker1:9093,broker2:9093</td></tr><tr><td>security.protocol</td><td>SASL_SSL</td></tr><tr><td>sasl.mechanism</td><td>OAUTHBEARER</td></tr><tr><td>token.endpoint.url</td><td>https://authentik/application/o/token/</td></tr><tr><td>SSL</td><td>truststore.jks or ca.crt</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--warning);">외부 클라이언트는 반드시 EXTERNAL 리스너(:9093)를 사용해야 합니다. TOKEN 리스너(:9094)는 CP 컴포넌트 전용입니다.</p>'
+        body: '<table class="detail-table"><tr><th>설정</th><th>값</th></tr><tr><td>bootstrap.servers</td><td>broker1:9092,broker2:9092</td></tr><tr><td>security.protocol</td><td>SASL_SSL</td></tr><tr><td>sasl.mechanism</td><td>OAUTHBEARER</td></tr><tr><td>token.endpoint.url</td><td>https://authentik/application/o/token/</td></tr><tr><td>SSL</td><td>truststore.jks or ca.crt</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--warning);">외부 클라이언트는 반드시 EXTERNAL 리스너(:9092)를 사용해야 합니다. TOKEN 리스너(:9094)는 CP 컴포넌트 전용입니다.</p>'
       },
       sr: {
         title: 'Schema Registry',
