@@ -85,9 +85,16 @@
     }
     .changelog-title {
       font-size: 1rem; font-weight: 600; color: var(--text-secondary);
-      letter-spacing: -0.01em; margin-bottom: 24px;
+      letter-spacing: -0.01em; padding: 8px 0;
       display: flex; align-items: center; gap: 8px;
+      cursor: pointer; list-style: none; user-select: none;
     }
+    .changelog-title::-webkit-details-marker { display: none; }
+    .changelog-title .chevron {
+      margin-left: auto; transition: transform 0.2s ease;
+    }
+    .changelog[open] .changelog-title .chevron { transform: rotate(90deg); }
+    .changelog-body { padding-top: 16px; }
     .changelog-group { margin-bottom: 28px; }
     .changelog-group-title {
       font-size: 0.85rem; font-weight: 600; color: var(--accent);
@@ -158,13 +165,15 @@
       </a>
     </div>
 
-    <div class="changelog animate delay-3">
-      <div class="changelog-title">
+    <details class="changelog animate delay-3">
+      <summary class="changelog-title">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
         </svg>
         변경 이력
-      </div>
+        <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </summary>
+      <div class="changelog-body">
 
       <div class="changelog-group">
         <div class="changelog-group-title">아키텍처 가이드</div>
@@ -203,7 +212,8 @@
           <span class="changelog-desc">초기 버전 — 6단계 위자드, Listener 설정, 데이터/성능/모니터링</span>
         </div>
       </div>
-    </div>
+      </div>
+    </details>
   </div>
 
   <script>
