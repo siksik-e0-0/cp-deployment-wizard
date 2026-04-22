@@ -78,10 +78,42 @@
     .animate { animation: fadeInUp 0.6s ease-out both; }
     .delay-2 { animation-delay: 0.2s; }
     .delay-3 { animation-delay: 0.3s; }
+    /* 변경 이력 섹션 */
+    .changelog {
+      margin-top: 64px; padding-top: 40px;
+      border-top: 1px solid var(--border); text-align: left;
+    }
+    .changelog-title {
+      font-size: 1rem; font-weight: 600; color: var(--text-secondary);
+      letter-spacing: -0.01em; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .changelog-group { margin-bottom: 28px; }
+    .changelog-group-title {
+      font-size: 0.85rem; font-weight: 600; color: var(--accent);
+      margin-bottom: 12px; padding-left: 2px;
+    }
+    .changelog-entry {
+      display: flex; gap: 12px; padding: 10px 12px;
+      border-radius: 8px; font-size: 13px; line-height: 1.5;
+      transition: background 0.15s;
+    }
+    .changelog-entry:hover { background: var(--surface-hover); }
+    .changelog-version {
+      flex-shrink: 0; font-weight: 600; color: var(--accent);
+      min-width: 28px;
+    }
+    .changelog-date {
+      flex-shrink: 0; color: var(--text-secondary);
+      min-width: 90px; font-variant-numeric: tabular-nums;
+    }
+    .changelog-desc { color: var(--text); }
     @media (max-width: 640px) {
       h1 { font-size: 1.6rem; }
       .card-grid { grid-template-columns: 1fr; }
       .tool-card { padding: 24px 20px; }
+      .changelog-entry { flex-direction: column; gap: 2px; }
+      .changelog-date { min-width: unset; }
     }
   </style>
 </head>
@@ -124,6 +156,53 @@
         <div class="tool-desc">Confluent Platform 아키텍처 구성을 시각적으로 확인합니다. 컴포넌트 간 관계와 배포 구조를 한눈에 파악할 수 있습니다.</div>
         <span class="tool-badge">보러가기 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
       </a>
+    </div>
+
+    <div class="changelog animate delay-3">
+      <div class="changelog-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        변경 이력
+      </div>
+
+      <div class="changelog-group">
+        <div class="changelog-group-title">아키텍처 가이드</div>
+        <div class="changelog-entry">
+          <span class="changelog-version">v3</span>
+          <span class="changelog-date">2026-04-22</span>
+          <span class="changelog-desc">Authentik HA, 운영 엔드포인트, 토큰 수명 관리 섹션 추가</span>
+        </div>
+        <div class="changelog-entry">
+          <span class="changelog-version">v2</span>
+          <span class="changelog-date">2026-04-15</span>
+          <span class="changelog-desc">포트 번호 정렬 (Broker EXTERNAL 9092, KRaft Controller 9093)</span>
+        </div>
+        <div class="changelog-entry">
+          <span class="changelog-version">v1</span>
+          <span class="changelog-date">2026-04-08</span>
+          <span class="changelog-desc">초기 버전 — 3-Listener 아키텍처, 인증 흐름, 포트 개요, 장애 분석</span>
+        </div>
+      </div>
+
+      <div class="changelog-group">
+        <div class="changelog-group-title">배포 설정 위자드</div>
+        <div class="changelog-entry">
+          <span class="changelog-version">v3</span>
+          <span class="changelog-date">2026-04-22</span>
+          <span class="changelog-desc">환경유형 단순 태그로 변경, 다중 선택 패널 개선</span>
+        </div>
+        <div class="changelog-entry">
+          <span class="changelog-version">v2</span>
+          <span class="changelog-date">2026-04-15</span>
+          <span class="changelog-desc">C3 유형 선택(Classic/Next Gen), SSL 토글 연동, 방화벽 포트 단계 추가</span>
+        </div>
+        <div class="changelog-entry">
+          <span class="changelog-version">v1</span>
+          <span class="changelog-date">2026-04-08</span>
+          <span class="changelog-desc">초기 버전 — 6단계 위자드, Listener 설정, 데이터/성능/모니터링</span>
+        </div>
+      </div>
     </div>
   </div>
 
