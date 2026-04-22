@@ -1120,6 +1120,14 @@
           <div class="port-num" style="color:var(--accent);">443</div>
           <div class="port-info"><div class="port-comp">Authentik OAuth2/OIDC</div><div class="port-proto">HTTPS / Token, JWKS, SSO</div></div>
         </div>
+        <div class="port-card">
+          <div class="port-num" style="color:var(--positive);">9000</div>
+          <div class="port-info"><div class="port-comp">Authentik Metrics</div><div class="port-proto">HTTP / Prometheus</div></div>
+        </div>
+        <div class="port-card">
+          <div class="port-num" style="color:var(--positive);">9300</div>
+          <div class="port-info"><div class="port-comp">LDAP Outpost Metrics</div><div class="port-proto">HTTP / Prometheus</div></div>
+        </div>
       </div>
     </section>
 
@@ -1195,6 +1203,55 @@
           </div>
         </div>
       </div>
+
+      <div style="margin-top:24px;">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:12px;color:var(--text);">장애 복구 시나리오</h3>
+        <div class="matrix-wrapper" style="overflow-x:auto;">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>장애 시나리오</th>
+                <th>영향 범위</th>
+                <th>허용 시간</th>
+                <th>복구 후 동작</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Authentik Core 전체 다운</strong></td>
+                <td>신규 토큰 발급 차단 (OAuth2 + OIDC)</td>
+                <td><span style="color:var(--warning);font-weight:600;">JWKS 캐시 TTL (기본 1h)</span></td>
+                <td>자동 복구 — 토큰 재발급 재개</td>
+              </tr>
+              <tr>
+                <td><strong>LDAP Outpost 전체 다운</strong></td>
+                <td>MDS 신규 토큰 발급 차단, Principal 조회 불가</td>
+                <td><span style="color:var(--warning);font-weight:600;">기존 MDS 토큰 TTL (기본 30m)</span></td>
+                <td>LDAP 복구 시 MDS 자동 재연결</td>
+              </tr>
+              <tr>
+                <td><strong>PostgreSQL 다운</strong></td>
+                <td>Authentik Core 전체 불능</td>
+                <td><span style="color:var(--negative);font-weight:600;">즉시 영향</span></td>
+                <td>DB 복구 후 Authentik 자동 재시작</td>
+              </tr>
+              <tr>
+                <td><strong>JWKS 엔드포인트 불응답</strong></td>
+                <td>캐시 만료 후 외부 JWT 검증 불가</td>
+                <td><span style="color:var(--warning);font-weight:600;">JWKS 캐시 TTL (기본 1h)</span></td>
+                <td>엔드포인트 복구 시 자동 갱신</td>
+              </tr>
+              <tr>
+                <td><strong>Redis 다운</strong></td>
+                <td>Authentik 세션/캐시 손실, 성능 저하</td>
+                <td><span style="color:var(--warning);font-weight:600;">세션 재생성 필요</span></td>
+                <td>Redis 복구 시 세션 재생성, 기능 정상</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="card" style="margin-top:16px;padding:16px 20px;background:var(--glass);border:1px solid var(--border);">
         <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.7;">
           <strong style="color:var(--text);">핵심 요약:</strong> 브로커 간 통신은 SCRAM-SHA-512를 사용하며 Authentik과 완전히 독립적입니다. MDS 토큰은 자체 키페어로 서명되므로, Authentik 장애 시에도 토큰 만료 전까지 CP 컴포넌트 통신은 정상 유지됩니다.
@@ -1202,8 +1259,270 @@
       </div>
     </section>
 
+    <!-- AUTHENTIK HA -->
+    <section class="container" data-reveal>
+      <div class="section-header">
+        <div class="section-number">07 / 가용성</div>
+        <h2>Authentik HA 구성</h2>
+      </div>
+
+      <div class="flow-diagram" style="margin-bottom:24px;">
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-node" style="background:var(--glow-accent);border:2px solid var(--accent);border-radius:16px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="flow-step-name">Client / Browser</div>
+            <div class="flow-step-detail">토큰 요청 / SSO</div>
+          </div>
+          <div class="flow-arrow">
+            <div class="flow-arrow-line"><div class="line" style="background:var(--accent);"></div><div class="arrow" style="border-left:8px solid var(--accent);"></div></div>
+            <div class="flow-arrow-label">L7 Load Balancer</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-node" style="background:var(--glow-green);border:2px solid var(--positive);border-radius:16px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--positive)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+            </div>
+            <div class="flow-step-name">Authentik Core ×2+</div>
+            <div class="flow-step-detail">Active-Active</div>
+          </div>
+          <div class="flow-arrow">
+            <div class="flow-arrow-line"><div class="line" style="background:var(--accent-secondary);"></div><div class="arrow" style="border-left:8px solid var(--accent-secondary);"></div></div>
+            <div class="flow-arrow-label">Shared Backend</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-node" style="background:var(--glow-purple);border:2px solid var(--accent-secondary);border-radius:16px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            </div>
+            <div class="flow-step-name">PostgreSQL + Redis</div>
+            <div class="flow-step-detail">상태 저장</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="matrix-wrapper" style="overflow-x:auto;">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>컴포넌트</th>
+              <th>최소</th>
+              <th>권장</th>
+              <th>로드밸런서</th>
+              <th>상태 유지</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Authentik Core</strong></td>
+              <td>1</td>
+              <td><span style="color:var(--positive);font-weight:600;">2+</span></td>
+              <td>L7 (Nginx / HAProxy / Traefik)</td>
+              <td>PostgreSQL + Redis (외부)</td>
+            </tr>
+            <tr>
+              <td><strong>LDAP Outpost</strong></td>
+              <td>1</td>
+              <td><span style="color:var(--positive);font-weight:600;">2+</span></td>
+              <td>L4 (TCP :636)</td>
+              <td>Stateless — 수평 확장 가능</td>
+            </tr>
+            <tr>
+              <td><strong>PostgreSQL</strong></td>
+              <td>1</td>
+              <td><span style="color:var(--positive);font-weight:600;">Primary + Replica</span></td>
+              <td>—</td>
+              <td>WAL Streaming Replication</td>
+            </tr>
+            <tr>
+              <td><strong>Redis</strong></td>
+              <td>1</td>
+              <td><span style="color:var(--positive);font-weight:600;">Sentinel 또는 Cluster</span></td>
+              <td>—</td>
+              <td>AOF / RDB Persistence</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" style="margin-top:16px;padding:16px 20px;background:var(--glass);border:1px solid var(--border);">
+        <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.7;">
+          <strong style="color:var(--text);">LDAP Outpost 운영 팁:</strong> Outpost는 Stateless이므로 Docker/K8s에서 자유롭게 수평 확장 가능합니다. MDS의 <code style="color:var(--accent);font-size:0.8125rem;">ldap.java.naming.provider.url</code>에 로드밸런서 VIP를 지정하면 Outpost 장애 시 자동 페일오버됩니다. Health Check는 TCP :636 (LDAPS handshake)으로 구성합니다.
+        </p>
+      </div>
+    </section>
+
+    <!-- OPERATIONAL ENDPOINTS -->
+    <section class="container" data-reveal>
+      <div class="section-header">
+        <div class="section-number">08 / 운영 엔드포인트</div>
+        <h2>URL & 엔드포인트 맵</h2>
+      </div>
+
+      <div class="matrix-wrapper" style="overflow-x:auto;">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>용도</th>
+              <th>URL</th>
+              <th>사용 주체</th>
+              <th>Confluent 설정 키</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>OAuth2 Token</strong></td>
+              <td><code style="font-size:0.75rem;color:var(--accent);">https://authentik.example.com/application/o/token/</code></td>
+              <td>External Client</td>
+              <td><code style="font-size:0.75rem;">sasl.oauthbearer.token.endpoint.url</code></td>
+            </tr>
+            <tr>
+              <td><strong>JWKS</strong></td>
+              <td><code style="font-size:0.75rem;color:var(--accent);">https://authentik.example.com/application/o/confluent/jwks/</code></td>
+              <td>Broker (EXTERNAL)</td>
+              <td><code style="font-size:0.75rem;">sasl.oauthbearer.jwks.endpoint.url</code></td>
+            </tr>
+            <tr>
+              <td><strong>OIDC Authorization</strong></td>
+              <td><code style="font-size:0.75rem;color:var(--accent);">https://authentik.example.com/application/o/authorize/</code></td>
+              <td>C3 (SSO 리다이렉트)</td>
+              <td><code style="font-size:0.75rem;">confluent.controlcenter.rest.authentication.redirect.uri</code></td>
+            </tr>
+            <tr>
+              <td><strong>OIDC Callback</strong></td>
+              <td><code style="font-size:0.75rem;color:var(--positive);">https://c3.example.com:9021/login/callback</code></td>
+              <td>C3 (콜백 수신)</td>
+              <td><code style="font-size:0.75rem;">Authentik Provider → Redirect URI</code></td>
+            </tr>
+            <tr>
+              <td><strong>LDAP Outpost</strong></td>
+              <td><code style="font-size:0.75rem;color:var(--accent-secondary);">ldaps://ldap.example.com:636</code></td>
+              <td>MDS</td>
+              <td><code style="font-size:0.75rem;">ldap.java.naming.provider.url</code></td>
+            </tr>
+            <tr>
+              <td><strong>MDS RBAC API</strong></td>
+              <td><code style="font-size:0.75rem;color:var(--negative);">https://broker.example.com:8090</code></td>
+              <td>SR, C3, confluent CLI</td>
+              <td><code style="font-size:0.75rem;">confluent.metadata.bootstrap.server.urls</code></td>
+            </tr>
+            <tr>
+              <td><strong>Authentik Admin</strong></td>
+              <td><code style="font-size:0.75rem;color:var(--warning);">https://authentik.example.com/if/admin/</code></td>
+              <td>관리자</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><strong>Authentik Health</strong></td>
+              <td><code style="font-size:0.75rem;color:var(--positive);">https://authentik.example.com/-/health/ready/</code></td>
+              <td>모니터링 / LB</td>
+              <td>— (HTTP 200 = healthy)</td>
+            </tr>
+            <tr>
+              <td><strong>Authentik Metrics</strong></td>
+              <td><code style="font-size:0.75rem;color:var(--positive);">http://authentik.example.com:9000/metrics</code></td>
+              <td>Prometheus</td>
+              <td>— (OpenMetrics 포맷)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" style="margin-top:16px;padding:16px 20px;background:var(--glass);border:1px solid var(--border);">
+        <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.7;">
+          <strong style="color:var(--text);">URL 규칙:</strong> <code style="color:var(--accent);font-size:0.8125rem;">example.com</code>을 실제 도메인으로 교체하세요. Authentik의 OAuth2 Provider 이름이 <code style="color:var(--accent);font-size:0.8125rem;">confluent</code>가 아닌 경우, JWKS URL 경로의 <code style="color:var(--accent);font-size:0.8125rem;">/o/confluent/</code> 부분도 함께 변경해야 합니다.
+        </p>
+      </div>
+    </section>
+
+    <!-- TOKEN LIFECYCLE -->
+    <section class="container" data-reveal>
+      <div class="section-header">
+        <div class="section-number">09 / 토큰 수명</div>
+        <h2>토큰 수명 & 갱신 전략</h2>
+      </div>
+
+      <div class="matrix-wrapper" style="overflow-x:auto;">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>토큰</th>
+              <th>발급자</th>
+              <th>권장 TTL</th>
+              <th>갱신 방식</th>
+              <th>장애 시 버퍼</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Authentik JWT</strong></td>
+              <td>Authentik OAuth2</td>
+              <td><span style="color:var(--accent);font-weight:600;">3600s (1h)</span></td>
+              <td>Client 재요청 (Client Credentials)</td>
+              <td>JWKS 캐시 유효 시 기존 토큰 검증 가능</td>
+            </tr>
+            <tr>
+              <td><strong>MDS Token</strong></td>
+              <td>MDS (Broker 내장)</td>
+              <td><span style="color:var(--accent-secondary);font-weight:600;">1800s (30m)</span></td>
+              <td>CP 컴포넌트 자동 갱신</td>
+              <td>캐시된 토큰 만료 전까지 동작</td>
+            </tr>
+            <tr>
+              <td><strong>OIDC Session</strong></td>
+              <td>Authentik OIDC</td>
+              <td><span style="color:var(--positive);font-weight:600;">86400s (24h)</span></td>
+              <td>Refresh Token 자동 갱신</td>
+              <td>기존 브라우저 세션 유지</td>
+            </tr>
+            <tr>
+              <td><strong>SCRAM 자격증명</strong></td>
+              <td>KRaft / Broker</td>
+              <td><span style="color:var(--warning);font-weight:600;">영구 (수동 변경)</span></td>
+              <td>수동 Rotation</td>
+              <td>Authentik 완전 독립</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="impact-grid" style="margin-top:20px;grid-template-columns:1fr 1fr;">
+        <div class="impact-card">
+          <div class="impact-header">
+            <div class="impact-icon" style="background:var(--glow-accent);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="impact-title">JWKS 캐싱 동작</div>
+          </div>
+          <div class="impact-section">
+            <div class="impact-label" style="color:var(--accent);">캐시 갱신 주기</div>
+            <div class="impact-text"><code style="font-size:0.8125rem;">sasl.oauthbearer.jwks.endpoint.refresh.ms</code><br>기본값: 3,600,000ms (1시간)</div>
+          </div>
+          <div class="impact-section">
+            <div class="impact-label" style="color:var(--positive);">장애 시 버퍼</div>
+            <div class="impact-text">Authentik 다운 시에도 캐시된 JWKS로 JWT 검증 계속 가능. 캐시 만료 전 Authentik 복구 필요.</div>
+          </div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-header">
+            <div class="impact-icon" style="background:var(--glow-purple);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            </div>
+            <div class="impact-title">MDS 토큰 캐싱 동작</div>
+          </div>
+          <div class="impact-section">
+            <div class="impact-label" style="color:var(--accent-secondary);">토큰 서명</div>
+            <div class="impact-text"><code style="font-size:0.8125rem;">tokenKeypair.pem</code> (개인키) / <code style="font-size:0.8125rem;">public.pem</code> (검증용)</div>
+          </div>
+          <div class="impact-section">
+            <div class="impact-label" style="color:var(--positive);">독립성</div>
+            <div class="impact-text">MDS 토큰은 자체 키페어로 서명되므로 Authentik/JWKS와 독립. LDAP만 필요 (신규 발급 시).</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <footer style="padding:32px 0 48px;text-align:center;">
-      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증 아키텍처 정의서 v2 &middot; 업데이트 2026-04-08 &middot; Confluent 공식 문서 기반</p>
+      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증 아키텍처 정의서 v3 &middot; 업데이트 2026-04-22 &middot; Confluent 공식 문서 기반</p>
     </footer>
   </main>
 
