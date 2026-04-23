@@ -525,7 +525,7 @@
     <div class="step-connector"></div>
     <div class="step-item" data-step="5" onclick="goToStep(5)">
       <div class="step-num">5</div>
-      <span class="step-label">보안 설정</span>
+      <span class="step-label">암호화 & Listener</span>
     </div>
     <div class="step-connector"></div>
     <div class="step-item" data-step="6" onclick="goToStep(6)">
@@ -546,7 +546,7 @@
       <section class="wizard-step active" id="step1">
         <div class="step-header animate">
           <h2>클러스터 토폴로지</h2>
-          <p>Confluent Platform의 기본 아키텍처를 설정합니다. 환경 유형에 따라 권장 설정이 자동 적용됩니다.</p>
+          <p>환경 유형에 따라 노드 구성(Controller/Broker), 컴포넌트(Schema Registry, Control Center) 및 호스트 정보를 설정합니다.</p>
         </div>
 
         <div class="form-group animate delay-1">
@@ -683,7 +683,7 @@
       <section class="wizard-step" id="step2">
         <div class="step-header animate">
           <h2>인증 & 인가</h2>
-          <p>RBAC, LDAP 연동 및 SSO/OIDC 설정을 구성합니다. 여기서 RBAC을 활성화하면 다음 단계의 Listener SASL이 자동 설정됩니다.</p>
+          <p>MDS/RBAC, LDAP 연동 및 SSO/OIDC 설정을 구성합니다. RBAC 활성화 시 5단계(암호화 & Listener)의 SASL이 OAUTHBEARER로 자동 고정됩니다.</p>
         </div>
 
         <div class="form-group animate delay-1">
@@ -805,8 +805,8 @@
       <!-- ====== STEP 5: 보안 설정 ====== -->
       <section class="wizard-step" id="step5">
         <div class="step-header animate">
-          <h2>보안 설정</h2>
-          <p>SSL/TLS 암호화 및 Listener별 인증 프로토콜을 설정합니다. RBAC 활성화 시 External/Token Listener는 OAUTHBEARER가 필수입니다.</p>
+          <h2>암호화 & Listener</h2>
+          <p>SSL/TLS, mTLS 암호화와 3개 Listener(Internal/External/Token)의 SASL 인증 프로토콜 및 컴포넌트 포트를 설정합니다.</p>
         </div>
 
         <div class="form-group animate delay-1">
@@ -976,7 +976,7 @@
       <section class="wizard-step" id="step3">
         <div class="step-header animate">
           <h2>데이터 & 성능</h2>
-          <p>데이터 보존 정책, 복제 전략 및 성능 관련 설정을 구성합니다.</p>
+          <p>토픽 기본값(보존 기간, Replication Factor, 파티션), 로그 세그먼트 및 데이터 디렉토리를 구성합니다.</p>
         </div>
 
         <div class="form-group animate delay-1">
@@ -1118,7 +1118,7 @@
       <section class="wizard-step" id="step4">
         <div class="step-header animate">
           <h2>리소스 & 모니터링</h2>
-          <p>JVM 힙 크기, JMX Exporter 및 모니터링 설정을 구성합니다.</p>
+          <p>컴포넌트별 JVM 힙 크기를 설정하고 JMX Exporter, Prometheus 모니터링을 구성합니다.</p>
         </div>
 
         <div class="form-group animate delay-1">
@@ -1239,7 +1239,7 @@
       <section class="wizard-step" id="step7">
         <div class="step-header animate">
           <h2>최종 확인</h2>
-          <p>모든 설정을 검토하고 엔지니어에게 전달하세요.</p>
+          <p>전체 설정을 검토하고, 설정 확인서를 다운로드하거나 PDF로 내보내 엔지니어에게 전달합니다.</p>
         </div>
 
         <div id="summaryAlerts" class="animate delay-1"></div>
