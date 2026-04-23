@@ -154,4 +154,4 @@ npm run test:report       # 테스트 리포트 확인
 
 ## 라이선스
 
-[MIT](LICENSE)
+[Apache](LICENSE)
