@@ -619,8 +619,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           Confluent Platform + Authentik
         </div>
-        <h1 class="animate delay-1">Confluent Platform<br>인증 아키텍처</h1>
-        <p class="hero-subtitle animate delay-2">Authentik + MDS/RBAC 기반 3-Listener 아키텍처 정의서. 외부 Client, CP 컴포넌트, Inter-broker 통신을 각각 분리된 인증 채널로 보호합니다.</p>
+        <h1 class="animate delay-1">Confluent Platform<br>인증/인가 아키텍처</h1>
+        <p class="hero-subtitle animate delay-2">Authentik + MDS/RBAC 기반 3-Listener 아키텍처 정의서. 외부 Client, CP 컴포넌트, Inter-broker 통신을 각각 분리된 Listener로 보호하며, 장애 분석·HA·운영 엔드포인트까지 다룹니다.</p>
 
         <div class="principles-grid animate delay-3">
           <div class="principle-card">
@@ -878,7 +878,7 @@
     <section class="container" data-reveal>
       <div class="section-header">
         <div class="section-number">03 / 인증 흐름</div>
-        <h2>인증 흐름</h2>
+        <h2>프로토콜별 인증 시퀀스</h2>
       </div>
 
       <div class="flow-tabs" role="tablist">
@@ -1819,7 +1819,7 @@
     </section>
 
     <footer style="padding:32px 0 48px;text-align:center;">
-      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증 아키텍처 정의서 v5 &middot; 업데이트 2026-04-23 &middot; Confluent 공식 문서 기반</p>
+      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증/인가 아키텍처 정의서 v5 &middot; 업데이트 2026-04-23 &middot; Confluent 공식 문서 기반</p>
     </footer>
   </main>
 
