@@ -546,34 +546,39 @@
     .seq-toggle[open] summary { border-color: var(--accent); background: var(--accent-glow); }
     .seq-toggle .seq-chevron { margin-left: auto; transition: transform 0.2s; }
     .seq-toggle[open] .seq-chevron { transform: rotate(90deg); }
-    .seq-diagram { padding: 16px 0 0; }
-    .seq-participants { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-    .seq-participant {
-      text-align: center; font-size: 0.75rem; font-weight: 600;
-      padding: 5px 12px; border-radius: 8px;
-      background: var(--surface); border: 1.5px solid var(--border); color: var(--text);
-    }
-    .seq-steps { display: flex; flex-direction: column; gap: 1px; }
-    .seq-step {
-      display: grid; grid-template-columns: 26px 1fr; gap: 8px; padding: 7px 12px;
-      border-radius: 8px; font-size: 0.8125rem; line-height: 1.5; transition: background 0.15s;
-    }
-    .seq-step:hover { background: var(--glass); }
-    .seq-num {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--accent-glow); color: var(--accent);
-      font-size: 0.6875rem; font-weight: 700;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .seq-msg { color: var(--text); }
-    .seq-msg b { color: var(--accent); font-weight: 600; }
-    .seq-msg .ar { color: var(--text-secondary); margin: 0 3px; }
-    .seq-msg .dt { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-top: 1px; }
-    .seq-msg .nt { display: inline-block; font-size: 0.6875rem; color: var(--warning); background: var(--glow-orange); padding: 1px 7px; border-radius: 4px; margin-top: 3px; }
-    @media (max-width: 768px) {
-      .seq-participant { font-size: 0.6875rem; padding: 4px 8px; }
-      .seq-step { padding: 6px 8px; font-size: 0.75rem; }
-      .seq-msg .dt { font-size: 0.6875rem; }
+    /* ── Sequence Diagram (Lifeline) ── */
+    .sd-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:12px;}
+    .sd{min-width:560px;}
+    .sd-head{display:flex;gap:4px;}
+    .sd-p{flex:1;text-align:center;padding:7px 4px;font-size:.72rem;font-weight:600;line-height:1.25;
+      color:var(--text);background:var(--surface);border:1.5px solid var(--border);border-radius:7px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative;z-index:2;}
+    .sd-body{position:relative;padding:2px 0 6px;}
+    .sd-lanes{position:absolute;inset:0;display:flex;pointer-events:none;z-index:0;}
+    .sd-lane{flex:1;position:relative;}
+    .sd-lane::after{content:'';position:absolute;left:calc(50% - .75px);top:0;bottom:0;border-left:1.5px dashed var(--border);}
+    .sd-row{position:relative;min-height:48px;}
+    .sd-n{position:absolute;left:2px;top:14px;width:18px;height:18px;border-radius:50%;
+      background:var(--accent-glow);color:var(--accent);font-size:.5625rem;font-weight:700;font-style:normal;
+      display:flex;align-items:center;justify-content:center;z-index:3;}
+    .sd-lbl{position:absolute;top:4px;z-index:2;font-size:.6875rem;line-height:1.3;
+      color:var(--text-secondary);text-align:center;padding:0 4px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .sd-arr{position:absolute;top:28px;height:0;z-index:1;border-top:1.5px solid var(--accent);}
+    .sd-arr::after{content:'';position:absolute;top:-4.5px;width:0;height:0;border:4.5px solid transparent;}
+    .sd-arr.r::after{right:-1px;border-left:7px solid var(--accent);border-right:none;}
+    .sd-arr.l::after{left:-1px;border-right:7px solid var(--accent);border-left:none;}
+    .sd-self{position:absolute;top:8px;z-index:1;
+      height:28px;padding:0 10px;
+      border:1.5px solid var(--accent);border-radius:5px;background:var(--accent-glow);
+      display:flex;align-items:center;justify-content:center;
+      font-size:.625rem;font-weight:600;color:var(--accent);text-align:center;line-height:1.2;
+      white-space:nowrap;transform:translateX(-50%);}
+    @media(max-width:768px){
+      .sd{min-width:480px;}
+      .sd-p{font-size:.65rem;padding:5px 2px;}
+      .sd-lbl{font-size:.625rem;}
+      .sd-self{font-size:.5625rem;}
     }
   </style>
 </head>
@@ -935,24 +940,25 @@
             프로토콜 시퀀스 상세
             <svg class="seq-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
           </summary>
-          <div class="seq-diagram">
-            <div class="seq-participants">
-              <span class="seq-participant">Client</span>
-              <span class="seq-participant" style="border-color:var(--positive);">Authentik</span>
-              <span class="seq-participant" style="border-color:var(--warning);">Broker :9092</span>
-              <span class="seq-participant" style="border-color:var(--negative);">MDS</span>
+          <div class="sd-wrap"><div class="sd">
+            <div class="sd-head">
+              <div class="sd-p">Client</div>
+              <div class="sd-p" style="border-color:var(--positive)">Authentik</div>
+              <div class="sd-p" style="border-color:var(--warning)">Broker :9092</div>
+              <div class="sd-p" style="border-color:var(--negative)">MDS</div>
             </div>
-            <div class="seq-steps">
-              <div class="seq-step"><div class="seq-num">1</div><div class="seq-msg"><b>Client</b><span class="ar">→</span><b>Authentik</b><span class="dt">POST /application/o/token/ (grant_type=client_credentials, client_id, client_secret)</span></div></div>
-              <div class="seq-step"><div class="seq-num">2</div><div class="seq-msg"><b>Authentik</b><span class="ar">→</span><b>Client</b><span class="dt">JWT 발급 — RS256 서명, iss=authentik, sub=client_id, exp, aud=kafka</span></div></div>
-              <div class="seq-step"><div class="seq-num">3</div><div class="seq-msg"><b>Client</b><span class="ar">→</span><b>Broker :9092</b><span class="dt">SASL_SSL OAUTHBEARER — SaslAuthenticate(JWT) via EXTERNAL 리스너</span></div></div>
-              <div class="seq-step"><div class="seq-num">4</div><div class="seq-msg"><b>Broker</b><span class="ar">→</span><b>Authentik JWKS</b><span class="dt">GET /.well-known/jwks.json — RS256 공개키 조회 (캐시됨)</span></div></div>
-              <div class="seq-step"><div class="seq-num">5</div><div class="seq-msg"><b>Broker</b> 자체 검증<span class="dt">JWT 서명 검증 + iss · sub · exp · aud claims 확인</span></div></div>
-              <div class="seq-step"><div class="seq-num">6</div><div class="seq-msg"><b>Broker</b><span class="ar">→</span><b>MDS</b><span class="dt">RBAC 권한 조회 — principal(sub claim)의 역할 바인딩 확인</span></div></div>
-              <div class="seq-step"><div class="seq-num">7</div><div class="seq-msg"><b>Broker</b><span class="ar">→</span><b>Client</b><span class="dt">SaslAuthenticate 응답 — 인증 성공</span></div></div>
-              <div class="seq-step"><div class="seq-num">8</div><div class="seq-msg"><b>Client</b><span class="ar">↔</span><b>Broker</b><span class="dt">Produce / Consume / Admin 요청 — RBAC 정책에 따라 인가</span></div></div>
+            <div class="sd-body">
+              <div class="sd-lanes"><div class="sd-lane"></div><div class="sd-lane"></div><div class="sd-lane"></div><div class="sd-lane"></div></div>
+              <div class="sd-row"><i class="sd-n">1</i><div class="sd-lbl" style="left:12.5%;width:25%">POST /token (client_credentials)</div><div class="sd-arr r" style="left:12.5%;width:25%"></div></div>
+              <div class="sd-row"><i class="sd-n">2</i><div class="sd-lbl" style="left:12.5%;width:25%">JWT 발급 (RS256, iss=authentik)</div><div class="sd-arr l" style="left:12.5%;width:25%"></div></div>
+              <div class="sd-row"><i class="sd-n">3</i><div class="sd-lbl" style="left:12.5%;width:50%">SASL_SSL OAUTHBEARER (JWT)</div><div class="sd-arr r" style="left:12.5%;width:50%"></div></div>
+              <div class="sd-row"><i class="sd-n">4</i><div class="sd-lbl" style="left:37.5%;width:25%">GET JWKS (RS256 공개키)</div><div class="sd-arr l" style="left:37.5%;width:25%"></div></div>
+              <div class="sd-row"><i class="sd-n">5</i><div class="sd-self" style="left:62.5%">JWT 서명·claims 검증</div></div>
+              <div class="sd-row"><i class="sd-n">6</i><div class="sd-lbl" style="left:62.5%;width:25%">RBAC 권한 조회</div><div class="sd-arr r" style="left:62.5%;width:25%"></div></div>
+              <div class="sd-row"><i class="sd-n">7</i><div class="sd-lbl" style="left:12.5%;width:50%">SaslAuthenticate 성공</div><div class="sd-arr l" style="left:12.5%;width:50%"></div></div>
+              <div class="sd-row"><i class="sd-n">8</i><div class="sd-lbl" style="left:12.5%;width:50%">Produce / Consume (RBAC 인가)</div><div class="sd-arr r" style="left:12.5%;width:50%"></div></div>
             </div>
-          </div>
+          </div></div>
         </details>
       </div>
 
@@ -1008,24 +1014,25 @@
             프로토콜 시퀀스 상세
             <svg class="seq-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
           </summary>
-          <div class="seq-diagram">
-            <div class="seq-participants">
-              <span class="seq-participant" style="border-color:var(--accent-secondary);">SR · Connect · ksqlDB</span>
-              <span class="seq-participant" style="border-color:var(--negative);">MDS :8090</span>
-              <span class="seq-participant" style="border-color:var(--positive);">LDAP (Authentik)</span>
-              <span class="seq-participant" style="border-color:var(--warning);">Broker :9094</span>
+          <div class="sd-wrap"><div class="sd">
+            <div class="sd-head">
+              <div class="sd-p" style="border-color:var(--accent-secondary)">SR·Connect·ksqlDB</div>
+              <div class="sd-p" style="border-color:var(--negative)">MDS :8090</div>
+              <div class="sd-p" style="border-color:var(--positive)">LDAP (Authentik)</div>
+              <div class="sd-p" style="border-color:var(--warning)">Broker :9094</div>
             </div>
-            <div class="seq-steps">
-              <div class="seq-step"><div class="seq-num">1</div><div class="seq-msg"><b>CP Component</b><span class="ar">→</span><b>MDS :8090</b><span class="dt">POST /security/1.0/authenticate — Authorization: Basic base64(username:password)</span></div></div>
-              <div class="seq-step"><div class="seq-num">2</div><div class="seq-msg"><b>MDS</b><span class="ar">→</span><b>LDAP</b><span class="dt">LDAP BIND — cn=schema-registry,ou=services,dc=example,dc=com (LDAPS :636)</span></div></div>
-              <div class="seq-step"><div class="seq-num">3</div><div class="seq-msg"><b>LDAP</b><span class="ar">→</span><b>MDS</b><span class="dt">BIND 성공 + memberOf 그룹 정보 반환</span></div></div>
-              <div class="seq-step"><div class="seq-num">4</div><div class="seq-msg"><b>MDS</b><span class="ar">→</span><b>CP Component</b><span class="dt">MDS Token 발급 — JWT (RSA 서명, tokenKeypair.pem, sub=principal)</span></div></div>
-              <div class="seq-step"><div class="seq-num">5</div><div class="seq-msg"><b>CP Component</b><span class="ar">→</span><b>Broker :9094</b><span class="dt">SASL_SSL OAUTHBEARER — SaslAuthenticate(MDS Token) via TOKEN 리스너</span></div></div>
-              <div class="seq-step"><div class="seq-num">6</div><div class="seq-msg"><b>Broker</b> 자체 검증<span class="dt">public.pem으로 MDS Token 서명 검증 + claims 확인</span></div></div>
-              <div class="seq-step"><div class="seq-num">7</div><div class="seq-msg"><b>Broker</b><span class="ar">→</span><b>MDS</b><span class="dt">RBAC 권한 조회 — principal의 역할 바인딩 확인 (결과 캐시)</span></div></div>
-              <div class="seq-step"><div class="seq-num">8</div><div class="seq-msg"><b>Broker</b><span class="ar">→</span><b>CP Component</b><span class="dt">인증/인가 완료 — _schemas, connect-offsets 등 내부 토픽 접근 허용</span></div></div>
+            <div class="sd-body">
+              <div class="sd-lanes"><div class="sd-lane"></div><div class="sd-lane"></div><div class="sd-lane"></div><div class="sd-lane"></div></div>
+              <div class="sd-row"><i class="sd-n">1</i><div class="sd-lbl" style="left:12.5%;width:25%">Basic Auth (username:password)</div><div class="sd-arr r" style="left:12.5%;width:25%"></div></div>
+              <div class="sd-row"><i class="sd-n">2</i><div class="sd-lbl" style="left:37.5%;width:25%">LDAP BIND (LDAPS :636)</div><div class="sd-arr r" style="left:37.5%;width:25%"></div></div>
+              <div class="sd-row"><i class="sd-n">3</i><div class="sd-lbl" style="left:37.5%;width:25%">BIND 성공 + memberOf</div><div class="sd-arr l" style="left:37.5%;width:25%"></div></div>
+              <div class="sd-row"><i class="sd-n">4</i><div class="sd-lbl" style="left:12.5%;width:25%">MDS Token (RSA, sub=principal)</div><div class="sd-arr l" style="left:12.5%;width:25%"></div></div>
+              <div class="sd-row"><i class="sd-n">5</i><div class="sd-lbl" style="left:12.5%;width:75%">SASL_SSL OAUTHBEARER (MDS Token)</div><div class="sd-arr r" style="left:12.5%;width:75%"></div></div>
+              <div class="sd-row"><i class="sd-n">6</i><div class="sd-self" style="left:87.5%">public.pem 검증</div></div>
+              <div class="sd-row"><i class="sd-n">7</i><div class="sd-lbl" style="left:37.5%;width:50%">RBAC 권한 조회 (캐시)</div><div class="sd-arr l" style="left:37.5%;width:50%"></div></div>
+              <div class="sd-row"><i class="sd-n">8</i><div class="sd-lbl" style="left:12.5%;width:75%">인증/인가 완료</div><div class="sd-arr l" style="left:12.5%;width:75%"></div></div>
             </div>
-          </div>
+          </div></div>
         </details>
       </div>
 
@@ -1077,31 +1084,36 @@
         </div>
         <!-- 시퀀스 다이어그램 -->
         <details class="seq-toggle">
-          <summary>프로토콜 레벨 시퀀스 보기</summary>
-          <div class="seq-diagram">
-            <div class="seq-participants">
-              <span class="seq-participant">Browser</span>
-              <span class="seq-participant">C3 :9021</span>
-              <span class="seq-participant">Authentik</span>
-              <span class="seq-participant">MDS :8090</span>
-              <span class="seq-participant">Broker :9094</span>
+          <summary>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
+            프로토콜 시퀀스 상세
+            <svg class="seq-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </summary>
+          <div class="sd-wrap"><div class="sd">
+            <div class="sd-head">
+              <div class="sd-p">Browser</div>
+              <div class="sd-p" style="border-color:var(--positive)">C3 :9021</div>
+              <div class="sd-p" style="border-color:var(--accent-secondary)">Authentik</div>
+              <div class="sd-p" style="border-color:var(--negative)">MDS :8090</div>
+              <div class="sd-p" style="border-color:var(--warning)">Broker :9094</div>
             </div>
-            <div class="seq-steps">
-              <div class="seq-step"><span class="seq-num">1</span><span class="seq-msg"><strong>Browser → C3</strong> — HTTPS GET /login 접속</span></div>
-              <div class="seq-step"><span class="seq-num">2</span><span class="seq-msg"><strong>C3 → Authentik</strong> — OIDC Authorization Redirect (response_type=code, scope=openid)</span></div>
-              <div class="seq-step"><span class="seq-num">3</span><span class="seq-msg"><strong>Browser → Authentik</strong> — 사용자 로그인 (ID/Password)</span></div>
-              <div class="seq-step"><span class="seq-num">4</span><span class="seq-msg"><strong>Authentik → Browser</strong> — Authorization Code Callback (302 → C3 redirect_uri)</span></div>
-              <div class="seq-step"><span class="seq-num">5</span><span class="seq-msg"><strong>Browser → C3</strong> — Authorization Code 전달</span></div>
-              <div class="seq-step"><span class="seq-num">6</span><span class="seq-msg"><strong>C3 → Authentik</strong> — Token Exchange (POST /token, code + client_secret)</span></div>
-              <div class="seq-step"><span class="seq-num">7</span><span class="seq-msg"><strong>Authentik → C3</strong> — ID Token + Access Token (JWT) 발급</span></div>
-              <div class="seq-step"><span class="seq-num">8</span><span class="seq-msg"><strong>C3 → MDS</strong> — 사용자 identity 기반 MDS 인증 (OIDC 토큰 정보 전달)</span></div>
-              <div class="seq-step"><span class="seq-num">9</span><span class="seq-msg"><strong>MDS → LDAP</strong> — 사용자 그룹/역할 검증 (LDAP BIND)</span></div>
-              <div class="seq-step"><span class="seq-num">10</span><span class="seq-msg"><strong>MDS → C3</strong> — MDS Token 발급 (private.pem 서명)</span></div>
-              <div class="seq-step"><span class="seq-num">11</span><span class="seq-msg"><strong>C3 → Broker :9094</strong> — SASL_SSL OAUTHBEARER (MDS Token)</span></div>
-              <div class="seq-step"><span class="seq-num">12</span><span class="seq-msg"><strong>Broker</strong> — public.pem으로 MDS Token 자체 검증 + RBAC 권한 확인</span></div>
-              <div class="seq-step"><span class="seq-num">13</span><span class="seq-msg"><strong>C3 → Browser</strong> — 세션 설정 완료, 대시보드 표시</span></div>
+            <div class="sd-body">
+              <div class="sd-lanes"><div class="sd-lane"></div><div class="sd-lane"></div><div class="sd-lane"></div><div class="sd-lane"></div><div class="sd-lane"></div></div>
+              <div class="sd-row"><i class="sd-n">1</i><div class="sd-lbl" style="left:10%;width:20%">GET /login</div><div class="sd-arr r" style="left:10%;width:20%"></div></div>
+              <div class="sd-row"><i class="sd-n">2</i><div class="sd-lbl" style="left:30%;width:20%">OIDC Authorization Redirect</div><div class="sd-arr r" style="left:30%;width:20%"></div></div>
+              <div class="sd-row"><i class="sd-n">3</i><div class="sd-lbl" style="left:10%;width:40%">사용자 로그인 (ID/PW)</div><div class="sd-arr r" style="left:10%;width:40%"></div></div>
+              <div class="sd-row"><i class="sd-n">4</i><div class="sd-lbl" style="left:10%;width:40%">Authorization Code (302)</div><div class="sd-arr l" style="left:10%;width:40%"></div></div>
+              <div class="sd-row"><i class="sd-n">5</i><div class="sd-lbl" style="left:10%;width:20%">Code 전달</div><div class="sd-arr r" style="left:10%;width:20%"></div></div>
+              <div class="sd-row"><i class="sd-n">6</i><div class="sd-lbl" style="left:30%;width:20%">Token Exchange (code+secret)</div><div class="sd-arr r" style="left:30%;width:20%"></div></div>
+              <div class="sd-row"><i class="sd-n">7</i><div class="sd-lbl" style="left:30%;width:20%">ID Token + Access Token</div><div class="sd-arr l" style="left:30%;width:20%"></div></div>
+              <div class="sd-row"><i class="sd-n">8</i><div class="sd-lbl" style="left:30%;width:40%">사용자 인증 (OIDC 토큰)</div><div class="sd-arr r" style="left:30%;width:40%"></div></div>
+              <div class="sd-row"><i class="sd-n">9</i><div class="sd-lbl" style="left:50%;width:20%">LDAP 그룹/역할 검증</div><div class="sd-arr l" style="left:50%;width:20%"></div></div>
+              <div class="sd-row"><i class="sd-n">10</i><div class="sd-lbl" style="left:30%;width:40%">MDS Token (private.pem)</div><div class="sd-arr l" style="left:30%;width:40%"></div></div>
+              <div class="sd-row"><i class="sd-n">11</i><div class="sd-lbl" style="left:30%;width:60%">SASL_SSL OAUTHBEARER (MDS Token)</div><div class="sd-arr r" style="left:30%;width:60%"></div></div>
+              <div class="sd-row"><i class="sd-n">12</i><div class="sd-self" style="left:90%">public.pem + RBAC</div></div>
+              <div class="sd-row"><i class="sd-n">13</i><div class="sd-lbl" style="left:10%;width:20%">세션 설정, 대시보드</div><div class="sd-arr l" style="left:10%;width:20%"></div></div>
             </div>
-          </div>
+          </div></div>
         </details>
       </div>
 
@@ -1181,23 +1193,62 @@
         </div>
         <!-- 시퀀스 다이어그램 -->
         <details class="seq-toggle">
-          <summary>프로토콜 레벨 시퀀스 보기</summary>
-          <div class="seq-diagram">
-            <div class="seq-participants">
-              <span class="seq-participant">Initiator (Client)</span>
-              <span class="seq-participant">Responder (Server)</span>
-              <span class="seq-participant">KRaft Metadata</span>
+          <summary>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
+            프로토콜 시퀀스 상세
+            <svg class="seq-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </summary>
+          <div class="sd-wrap"><div class="sd">
+            <div class="sd-head">
+              <div class="sd-p">Initiator (Client)</div>
+              <div class="sd-p" style="border-color:var(--warning)">Responder (Server)</div>
+              <div class="sd-p" style="border-color:var(--positive)">KRaft Metadata</div>
             </div>
-            <div class="seq-steps">
-              <div class="seq-step"><span class="seq-num">1</span><span class="seq-msg"><strong>Initiator → Responder</strong> — SaslHandshake Request (mechanism=SCRAM-SHA-512)</span></div>
-              <div class="seq-step"><span class="seq-num">2</span><span class="seq-msg"><strong>Initiator → Responder</strong> — ClientFirst (username, client-nonce) — RFC 5802</span></div>
-              <div class="seq-step"><span class="seq-num">3</span><span class="seq-msg"><strong>Responder → KRaft</strong> — SCRAM credential 조회 (StoredKey, ServerKey, salt, iterations)</span></div>
-              <div class="seq-step"><span class="seq-num">4</span><span class="seq-msg"><strong>Responder → Initiator</strong> — ServerFirst (server-nonce, salt, iteration-count)</span></div>
-              <div class="seq-step"><span class="seq-num">5</span><span class="seq-msg"><strong>Initiator → Responder</strong> — ClientFinal (client-proof = ClientKey XOR ClientSignature)</span></div>
-              <div class="seq-step"><span class="seq-num">6</span><span class="seq-msg"><strong>Responder</strong> — StoredKey로 proof 검증 (HMAC 비교)</span></div>
-              <div class="seq-step"><span class="seq-num">7</span><span class="seq-msg"><strong>Responder → Initiator</strong> — ServerFinal (server-signature) — 상호 인증 완료</span></div>
+            <div class="sd-body">
+              <div class="sd-lanes"><div class="sd-lane"></div><div class="sd-lane"></div><div class="sd-lane"></div></div>
+              <!-- 1. SaslHandshake -->
+              <div class="sd-row">
+                <i class="sd-n">1</i>
+                <div class="sd-lbl" style="left:16.67%;width:33.33%">SaslHandshake (SCRAM-SHA-512)</div>
+                <div class="sd-arr r" style="left:16.67%;width:33.33%"></div>
+              </div>
+              <!-- 2. ClientFirst -->
+              <div class="sd-row">
+                <i class="sd-n">2</i>
+                <div class="sd-lbl" style="left:16.67%;width:33.33%">ClientFirst (username, client-nonce)</div>
+                <div class="sd-arr r" style="left:16.67%;width:33.33%"></div>
+              </div>
+              <!-- 3. Credential 조회 -->
+              <div class="sd-row">
+                <i class="sd-n">3</i>
+                <div class="sd-lbl" style="left:50%;width:33.33%">SCRAM credential 조회</div>
+                <div class="sd-arr r" style="left:50%;width:33.33%"></div>
+              </div>
+              <!-- 4. ServerFirst -->
+              <div class="sd-row">
+                <i class="sd-n">4</i>
+                <div class="sd-lbl" style="left:16.67%;width:33.33%">ServerFirst (server-nonce, salt, iterations)</div>
+                <div class="sd-arr l" style="left:16.67%;width:33.33%"></div>
+              </div>
+              <!-- 5. ClientFinal -->
+              <div class="sd-row">
+                <i class="sd-n">5</i>
+                <div class="sd-lbl" style="left:16.67%;width:33.33%">ClientFinal (client-proof)</div>
+                <div class="sd-arr r" style="left:16.67%;width:33.33%"></div>
+              </div>
+              <!-- 6. StoredKey 검증 (self) -->
+              <div class="sd-row">
+                <i class="sd-n">6</i>
+                <div class="sd-self" style="left:50%">StoredKey로 proof 검증 (HMAC)</div>
+              </div>
+              <!-- 7. ServerFinal -->
+              <div class="sd-row">
+                <i class="sd-n">7</i>
+                <div class="sd-lbl" style="left:16.67%;width:33.33%">ServerFinal (server-signature) — 상호 인증 완료</div>
+                <div class="sd-arr l" style="left:16.67%;width:33.33%"></div>
+              </div>
             </div>
-          </div>
+          </div></div>
         </details>
         <!-- 핵심 포인트 -->
         <div style="background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-top:8px;">
