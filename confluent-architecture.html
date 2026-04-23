@@ -836,6 +836,7 @@
         <button class="flow-tab active" onclick="switchFlow('flow1')" role="tab" aria-selected="true">외부 클라이언트</button>
         <button class="flow-tab" onclick="switchFlow('flow2')" role="tab">CP 컴포넌트</button>
         <button class="flow-tab" onclick="switchFlow('flow3')" role="tab">사용자 SSO (C3)</button>
+        <button class="flow-tab" onclick="switchFlow('flow4')" role="tab">클러스터 내부</button>
       </div>
 
       <!-- Flow 1: External Client -->
@@ -894,7 +895,7 @@
               <div class="flow-step-node" style="background:var(--glow-purple);border:2px solid var(--accent-secondary);border-radius:16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               </div>
-              <div class="flow-step-name">Schema Registry</div>
+              <div class="flow-step-name">SR · Connect · ksqlDB</div>
               <div class="flow-step-detail">CP 컴포넌트</div>
             </div>
             <div class="flow-arrow">
@@ -916,7 +917,7 @@
               <div class="flow-step-node" style="background:var(--glow-purple);border:2px solid var(--accent-secondary);border-radius:16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               </div>
-              <div class="flow-step-name">Schema Registry</div>
+              <div class="flow-step-name">CP 컴포넌트</div>
               <div class="flow-step-detail">MDS Token</div>
             </div>
             <div class="flow-arrow">
@@ -978,6 +979,88 @@
               <div class="flow-step-name">브로커 :9094</div>
               <div class="flow-step-detail">RBAC 데이터</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flow 4: Cluster Internal -->
+      <div class="flow-content" id="flow4">
+        <!-- Broker ↔ Broker -->
+        <div class="flow-diagram" style="margin-bottom:20px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;padding-left:4px;">Broker ↔ Broker (Inter-Broker Replication)</div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-step-node" style="background:var(--glow-orange);border:2px solid var(--warning);border-radius:16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+              </div>
+              <div class="flow-step-name">Broker 1</div>
+              <div class="flow-step-detail">Leader</div>
+            </div>
+            <div class="flow-arrow">
+              <div class="flow-arrow-line"><div class="line" style="background:var(--warning);"></div><div class="arrow" style="border-left:8px solid var(--warning);"></div></div>
+              <div class="flow-arrow-label">SCRAM-512 :9091</div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-node" style="background:var(--glow-orange);border:2px solid var(--warning);border-radius:16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+              </div>
+              <div class="flow-step-name">Broker 2</div>
+              <div class="flow-step-detail">Follower</div>
+            </div>
+          </div>
+        </div>
+        <!-- Controller ↔ Controller -->
+        <div class="flow-diagram" style="margin-bottom:20px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;padding-left:4px;">Controller ↔ Controller (KRaft Consensus)</div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-step-node" style="background:rgba(244,63,94,0.12);border:2px solid var(--negative);border-radius:16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--negative)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="flow-step-name">Controller 1</div>
+              <div class="flow-step-detail">Active</div>
+            </div>
+            <div class="flow-arrow">
+              <div class="flow-arrow-line"><div class="line" style="background:var(--negative);"></div><div class="arrow" style="border-left:8px solid var(--negative);"></div></div>
+              <div class="flow-arrow-label">SCRAM-512 :9093</div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-node" style="background:rgba(244,63,94,0.12);border:2px solid var(--negative);border-radius:16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--negative)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="flow-step-name">Controller 2</div>
+              <div class="flow-step-detail">Standby</div>
+            </div>
+          </div>
+        </div>
+        <!-- Controller ↔ Broker -->
+        <div class="flow-diagram" style="margin-bottom:20px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;padding-left:4px;">Controller ↔ Broker (메타데이터 동기화)</div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-step-node" style="background:rgba(244,63,94,0.12);border:2px solid var(--negative);border-radius:16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--negative)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="flow-step-name">Controller</div>
+              <div class="flow-step-detail">KRaft Quorum</div>
+            </div>
+            <div class="flow-arrow">
+              <div class="flow-arrow-line"><div class="line" style="background:var(--warning);"></div><div class="arrow" style="border-left:8px solid var(--warning);"></div></div>
+              <div class="flow-arrow-label">SCRAM-512 :9093</div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-node" style="background:var(--glow-orange);border:2px solid var(--warning);border-radius:16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+              </div>
+              <div class="flow-step-name">Broker</div>
+              <div class="flow-step-detail">메타데이터 수신</div>
+            </div>
+          </div>
+        </div>
+        <!-- 핵심 포인트 -->
+        <div style="background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-top:8px;">
+          <div style="font-size:13px;line-height:1.7;color:var(--text-secondary);">
+            <strong style="color:var(--warning);">핵심:</strong> 클러스터 내부 통신은 <strong style="color:var(--text);">SCRAM-SHA-512</strong>만 사용하며, Authentik · MDS와 <strong style="color:var(--text);">완전 독립</strong>입니다. SCRAM 자격증명은 KRaft 메타데이터에 내장되어 외부 인증 인프라 장애 시에도 클러스터가 정상 동작합니다.
           </div>
         </div>
       </div>
@@ -1044,6 +1127,20 @@
               <td>MDS</td>
               <td><span class="dep-partial">LDAP만 의존</span></td>
             </tr>
+            <tr data-type="internal" data-authentik="partial">
+              <td><strong>Connect -> Broker</strong></td>
+              <td><span class="port-badge port-token">TOKEN :9094</span></td>
+              <td><span class="mech-badge mech-oauth">OAUTHBEARER</span></td>
+              <td>MDS</td>
+              <td><span class="dep-partial">LDAP만 의존</span></td>
+            </tr>
+            <tr data-type="internal" data-authentik="partial">
+              <td><strong>ksqlDB -> Broker</strong></td>
+              <td><span class="port-badge port-token">TOKEN :9094</span></td>
+              <td><span class="mech-badge mech-oauth">OAUTHBEARER</span></td>
+              <td>MDS</td>
+              <td><span class="dep-partial">LDAP만 의존</span></td>
+            </tr>
             <tr data-type="internal" data-authentik="no">
               <td><strong>Broker <-> Broker</strong></td>
               <td><span class="port-badge port-internal">INTERNAL :9091</span></td>
@@ -1053,6 +1150,13 @@
             </tr>
             <tr data-type="internal" data-authentik="no">
               <td><strong>Controller <-> Controller</strong></td>
+              <td><span class="port-badge port-internal">CONTROLLER :9093</span></td>
+              <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
+              <td>-</td>
+              <td><span class="dep-no">독립적</span></td>
+            </tr>
+            <tr data-type="internal" data-authentik="no">
+              <td><strong>Controller <-> Broker</strong></td>
               <td><span class="port-badge port-internal">CONTROLLER :9093</span></td>
               <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
               <td>-</td>
@@ -1522,7 +1626,7 @@
     </section>
 
     <footer style="padding:32px 0 48px;text-align:center;">
-      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증 아키텍처 정의서 v3 &middot; 업데이트 2026-04-22 &middot; Confluent 공식 문서 기반</p>
+      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증 아키텍처 정의서 v4 &middot; 업데이트 2026-04-23 &middot; Confluent 공식 문서 기반</p>
     </footer>
   </main>
 
@@ -1585,7 +1689,7 @@
       document.querySelectorAll('.flow-tab').forEach(function(el) { el.classList.remove('active'); });
       document.getElementById(id).classList.add('active');
       var tabs = document.querySelectorAll('.flow-tab');
-      var idx = id === 'flow1' ? 0 : id === 'flow2' ? 1 : 2;
+      var idx = id === 'flow1' ? 0 : id === 'flow2' ? 1 : id === 'flow3' ? 2 : 3;
       tabs[idx].classList.add('active');
     }
 
