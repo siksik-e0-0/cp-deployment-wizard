@@ -1335,6 +1335,41 @@
               <td>MDS</td>
               <td><span class="dep-partial">LDAP만 의존</span></td>
             </tr>
+            <tr data-type="cp-internal" data-authentik="partial">
+              <td><strong>C3 -> SR</strong></td>
+              <td><span class="port-badge port-https">HTTPS :8081</span></td>
+              <td><span class="mech-badge mech-oauth">Bearer Token</span></td>
+              <td>MDS</td>
+              <td><span class="dep-partial">LDAP만 의존</span></td>
+            </tr>
+            <tr data-type="cp-internal" data-authentik="partial">
+              <td><strong>Connect -> SR</strong></td>
+              <td><span class="port-badge port-https">HTTPS :8081</span></td>
+              <td><span class="mech-badge mech-oauth">Bearer Token</span></td>
+              <td>MDS</td>
+              <td><span class="dep-partial">LDAP만 의존</span></td>
+            </tr>
+            <tr data-type="cp-internal" data-authentik="partial">
+              <td><strong>ksqlDB -> SR</strong></td>
+              <td><span class="port-badge port-https">HTTPS :8081</span></td>
+              <td><span class="mech-badge mech-oauth">Bearer Token</span></td>
+              <td>MDS</td>
+              <td><span class="dep-partial">LDAP만 의존</span></td>
+            </tr>
+            <tr data-type="cp-internal" data-authentik="partial">
+              <td><strong>C3 -> Connect</strong></td>
+              <td><span class="port-badge port-https">HTTPS :8083</span></td>
+              <td><span class="mech-badge mech-oauth">Bearer Token</span></td>
+              <td>MDS</td>
+              <td><span class="dep-partial">LDAP만 의존</span></td>
+            </tr>
+            <tr data-type="cp-internal" data-authentik="partial">
+              <td><strong>C3 -> ksqlDB</strong></td>
+              <td><span class="port-badge port-https">HTTPS :8088</span></td>
+              <td><span class="mech-badge mech-oauth">Bearer Token</span></td>
+              <td>MDS</td>
+              <td><span class="dep-partial">LDAP만 의존</span></td>
+            </tr>
             <tr data-type="cluster" data-authentik="no">
               <td><strong>Broker <-> Broker</strong></td>
               <td><span class="port-badge port-internal">INTERNAL :9091</span></td>
@@ -1812,7 +1847,7 @@
     </section>
 
     <footer style="padding:32px 0 48px;text-align:center;">
-      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증/인가 아키텍처 정의서 v8 &middot; 업데이트 2026-04-28 &middot; Confluent 공식 문서 기반</p>
+      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증/인가 아키텍처 정의서 v9 &middot; 업데이트 2026-04-28 &middot; Confluent 공식 문서 기반</p>
     </footer>
   </main>
 
