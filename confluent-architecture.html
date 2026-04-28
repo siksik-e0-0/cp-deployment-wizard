@@ -1269,7 +1269,8 @@
       <div class="listener-filters">
         <button class="listener-filter active" onclick="filterMatrix('all', event)">전체</button>
         <button class="listener-filter" onclick="filterMatrix('external', event)">외부</button>
-        <button class="listener-filter" onclick="filterMatrix('internal', event)">내부</button>
+        <button class="listener-filter" onclick="filterMatrix('cluster', event)">내부</button>
+        <button class="listener-filter" onclick="filterMatrix('cp-internal', event)">CP내부</button>
         <button class="listener-filter" onclick="filterMatrix('authentik', event)">Authentik 의존</button>
       </div>
 
@@ -1306,63 +1307,63 @@
               <td>Authentik</td>
               <td><span class="dep-yes">필수</span></td>
             </tr>
-            <tr data-type="internal" data-authentik="partial">
+            <tr data-type="cp-internal" data-authentik="partial">
               <td><strong>SR -> Broker</strong></td>
               <td><span class="port-badge port-token">TOKEN :9094</span></td>
               <td><span class="mech-badge mech-oauth">OAUTHBEARER</span></td>
               <td>MDS</td>
               <td><span class="dep-partial">LDAP만 의존</span></td>
             </tr>
-            <tr data-type="internal" data-authentik="partial">
+            <tr data-type="cp-internal" data-authentik="partial">
               <td><strong>C3 -> Broker</strong></td>
               <td><span class="port-badge port-token">TOKEN :9094</span></td>
               <td><span class="mech-badge mech-oauth">OAUTHBEARER</span></td>
               <td>MDS</td>
               <td><span class="dep-partial">LDAP만 의존</span></td>
             </tr>
-            <tr data-type="internal" data-authentik="partial">
+            <tr data-type="cp-internal" data-authentik="partial">
               <td><strong>Connect -> Broker</strong></td>
               <td><span class="port-badge port-token">TOKEN :9094</span></td>
               <td><span class="mech-badge mech-oauth">OAUTHBEARER</span></td>
               <td>MDS</td>
               <td><span class="dep-partial">LDAP만 의존</span></td>
             </tr>
-            <tr data-type="internal" data-authentik="partial">
+            <tr data-type="cp-internal" data-authentik="partial">
               <td><strong>ksqlDB -> Broker</strong></td>
               <td><span class="port-badge port-token">TOKEN :9094</span></td>
               <td><span class="mech-badge mech-oauth">OAUTHBEARER</span></td>
               <td>MDS</td>
               <td><span class="dep-partial">LDAP만 의존</span></td>
             </tr>
-            <tr data-type="internal" data-authentik="no">
+            <tr data-type="cluster" data-authentik="no">
               <td><strong>Broker <-> Broker</strong></td>
               <td><span class="port-badge port-internal">INTERNAL :9091</span></td>
               <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
               <td>-</td>
               <td><span class="dep-no">독립적</span></td>
             </tr>
-            <tr data-type="internal" data-authentik="no">
+            <tr data-type="cluster" data-authentik="no">
               <td><strong>Controller <-> Controller</strong></td>
               <td><span class="port-badge port-internal">CONTROLLER :9093</span></td>
               <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
               <td>-</td>
               <td><span class="dep-no">독립적</span></td>
             </tr>
-            <tr data-type="internal" data-authentik="no">
+            <tr data-type="cluster" data-authentik="no">
               <td><strong>Controller <-> Broker</strong></td>
               <td><span class="port-badge port-internal">CONTROLLER :9093</span></td>
               <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
               <td>-</td>
               <td><span class="dep-no">독립적</span></td>
             </tr>
-            <tr data-type="internal" data-authentik="yes">
+            <tr data-type="cp-internal" data-authentik="yes">
               <td><strong>Component -> MDS</strong></td>
               <td><span class="port-badge port-https">HTTPS :8090</span></td>
               <td><span class="mech-badge mech-basic">BASIC</span></td>
               <td>-</td>
               <td><span class="dep-yes">LDAP Outpost 필수</span></td>
             </tr>
-            <tr data-type="internal" data-authentik="yes">
+            <tr data-type="cp-internal" data-authentik="yes">
               <td><strong>MDS -> LDAP</strong></td>
               <td><span class="port-badge port-ldap">LDAPS :636</span></td>
               <td><span class="mech-badge mech-ldap">LDAP Bind</span></td>
@@ -1811,7 +1812,7 @@
     </section>
 
     <footer style="padding:32px 0 48px;text-align:center;">
-      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증/인가 아키텍처 정의서 v7 &middot; 업데이트 2026-04-24 &middot; Confluent 공식 문서 기반</p>
+      <p style="font-size:0.75rem;color:var(--text-secondary);">Confluent Platform 인증/인가 아키텍처 정의서 v8 &middot; 업데이트 2026-04-28 &middot; Confluent 공식 문서 기반</p>
     </footer>
   </main>
 
@@ -1886,7 +1887,8 @@
       rows.forEach(function(row) {
         if (type === 'all') { row.style.display = ''; return; }
         if (type === 'external') { row.style.display = row.dataset.type === 'external' ? '' : 'none'; return; }
-        if (type === 'internal') { row.style.display = row.dataset.type === 'internal' ? '' : 'none'; return; }
+        if (type === 'cluster') { row.style.display = row.dataset.type === 'cluster' ? '' : 'none'; return; }
+        if (type === 'cp-internal') { row.style.display = row.dataset.type === 'cp-internal' ? '' : 'none'; return; }
         if (type === 'authentik') { row.style.display = row.dataset.authentik === 'yes' ? '' : 'none'; return; }
       });
     }
