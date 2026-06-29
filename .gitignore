@@ -1,0 +1,7 @@
+node_modules/
+playwright-report/
+test-results/
+test-execution-final.log
+
+.claude/
+analysis/
