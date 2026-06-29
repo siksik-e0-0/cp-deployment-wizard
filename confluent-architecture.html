@@ -1217,6 +1217,14 @@
           </div>
         </div>
         <!-- 시퀀스 다이어그램 -->
+        <div style="background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:12px;">
+          <div style="font-size:13px;line-height:1.7;color:var(--text-secondary);">
+            <strong style="color:var(--negative);">Confluent 8.x+ KRaft 분리 기준:</strong>
+            Broker → Controller는 <strong style="color:var(--text);">CONTROLLER :9093</strong> 리스너로 등록·Heartbeat를 보내고,
+            Controller → Broker는 <strong style="color:var(--text);">Broker INTERNAL :9091</strong> 리스너로 메타데이터 변경을 전파합니다.
+            Controller는 Broker INTERNAL 리스너로 listen하지 않고, Broker가 만든 inter-broker listener를 client로 사용합니다.
+          </div>
+        </div>
         <details class="seq-toggle">
           <summary>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
@@ -1225,8 +1233,8 @@
           </summary>
           <div class="sd-wrap"><div class="sd">
             <div class="sd-head">
-              <div class="sd-p">Initiator (Client)</div>
-              <div class="sd-p" style="border-color:var(--warning)">Responder (Server)</div>
+              <div class="sd-p">Initiator</div>
+              <div class="sd-p" style="border-color:var(--warning)">Listener Owner</div>
               <div class="sd-p" style="border-color:var(--positive)">KRaft Metadata</div>
             </div>
             <div class="sd-body">
@@ -1278,7 +1286,7 @@
         <!-- 핵심 포인트 -->
         <div style="background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-top:8px;">
           <div style="font-size:13px;line-height:1.7;color:var(--text-secondary);">
-            <strong style="color:var(--warning);">핵심:</strong> 클러스터 내부 통신은 <strong style="color:var(--text);">SCRAM-SHA-512</strong>만 사용하며, Authentik · MDS와 <strong style="color:var(--text);">완전 독립</strong>입니다. SCRAM 자격증명은 KRaft 메타데이터에 내장되어 외부 인증 인프라 장애 시에도 클러스터가 정상 동작합니다.
+            <strong style="color:var(--warning);">핵심:</strong> 클러스터 내부 통신은 <strong style="color:var(--text);">SCRAM-SHA-512</strong>만 사용하며, Authentik · MDS와 <strong style="color:var(--text);">완전 독립</strong>입니다. SCRAM 자격증명은 KRaft 메타데이터에 저장됩니다. Controller/Broker 분리 구성에서는 통신 방향에 따라 listener owner가 달라지므로, :9093(CONTROLLER)과 :9091(INTERNAL)을 구분해야 합니다.
           </div>
         </div>
       </div>
@@ -1396,7 +1404,7 @@
               <td><span class="dep-partial">LDAP만 의존</span></td>
             </tr>
             <tr data-type="cluster" data-authentik="no">
-              <td><strong>Broker <-> Broker</strong></td>
+              <td><strong>Follower Broker -> Leader Broker</strong></td>
               <td><span class="port-badge port-internal">INTERNAL :9091</span></td>
               <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
               <td>-</td>
@@ -1410,8 +1418,15 @@
               <td><span class="dep-no">독립적</span></td>
             </tr>
             <tr data-type="cluster" data-authentik="no">
-              <td><strong>Controller <-> Broker</strong></td>
+              <td><strong>Broker -> Active Controller</strong></td>
               <td><span class="port-badge port-internal">CONTROLLER :9093</span></td>
+              <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
+              <td>-</td>
+              <td><span class="dep-no">독립적</span></td>
+            </tr>
+            <tr data-type="cluster" data-authentik="no">
+              <td><strong>Active Controller -> Broker</strong></td>
+              <td><span class="port-badge port-internal">INTERNAL :9091</span></td>
               <td><span class="mech-badge mech-scram">SCRAM-SHA-512</span></td>
               <td>-</td>
               <td><span class="dep-no">독립적</span></td>
@@ -1969,11 +1984,11 @@
       },
       broker: {
         title: 'Kafka Broker',
-        body: '<table class="detail-table"><tr><th>연결</th><th>리스너</th><th>인증</th></tr><tr><td>Client -> Broker</td><td>EXTERNAL :9092</td><td>OAUTHBEARER (Authentik)</td></tr><tr><td>CP Component -> Broker</td><td>TOKEN :9094</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>Broker <-> Broker</td><td>INTERNAL :9091</td><td>SCRAM-SHA-512</td></tr><tr><td>MDS -> Authentik LDAP</td><td>LDAPS</td><td>LDAP Bind</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">EXTERNAL 리스너(:9092)는 JWKS 엔드포인트를 통해 Authentik JWT를 검증합니다. TOKEN 리스너는 public.pem으로 MDS 토큰을 검증합니다. 각 리스너는 지정된 토큰 유형만 수락합니다.</p>'
+        body: '<table class="detail-table"><tr><th>연결</th><th>리스너</th><th>인증</th></tr><tr><td>Client -> Broker</td><td>EXTERNAL :9092</td><td>OAUTHBEARER (Authentik)</td></tr><tr><td>CP Component -> Broker</td><td>TOKEN :9094</td><td>OAUTHBEARER (MDS Token)</td></tr><tr><td>Follower Broker -> Leader Broker</td><td>INTERNAL :9091</td><td>SCRAM-SHA-512</td></tr><tr><td>Controller -> Broker</td><td>INTERNAL :9091</td><td>SCRAM-SHA-512</td></tr><tr><td>MDS -> Authentik LDAP</td><td>LDAPS</td><td>LDAP Bind</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">EXTERNAL 리스너(:9092)는 JWKS 엔드포인트를 통해 Authentik JWT를 검증합니다. TOKEN 리스너는 public.pem으로 MDS 토큰을 검증합니다. INTERNAL 리스너(:9091)는 inter-broker 복제와 controller-to-broker 메타데이터 전파에 사용됩니다.</p>'
       },
       controller: {
         title: 'KRaft Controller',
-        body: '<table class="detail-table"><tr><th>연결</th><th>프로토콜</th><th>인증</th></tr><tr><td>Controller <-> Controller</td><td>SASL_SSL</td><td>SCRAM-SHA-512</td></tr><tr><td>Controller <-> Broker</td><td>SASL_SSL</td><td>SCRAM-SHA-512</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">브로커 간 리스너는 RBAC 메타데이터 초기화 전에 동작해야 하므로, RBAC/OAUTHBEARER에 의존할 수 없습니다.</p>'
+        body: '<table class="detail-table"><tr><th>연결</th><th>리스너</th><th>인증</th></tr><tr><td>Controller <-> Controller</td><td>CONTROLLER :9093</td><td>SCRAM-SHA-512</td></tr><tr><td>Broker -> Controller</td><td>CONTROLLER :9093</td><td>SCRAM-SHA-512</td></tr><tr><td>Controller -> Broker</td><td>INTERNAL :9091</td><td>SCRAM-SHA-512</td></tr></table><p style="margin-top:12px;font-size:0.8125rem;color:var(--text-secondary);">Confluent Platform 8.x+에서는 KRaft가 유일한 메타데이터 방식입니다. Controller는 CONTROLLER 리스너로 quorum과 broker 등록/heartbeat를 처리하고, broker가 만든 inter-broker listener(INTERNAL)를 client로 사용해 broker에 메타데이터 변경을 전파합니다.</p>'
       },
       client: {
         title: 'External Client',
